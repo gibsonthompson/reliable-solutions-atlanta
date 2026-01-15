@@ -80,5 +80,29 @@ export default function sitemap() {
       changeFrequency: 'weekly',
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/crawl-space-encapsulation-vs-waterproofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
   ]
 }
