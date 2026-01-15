@@ -16,7 +16,7 @@ export default function BasementWaterproofingPage() {
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/foundation-repair-atlanta.png"
+            src="/images/portfolio/exterior-waterproofing-membrane.png"
             alt="Basement waterproofing installation"
             fill
             className="object-cover"
@@ -38,7 +38,7 @@ export default function BasementWaterproofingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
             <div className="relative h-[350px]">
               <Image
-                src="/images/basement-waterproofing-diagram.png"
+                src="/images/diagrams/basement-waterproofing-diagram.svg"
                 alt="Basement waterproofing diagram showing water flow"
                 fill
                 className="object-contain"

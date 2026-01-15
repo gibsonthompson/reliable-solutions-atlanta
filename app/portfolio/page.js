@@ -8,17 +8,28 @@ export const metadata = {
 }
 
 export default function PortfolioPage() {
-  // Portfolio images - these would be replaced with actual project photos
+  // Portfolio images - actual project photos
   const portfolioImages = [
-    '/images/portfolio/project-1.jpg',
-    '/images/portfolio/project-2.jpg',
-    '/images/portfolio/project-3.jpg',
-    '/images/portfolio/project-4.jpg',
-    '/images/portfolio/project-5.jpg',
-    '/images/portfolio/project-6.jpg',
-    '/images/portfolio/project-7.jpg',
-    '/images/portfolio/project-8.jpg',
-    '/images/portfolio/project-9.jpg',
+    { src: '/images/portfolio/foundation-repair-crew-working-atlanta.png', alt: 'Foundation repair crew working in Atlanta' },
+    { src: '/images/portfolio/stone-porch-steps-completed.png', alt: 'Completed stone porch steps' },
+    { src: '/images/portfolio/foundation-repair-in-progress.png', alt: 'Foundation repair in progress' },
+    { src: '/images/portfolio/french-drain-pipe-installation.png', alt: 'French drain pipe installation' },
+    { src: '/images/portfolio/reliable-solutions-atlanta-truck.png', alt: 'Reliable Solutions Atlanta truck on job site' },
+    { src: '/images/portfolio/downspout-drainage-completed.png', alt: 'Completed downspout drainage installation' },
+    { src: '/images/portfolio/concrete-patio-crew-working.png', alt: 'Crew working on concrete patio' },
+    { src: '/images/portfolio/concrete-truck-job-site.png', alt: 'Concrete truck at job site' },
+    { src: '/images/portfolio/concrete-pad-finishing.png', alt: 'Finishing concrete pad' },
+    { src: '/images/portfolio/crawl-space-mold-remediation.png', alt: 'Crawl space mold remediation' },
+    { src: '/images/portfolio/exterior-waterproofing-membrane.png', alt: 'Exterior waterproofing membrane installation' },
+    { src: '/images/portfolio/drainage-crew-excavator.png', alt: 'Drainage crew with excavator' },
+    { src: '/images/portfolio/crew-gravel-drainage-install.png', alt: 'Crew installing gravel drainage' },
+    { src: '/images/portfolio/basement-waterproofing-interior.png', alt: 'Interior basement waterproofing' },
+    { src: '/images/portfolio/french-drain-crew-digging.png', alt: 'Crew digging French drain' },
+    { src: '/images/portfolio/drainage-gravel-install-brick-home.png', alt: 'Drainage gravel installation at brick home' },
+    { src: '/images/portfolio/crew-loading-debris-truck.png', alt: 'Crew loading debris into truck' },
+    { src: '/images/portfolio/foundation-excavation-crew.png', alt: 'Foundation excavation crew' },
+    { src: '/images/portfolio/french-drain-luxury-home.png', alt: 'French drain installation at luxury home' },
+    { src: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png', alt: 'Crawl space encapsulation vapor barrier' },
   ]
 
   return (
@@ -43,8 +54,8 @@ export default function PortfolioPage() {
                 className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg group cursor-pointer"
               >
                 <Image
-                  src={image}
-                  alt={`Project ${index + 1}`}
+                  src={image.src}
+                  alt={image.alt}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
