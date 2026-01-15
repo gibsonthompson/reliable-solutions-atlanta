@@ -1,6 +1,7 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const metadata = {
   title: 'Blog',
@@ -15,6 +16,7 @@ const blogPosts = [
     date: 'January 15, 2026',
     readTime: '5 min read',
     category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
   },
   {
     slug: 'crawl-space-encapsulation-vs-waterproofing',
@@ -23,6 +25,7 @@ const blogPosts = [
     date: 'January 10, 2026',
     readTime: '6 min read',
     category: 'Crawl Space',
+    image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
   },
   {
     slug: 'why-atlanta-homes-have-foundation-problems',
@@ -31,6 +34,7 @@ const blogPosts = [
     date: 'January 5, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
   },
 ]
 
@@ -40,9 +44,9 @@ export default function BlogPage() {
       <Header activePage="blog" />
 
       {/* Hero Section */}
-      <section className="py-16 md:py-20 bg-white">
+      <section className="pt-10 pb-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#273373] font-display mb-4">
               Expert Tips & Advice
             </h1>
@@ -55,7 +59,7 @@ export default function BlogPage() {
       </section>
 
       {/* Blog Posts Grid */}
-      <section className="py-16 md:py-20 bg-gray-50">
+      <section className="py-12 md:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogPosts.map((post) => (
@@ -64,8 +68,15 @@ export default function BlogPage() {
                 href={`/blog/${post.slug}`}
                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group"
               >
-                <div className="h-48 bg-gradient-to-br from-[#115997] to-[#273373] flex items-center justify-center">
-                  <span className="text-white/90 text-sm font-medium px-4 py-1.5 bg-white/20 rounded-full">
+                <div className="relative h-48">
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <span className="absolute bottom-4 left-4 text-white text-sm font-medium px-4 py-1.5 bg-[#115997]/90 rounded-full">
                     {post.category}
                   </span>
                 </div>
