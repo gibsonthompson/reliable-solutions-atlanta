@@ -29,8 +29,8 @@ export default function ConcreteRepairPage() {
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/concrete-repair-hero.png"
-            alt="Concrete repair work"
+            src="/images/portfolio/concrete-patio-crew-working.png"
+            alt="Concrete patio crew working"
             fill
             className="object-cover"
             priority
@@ -51,8 +51,8 @@ export default function ConcreteRepairPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
             <div className="relative h-[350px]">
               <Image
-                src="/images/masonry-diagram.png"
-                alt="Masonry wall diagram"
+                src="/images/diagrams/foundation-crack-types-diagram.png"
+                alt="Foundation crack types diagram"
                 fill
                 className="object-contain"
               />

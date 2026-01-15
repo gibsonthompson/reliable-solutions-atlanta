@@ -16,8 +16,8 @@ export default function DrainagePage() {
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/drainage-hero.png"
-            alt="Drainage installation"
+            src="/images/portfolio/french-drain-pipe-installation.png"
+            alt="French drain pipe installation"
             fill
             className="object-cover"
             priority
@@ -38,8 +38,8 @@ export default function DrainagePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
             <div className="relative h-[400px]">
               <Image
-                src="/images/drainage-diagram.png"
-                alt="Interior drainage system diagram"
+                src="/images/diagrams/french-drain-diagram.png"
+                alt="French drain system diagram"
                 fill
                 className="object-contain"
               />

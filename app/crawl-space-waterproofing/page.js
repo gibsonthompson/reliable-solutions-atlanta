@@ -16,8 +16,8 @@ export default function CrawlSpaceWaterproofingPage() {
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/crawl-space-waterproofing-hero.png"
-            alt="Crawl space waterproofing"
+            src="/images/portfolio/crawl-space-encapsulation-vapor-barrier.png"
+            alt="Crawl space encapsulation with vapor barrier"
             fill
             className="object-cover"
             priority
@@ -38,8 +38,8 @@ export default function CrawlSpaceWaterproofingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
             <div className="relative h-[350px]">
               <Image
-                src="/images/crawl-space-waterproofing-diagram.png"
-                alt="Crawl space waterproofing diagram"
+                src="/images/diagrams/crawl-space-encapsulation-diagram.png"
+                alt="Crawl space encapsulation diagram"
                 fill
                 className="object-contain"
               />

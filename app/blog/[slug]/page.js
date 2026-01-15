@@ -8,7 +8,7 @@ const blogPosts = {
   'signs-you-need-basement-waterproofing': {
     title: '7 Warning Signs You Need Basement Waterproofing',
     description: 'Discover the telltale signs that your Atlanta home needs basement waterproofing before minor issues become major problems.',
-    date: 'January 15, 2026',
+    date: 'January 15, 2025',
     readTime: '5 min read',
     category: 'Basement Waterproofing',
     content: [
@@ -85,7 +85,7 @@ const blogPosts = {
   'crawl-space-encapsulation-vs-waterproofing': {
     title: 'Crawl Space Encapsulation vs Waterproofing: Which Do You Need?',
     description: 'Understanding the difference between encapsulation and waterproofing can save you thousands. Learn which solution is right for your home.',
-    date: 'January 10, 2026',
+    date: 'January 10, 2025',
     readTime: '6 min read',
     category: 'Crawl Space',
     content: [
@@ -146,7 +146,7 @@ const blogPosts = {
   'why-atlanta-homes-have-foundation-problems': {
     title: 'Why Atlanta Homes Are Prone to Foundation Problems',
     description: "Georgia's red clay soil creates unique challenges for homeowners. Learn why foundation issues are common in Metro Atlanta and how to prevent them.",
-    date: 'January 5, 2026',
+    date: 'January 5, 2025',
     readTime: '7 min read',
     category: 'Foundation Repair',
     content: [
@@ -206,6 +206,9 @@ const blogPosts = {
   },
 }
 
+// Export blogPosts for use in other files
+export { blogPosts }
+
 export async function generateStaticParams() {
   return Object.keys(blogPosts).map((slug) => ({
     slug: slug,
@@ -213,7 +216,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const post = blogPosts[params.slug]
+  const { slug } = await params
+  const post = blogPosts[slug]
   
   if (!post) {
     return {
@@ -233,8 +237,9 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default function BlogPost({ params }) {
-  const post = blogPosts[params.slug]
+export default async function BlogPost({ params }) {
+  const { slug } = await params
+  const post = blogPosts[slug]
 
   if (!post) {
     notFound()
@@ -373,11 +378,11 @@ export default function BlogPost({ params }) {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {Object.entries(blogPosts)
-              .filter(([slug]) => slug !== params.slug)
-              .map(([slug, relatedPost]) => (
+              .filter(([postSlug]) => postSlug !== slug)
+              .map(([postSlug, relatedPost]) => (
                 <Link
-                  key={slug}
-                  href={`/blog/${slug}`}
+                  key={postSlug}
+                  href={`/blog/${postSlug}`}
                   className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 group"
                 >
                   <span className="text-sm text-[#115997] font-semibold">

@@ -16,8 +16,8 @@ export default function CrawlSpaceRepairPage() {
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/crawl-space-repair-hero.png"
-            alt="Crawl space repair"
+            src="/images/portfolio/crawl-space-mold-remediation.png"
+            alt="Crawl space mold remediation"
             fill
             className="object-cover"
             priority
@@ -38,8 +38,8 @@ export default function CrawlSpaceRepairPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
             <div className="relative h-[350px]">
               <Image
-                src="/images/crawl-space-diagram.png"
-                alt="Crawl space drainage system diagram"
+                src="/images/diagrams/basement-drainage-system-diagram.png"
+                alt="Basement drainage system diagram"
                 fill
                 className="object-contain"
               />

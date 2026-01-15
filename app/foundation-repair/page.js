@@ -16,7 +16,7 @@ export default function FoundationRepairPage() {
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/foundation-repair-atlanta.png"
+            src="/images/portfolio/foundation-repair-crew-working-atlanta.png"
             alt="Foundation repair"
             fill
             className="object-cover"
@@ -38,7 +38,7 @@ export default function FoundationRepairPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-start mb-16">
             <div className="relative h-[400px]">
               <Image
-                src="/images/foundation-diagram.png"
+                src="/images/diagrams/foundation-repair-diagram.png"
                 alt="Foundation diagram"
                 fill
                 className="object-contain"

@@ -38,7 +38,7 @@ export default function BasementWaterproofingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
             <div className="relative h-[350px]">
               <Image
-                src="/images/diagrams/basement-waterproofing-diagram.svg"
+                src="/images/diagrams/basement-waterproofing-diagram.png"
                 alt="Basement waterproofing diagram showing water flow"
                 fill
                 className="object-contain"
