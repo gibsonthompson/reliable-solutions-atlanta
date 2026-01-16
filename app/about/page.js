@@ -87,16 +87,16 @@ export default function AboutPage() {
             <div className="grid grid-cols-2 gap-4 order-2 lg:order-1">
               <div className="relative h-[300px] rounded-xl overflow-hidden shadow-lg">
                 <Image
-                  src="/images/drainage-installation-atlanta-home.png"
-                  alt="Crawl space waterproofing work"
+                  src="/images/portfolio/crawl-space-encapsulation-vapor-barrier.png"
+                  alt="Crawl space encapsulation with vapor barrier installation"
                   fill
                   className="object-cover"
                 />
               </div>
               <div className="relative h-[300px] rounded-xl overflow-hidden shadow-lg">
                 <Image
-                  src="/images/waterproofing-crew-hard-hats.png"
-                  alt="Reliable Solutions signage"
+                  src="/images/portfolio/crawl-space-mold-remediation.png"
+                  alt="Crawl space mold remediation work"
                   fill
                   className="object-cover"
                 />

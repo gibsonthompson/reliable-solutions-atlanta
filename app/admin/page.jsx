@@ -3,7 +3,12 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+const ADMIN_PIN = '2026'
+
 export default function AdminDashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [pinInput, setPinInput] = useState('')
+  const [pinError, setPinError] = useState(false)
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
@@ -19,6 +24,31 @@ export default function AdminDashboard() {
     { value: 'completed', label: 'Completed', color: 'bg-green-100 text-green-800' },
     { value: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-800' },
   ]
+
+  // Check for saved session on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem('rsa_admin_auth')
+    if (saved === 'true') {
+      setIsAuthenticated(true)
+    }
+  }, [])
+
+  const handlePinSubmit = (e) => {
+    e.preventDefault()
+    if (pinInput === ADMIN_PIN) {
+      setIsAuthenticated(true)
+      sessionStorage.setItem('rsa_admin_auth', 'true')
+      setPinError(false)
+    } else {
+      setPinError(true)
+      setPinInput('')
+    }
+  }
+
+  const handleLogout = () => {
+    setIsAuthenticated(false)
+    sessionStorage.removeItem('rsa_admin_auth')
+  }
 
   const fetchSubmissions = async () => {
     try {
@@ -36,8 +66,10 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    fetchSubmissions()
-  }, [filter])
+    if (isAuthenticated) {
+      fetchSubmissions()
+    }
+  }, [filter, isAuthenticated])
 
   const updateSubmission = async (id, newStatus) => {
     setUpdating(true)
@@ -99,6 +131,62 @@ export default function AdminDashboard() {
     window.location.href = 'mailto:' + email
   }
 
+  // PIN Entry Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-[#273373] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-[#273373]">Admin Access</h1>
+            <p className="text-gray-500 mt-1">Enter PIN to continue</p>
+          </div>
+
+          <form onSubmit={handlePinSubmit}>
+            <input
+              type="password"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              value={pinInput}
+              onChange={(e) => {
+                setPinInput(e.target.value.replace(/\D/g, ''))
+                setPinError(false)
+              }}
+              className={'w-full text-center text-3xl tracking-[0.5em] py-4 border-2 rounded-xl outline-none transition-colors ' + (
+                pinError 
+                  ? 'border-red-500 bg-red-50' 
+                  : 'border-gray-200 focus:border-[#115997]'
+              )}
+              placeholder="••••"
+              autoFocus
+            />
+            {pinError && (
+              <p className="text-red-500 text-sm text-center mt-2">Incorrect PIN</p>
+            )}
+            <button
+              type="submit"
+              className="w-full mt-6 py-4 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors"
+            >
+              Unlock
+            </button>
+          </form>
+
+          <Link 
+            href="/"
+            className="block text-center text-gray-500 hover:text-[#115997] mt-6 text-sm"
+          >
+            ← Back to website
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -119,15 +207,26 @@ export default function AdminDashboard() {
               <h1 className="text-2xl font-bold text-[#273373]">Reliable Solutions Atlanta</h1>
               <p className="text-gray-500 text-sm">Admin Dashboard</p>
             </div>
-            <Link 
-              href="/"
-              className="text-[#115997] hover:text-[#273373] font-medium flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Site
-            </Link>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleLogout}
+                className="text-gray-500 hover:text-red-600 font-medium flex items-center gap-2 text-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+              </button>
+              <Link 
+                href="/"
+                className="text-[#115997] hover:text-[#273373] font-medium flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Site
+              </Link>
+            </div>
           </div>
         </div>
       </header>
