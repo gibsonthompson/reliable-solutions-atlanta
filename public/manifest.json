@@ -1,0 +1,21 @@
+{
+  "name": "RSA Admin",
+  "short_name": "RSA Admin",
+  "description": "Reliable Solutions Atlanta Lead Dashboard",
+  "start_url": "/admin",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#273373",
+  "icons": [
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
