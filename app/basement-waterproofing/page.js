@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Basement Waterproofing',
-  description: 'Professional basement waterproofing services in Atlanta. Interior and exterior waterproofing solutions. FREE inspections and evaluations. Reliable Solutions Atlanta.',
+  title: 'Basement Waterproofing Atlanta | Interior & Exterior Solutions',
+  description: 'Professional basement waterproofing in Metro Atlanta. French drains, sump pumps, interior & exterior solutions. Family owned, 20+ years experience. Free estimates. 770-895-2039',
 }
 
 export default function BasementWaterproofingPage() {

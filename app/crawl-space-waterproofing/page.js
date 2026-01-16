@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Crawl Space Waterproofing',
-  description: 'Professional crawl space waterproofing services in Atlanta. Vapor barriers, encapsulation, and moisture control. Reliable Solutions Atlanta.',
+  title: 'Crawl Space Waterproofing Atlanta | Keep Your Crawl Space Dry',
+  description: 'Professional crawl space waterproofing in Metro Atlanta. Drainage systems, sump pumps, vapor barriers. Family owned, 20+ years experience. Free estimates. 770-895-2039',
 }
 
 export default function CrawlSpaceWaterproofingPage() {

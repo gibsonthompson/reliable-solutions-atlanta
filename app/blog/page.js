@@ -5,7 +5,7 @@ import Image from 'next/image'
 
 export const metadata = {
   title: 'Blog',
-  description: 'Expert tips and advice on basement waterproofing, foundation repair, crawl space encapsulation, and drainage solutions for Atlanta homeowners.',
+  description: 'Waterproofing and foundation repair tips, guides, and news from Reliable Solutions Atlanta. Learn how to protect your home from water damage.',
 }
 
 const blogPosts = [

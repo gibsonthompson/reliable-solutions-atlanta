@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Concrete Repair',
-  description: 'Professional concrete and masonry repair services in Atlanta. Brick pointing, stucco repairs, retaining walls, patios, and more. Reliable Solutions Atlanta.',
+  title: 'Concrete Repair Atlanta | Driveways, Patios & Foundation Slabs',
+  description: 'Professional concrete repair in Metro Atlanta. Cracks, settling, leveling for driveways, patios, sidewalks. Family owned, 20+ years experience. Free estimates. 770-895-2039',
 }
 
 export default function ConcreteRepairPage() {

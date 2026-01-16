@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Crawl Space Encapsulation',
-  description: 'Professional crawl space encapsulation services in Atlanta. Reduce moisture, prevent mold, improve air quality. Reliable Solutions Atlanta.',
+  title: 'Crawl Space Encapsulation Atlanta | Moisture & Mold Prevention',
+  description: 'Professional crawl space encapsulation in Metro Atlanta. Stop moisture, mold, and pests. Vapor barriers & dehumidifiers. Family owned. Free estimates. 770-895-2039',
 }
 
 export default function CrawlSpaceEncapsulationPage() {

@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Drainage',
-  description: 'Professional drainage installation and repair in Atlanta. Interior perimeter drainage systems, sump pumps, and waterproofing solutions. Reliable Solutions Atlanta.',
+  title: 'Drainage Solutions Atlanta | French Drains & Water Management',
+  description: 'Expert drainage solutions in Metro Atlanta. French drains, surface drains, downspout extensions. Protect your foundation. Family owned. Free estimates. 770-895-2039',
 }
 
 export default function DrainagePage() {

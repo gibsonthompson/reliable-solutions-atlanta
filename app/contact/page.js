@@ -4,8 +4,8 @@ import Image from 'next/image'
 import ContactForm from '../components/ContactForm'
 
 export const metadata = {
-  title: 'Contact',
-  description: 'Schedule a free estimate for waterproofing, foundation repair, or crawl space services. Contact Reliable Solutions Atlanta today. Financing available.',
+  title: 'Contact Us',
+  description: 'Contact Reliable Solutions Atlanta for a free waterproofing or foundation repair estimate. Call 770-895-2039 or email rsolrepair@gmail.com. Available 24/7.',
 }
 
 export default function ContactPage() {

@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'About Us',
-  description: 'Reliable Solutions Atlanta is family owned with over 20 years of experience in waterproofing and foundation repair. IICRC Certified. Serving Metro Atlanta.',
+  description: 'Reliable Solutions Atlanta is a family owned waterproofing and foundation repair company with 20+ years experience. Serving Metro Atlanta since 2015. 770-895-2039',
 }
 
 export default function AboutPage() {

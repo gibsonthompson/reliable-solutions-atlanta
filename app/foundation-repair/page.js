@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Foundation Repair',
-  description: 'Professional foundation repair services in Atlanta. Slab foundations, raised foundations, hydraulic push piers, and structural engineering. Reliable Solutions Atlanta.',
+  title: 'Foundation Repair Atlanta | Expert Structural Solutions',
+  description: 'Trusted foundation repair in Metro Atlanta. Cracks, settling, bowing walls, structural damage fixed right. Family owned, 20+ years experience. Free estimates. 770-895-2039',
 }
 
 export default function FoundationRepairPage() {

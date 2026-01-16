@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Crawl Space Repair',
-  description: 'Professional crawl space repair services in Atlanta. Fix wood rot, sagging joists, mold, and moisture problems. Reliable Solutions Atlanta.',
+  title: 'Crawl Space Repair Atlanta | Structural & Water Damage Solutions',
+  description: 'Expert crawl space repair in Metro Atlanta. Sagging floors, damaged joists, moisture damage fixed. Family owned, 20+ years experience. Free estimates. 770-895-2039',
 }
 
 export default function CrawlSpaceRepairPage() {

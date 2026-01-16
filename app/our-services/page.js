@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Our Services',
-  description: 'Comprehensive waterproofing and foundation repair services in Metro Atlanta. Basement waterproofing, crawl space encapsulation, drainage, and more.',
+  description: 'Waterproofing and foundation repair services in Metro Atlanta. Basement waterproofing, crawl space encapsulation, foundation repair, drainage solutions. Free estimates. 770-895-2039',
 }
 
 export default function OurServicesPage() {

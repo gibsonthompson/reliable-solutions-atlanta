@@ -2,8 +2,8 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 
 export const metadata = {
-  title: 'Service Area',
-  description: 'Reliable Solutions Atlanta serves Metro Atlanta including Atlanta, Stone Mountain, Tucker, Brookhaven, Lilburn, Decatur, Marietta, and surrounding areas.',
+  title: 'Service Areas',
+  description: 'Reliable Solutions Atlanta serves Metro Atlanta including Lawrenceville, Stone Mountain, Decatur, Marietta, Roswell, Alpharetta, and surrounding areas. 770-895-2039',
 }
 
 export default function ServiceAreaPage() {

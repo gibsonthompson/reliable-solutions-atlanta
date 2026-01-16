@@ -3,8 +3,8 @@ import Footer from '../components/Footer'
 import Image from 'next/image'
 
 export const metadata = {
-  title: 'Portfolio',
-  description: 'View our portfolio of completed waterproofing, foundation repair, and crawl space projects in Metro Atlanta. Reliable Solutions Atlanta.',
+  title: 'Our Work',
+  description: 'See completed waterproofing and foundation repair projects by Reliable Solutions Atlanta. Basement waterproofing, crawl space encapsulation, drainage, and more.',
 }
 
 export default function PortfolioPage() {
