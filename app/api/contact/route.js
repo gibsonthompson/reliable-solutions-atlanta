@@ -6,6 +6,35 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+// Send SMS via Telnyx
+async function sendSMS(to, message) {
+  try {
+    const response = await fetch('https://api.telnyx.com/v2/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.TELNYX_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: '+15058332344',
+        to: to,
+        text: message,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      console.error('Telnyx SMS error:', error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error('SMS send error:', error)
+    return false
+  }
+}
+
 export async function POST(request) {
   try {
     const body = await request.json()
@@ -28,6 +57,10 @@ export async function POST(request) {
       console.error('Supabase error:', error)
       return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 })
     }
+
+    // Send SMS notification to business owner
+    const smsMessage = `New Lead - RSA\n${name}\n${phone}\n${service_type}${message ? `\n${message}` : ''}`
+    await sendSMS(process.env.RSA_NOTIFICATION_PHONE, smsMessage)
 
     return NextResponse.json({ success: true, data })
   } catch (error) {
