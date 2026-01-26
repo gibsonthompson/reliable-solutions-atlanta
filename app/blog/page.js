@@ -10,6 +10,33 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'what-to-do-when-basement-floods-atlanta',
+    title: 'What to Do When Your Atlanta Basement Floods After a Storm',
+    excerpt: 'Heavy rain just flooded your basement? Here\'s your step-by-step emergency guide for Metro Atlanta homeowners dealing with water damage.',
+    date: 'January 20, 2026',
+    readTime: '6 min read',
+    category: 'Water Damage',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'basement-waterproofing-cost-atlanta',
+    title: 'How Much Does Basement Waterproofing Cost in Atlanta?',
+    excerpt: 'Get realistic pricing for basement waterproofing in Metro Atlanta. We break down costs by solution type so you can budget with confidence.',
+    date: 'January 18, 2026',
+    readTime: '7 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'french-drain-installation-atlanta-guide',
+    title: 'French Drain Installation: The Atlanta Homeowner\'s Complete Guide',
+    excerpt: 'French drains are one of the most effective solutions for Georgia\'s drainage problems. Learn how they work and whether your home needs one.',
+    date: 'January 16, 2026',
+    readTime: '6 min read',
+    category: 'Drainage Solutions',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
     slug: 'signs-you-need-basement-waterproofing',
     title: '7 Warning Signs You Need Basement Waterproofing',
     excerpt: 'Discover the telltale signs that your Atlanta home needs basement waterproofing before minor issues become major problems.',
