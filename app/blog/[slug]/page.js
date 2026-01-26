@@ -5,10 +5,241 @@ import { notFound } from 'next/navigation'
 
 // Blog post content
 const blogPosts = {
+  'what-to-do-when-basement-floods-atlanta': {
+    title: 'What to Do When Your Atlanta Basement Floods After a Storm',
+    description: 'Heavy rain just flooded your basement? Here\'s your step-by-step emergency guide for Metro Atlanta homeowners dealing with water damage.',
+    date: 'January 20, 2026',
+    readTime: '6 min read',
+    category: 'Water Damage',
+    content: [
+      {
+        type: 'lead',
+        text: "Atlanta's severe thunderstorms can dump several inches of rain in just a few hours. If you've walked downstairs to find standing water in your basement, don't panic. Taking the right steps quickly can minimize damage, prevent mold growth, and get your home back to normal faster."
+      },
+      {
+        type: 'heading',
+        text: 'Step 1: Prioritize Safety First'
+      },
+      {
+        type: 'paragraph',
+        text: "Before you step into a flooded basement, assess the danger. If water is above electrical outlets or near your breaker box, do not enter until power is shut off at the main breaker. Water and electricity are a deadly combination. If you can't safely reach your breaker box, call your power company or an electrician. Also watch for structural damage—if you notice cracked walls or sagging floors, evacuate and call a professional."
+      },
+      {
+        type: 'heading',
+        text: 'Step 2: Document Everything for Insurance'
+      },
+      {
+        type: 'paragraph',
+        text: "Before you start cleanup, document the damage thoroughly. Take photos and videos of water levels, damaged items, and affected areas. Make a written inventory of damaged belongings with approximate values. This documentation is critical for insurance claims. Most homeowner's policies cover sudden water damage from storms, though flood insurance through FEMA may be required for certain situations."
+      },
+      {
+        type: 'heading',
+        text: 'Step 3: Remove Standing Water'
+      },
+      {
+        type: 'paragraph',
+        text: "Time is critical. The longer water sits, the more damage it causes. For small amounts of water, a wet/dry vacuum can handle the job. For significant flooding, you'll need a sump pump or professional water extraction equipment. If you don't have a sump pump installed, this is a strong sign you need one for future protection. Avoid using regular household vacuums—they're not designed for water and can be dangerous."
+      },
+      {
+        type: 'heading',
+        text: 'Step 4: Dry Out the Space Completely'
+      },
+      {
+        type: 'paragraph',
+        text: "Removing visible water is only the beginning. Moisture trapped in walls, floors, and materials will lead to mold growth within 24-48 hours in Georgia's humid climate. Use fans to circulate air throughout the basement. Run a dehumidifier continuously—you'll likely need a commercial-grade unit for effective drying. Open windows if outdoor humidity is lower than indoor levels. Remove wet carpet, padding, and any porous materials that can't be thoroughly dried."
+      },
+      {
+        type: 'heading',
+        text: 'Step 5: Clean and Disinfect'
+      },
+      {
+        type: 'paragraph',
+        text: "Floodwater often contains bacteria, sewage, and contaminants. Once surfaces are dry, clean all affected areas with a solution of water and detergent, then disinfect with a mixture of one cup of bleach per gallon of water. Wear protective gloves and a mask during cleanup. Porous materials like drywall, insulation, and carpet padding that were submerged typically need to be removed and replaced rather than cleaned."
+      },
+      {
+        type: 'heading',
+        text: 'Step 6: Address the Source of the Problem'
+      },
+      {
+        type: 'paragraph',
+        text: "Emergency cleanup handles the immediate crisis, but you need to prevent future flooding. Common causes of basement flooding in Metro Atlanta include poor grading that directs water toward your foundation, clogged or inadequate gutters and downspouts, failed sump pumps or lack of a sump pump system, cracks in foundation walls allowing water intrusion, and overwhelmed drainage systems during heavy storms. A professional inspection can identify exactly why your basement flooded and recommend permanent solutions."
+      },
+      {
+        type: 'heading',
+        text: 'When to Call a Professional'
+      },
+      {
+        type: 'paragraph',
+        text: "While minor water intrusion can be handled as a DIY project, certain situations require professional help. Call a water damage restoration specialist if water is more than a few inches deep, flooding involved sewage or contaminated water, you notice mold growth or persistent musty odors, water damage has affected electrical systems, or structural damage is present. Professional restoration companies have industrial equipment that can dry your basement far more quickly and thoroughly than consumer-grade tools."
+      },
+      {
+        type: 'heading',
+        text: 'Protect Your Home from Future Storms'
+      },
+      {
+        type: 'paragraph',
+        text: "Metro Atlanta averages 50+ inches of rain per year, and severe storms are a regular occurrence. The best time to waterproof your basement is before the next big storm. Solutions like interior drainage systems, sump pump installation, and exterior waterproofing can protect your home for decades. At Reliable Solutions Atlanta, we offer free inspections to identify your home's vulnerabilities and recommend the most effective, cost-efficient solutions. Don't wait for the next flood—call us today."
+      },
+    ],
+  },
+  'basement-waterproofing-cost-atlanta': {
+    title: 'How Much Does Basement Waterproofing Cost in Atlanta?',
+    description: 'Get realistic pricing for basement waterproofing in Metro Atlanta. We break down costs by solution type so you can budget with confidence.',
+    date: 'January 18, 2026',
+    readTime: '7 min read',
+    category: 'Basement Waterproofing',
+    content: [
+      {
+        type: 'lead',
+        text: "If you're dealing with a wet basement in Metro Atlanta, one of your first questions is probably \"how much will this cost to fix?\" The honest answer is: it depends. Basement waterproofing costs range from a few hundred dollars for minor repairs to $15,000 or more for comprehensive systems. Here's what drives those costs and what you can expect to pay in the Atlanta market."
+      },
+      {
+        type: 'heading',
+        text: 'Factors That Affect Waterproofing Costs'
+      },
+      {
+        type: 'paragraph',
+        text: "Every basement is different, and several factors influence the final price. The size of your basement matters—larger spaces require more materials and labor. The severity of your water problem plays a major role; minor seepage is far less expensive to address than active flooding. The type of solution needed depends on whether water is coming through walls, the floor, or both. Foundation condition affects cost if cracks need repair before waterproofing. Finally, accessibility impacts labor costs if your basement has limited access points."
+      },
+      {
+        type: 'heading',
+        text: 'Interior Waterproofing Costs'
+      },
+      {
+        type: 'paragraph',
+        text: "Interior waterproofing addresses water that's already entered your basement. These solutions are generally less expensive than exterior methods and don't require excavation. Waterproof sealants and coatings typically run $500 to $1,500 for a standard basement. These work for minor dampness but won't stop active water intrusion. Interior drainage systems (French drains) cost $3,000 to $8,000 depending on basement size and complexity. These channel water to a sump pump for removal. Sump pump installation alone costs $800 to $2,500 including the pump, basin, and discharge line."
+      },
+      {
+        type: 'heading',
+        text: 'Exterior Waterproofing Costs'
+      },
+      {
+        type: 'paragraph',
+        text: "Exterior waterproofing stops water before it reaches your foundation walls. It's more expensive but provides the most comprehensive protection. Exterior drainage systems typically cost $8,000 to $15,000 or more. This involves excavating around your foundation, installing drainage tile, and applying waterproof membranes. Exterior waterproof coatings without full excavation run $3,000 to $6,000. Grading and drainage improvements can cost $1,000 to $5,000 depending on the scope of work needed."
+      },
+      {
+        type: 'heading',
+        text: 'Crack Repair Costs'
+      },
+      {
+        type: 'paragraph',
+        text: "Foundation cracks are a common entry point for water in Atlanta homes. Simple crack injection repairs cost $250 to $800 per crack using epoxy or polyurethane injection. This is often sufficient for minor, non-structural cracks. Structural crack repair requiring carbon fiber reinforcement or wall anchors costs $1,000 to $3,000 per crack. If you have multiple cracks or signs of foundation movement, a full structural assessment is recommended."
+      },
+      {
+        type: 'heading',
+        text: 'Why Atlanta Waterproofing Costs Vary'
+      },
+      {
+        type: 'paragraph',
+        text: "Metro Atlanta presents unique challenges that can affect waterproofing costs. Georgia's red clay soil holds water and creates hydrostatic pressure against foundations—this often requires more robust drainage solutions. Older homes in neighborhoods like Decatur, East Atlanta, and Grant Park may have stone or block foundations that need specialized approaches. Homes on slopes, common in areas like Buckhead, Brookhaven, and North Fulton, face different drainage challenges than homes on flat lots."
+      },
+      {
+        type: 'heading',
+        text: 'Getting the Best Value'
+      },
+      {
+        type: 'paragraph',
+        text: "The cheapest quote isn't always the best value. When comparing waterproofing contractors, look for companies that offer free inspections and detailed written estimates, clearly explain what's causing your water problems, provide warranties on both materials and labor, have verifiable reviews and references in Metro Atlanta, and are licensed and insured to work in Georgia. Be wary of contractors who quote over the phone without seeing your basement, push for immediate decisions, or offer prices significantly below other estimates."
+      },
+      {
+        type: 'heading',
+        text: 'Is Waterproofing Worth the Investment?'
+      },
+      {
+        type: 'paragraph',
+        text: "Consider the alternative costs of not waterproofing. Water damage repairs can easily exceed $10,000 for serious flooding. Mold remediation typically costs $1,500 to $9,000. A wet basement can reduce your home's value by 10-25%. Health issues from mold exposure create ongoing medical costs. In most cases, proactive waterproofing costs less than dealing with repeated water damage."
+      },
+      {
+        type: 'heading',
+        text: 'Get a Free Estimate'
+      },
+      {
+        type: 'paragraph',
+        text: "The only way to know exactly what your basement needs—and what it will cost—is a professional inspection. At Reliable Solutions Atlanta, we provide free, no-obligation inspections and detailed estimates. We'll identify the source of your water problems, explain your options, and give you honest pricing so you can make an informed decision. Contact us today to schedule your free inspection."
+      },
+    ],
+  },
+  'french-drain-installation-atlanta-guide': {
+    title: 'French Drain Installation: The Atlanta Homeowner\'s Complete Guide',
+    description: 'French drains are one of the most effective solutions for Georgia\'s drainage problems. Learn how they work and whether your home needs one.',
+    date: 'January 16, 2026',
+    readTime: '6 min read',
+    category: 'Drainage Solutions',
+    content: [
+      {
+        type: 'lead',
+        text: "French drains have been solving drainage problems for over 150 years, and they remain one of the most effective ways to manage water around your home. For Atlanta homeowners dealing with Georgia's heavy rainfall and clay soil, a properly installed French drain can mean the difference between a dry basement and costly water damage."
+      },
+      {
+        type: 'heading',
+        text: 'What Is a French Drain?'
+      },
+      {
+        type: 'paragraph',
+        text: "A French drain is a simple but effective drainage system. It consists of a perforated pipe surrounded by gravel, installed in a trench that slopes away from your home. Water naturally flows downhill and into the gravel, where it enters the perforated pipe and is carried away from your foundation. French drains can be installed around the exterior of your home, inside your basement along the perimeter, or in your yard to address surface water issues."
+      },
+      {
+        type: 'heading',
+        text: 'Signs You Need a French Drain'
+      },
+      {
+        type: 'paragraph',
+        text: "Several warning signs indicate a French drain could benefit your property. Standing water in your yard after rain suggests poor natural drainage. Water pooling against your foundation puts your basement at risk. Soggy, muddy areas that never seem to dry out indicate trapped groundwater. Water stains or dampness on basement walls show water is reaching your foundation. A musty smell in your basement or crawl space signals moisture intrusion. If you're experiencing any of these issues, a French drain may be the solution."
+      },
+      {
+        type: 'heading',
+        text: 'Interior vs. Exterior French Drains'
+      },
+      {
+        type: 'paragraph',
+        text: "Interior French drains are installed inside your basement, typically along the perimeter where the floor meets the walls. They collect water that seeps through the foundation and channel it to a sump pump for removal. Interior drains are less disruptive to install since they don't require excavating around your home. Exterior French drains are installed outside, around the foundation perimeter. They intercept groundwater before it reaches your foundation walls. While more expensive due to excavation costs, exterior drains provide the most complete protection by stopping water at the source."
+      },
+      {
+        type: 'heading',
+        text: 'Why French Drains Work Well in Atlanta'
+      },
+      {
+        type: 'paragraph',
+        text: "Metro Atlanta's conditions make French drains particularly effective. Georgia's red clay soil has poor natural drainage—water tends to sit rather than percolate down. This creates hydrostatic pressure that pushes water against your foundation. French drains provide an escape route for this trapped water. Atlanta's annual rainfall of 50+ inches means your drainage system works hard. A properly designed French drain handles even heavy storm runoff. The sloped terrain common in areas like Buckhead, Sandy Springs, and East Cobb creates natural water flow that French drains can redirect away from homes."
+      },
+      {
+        type: 'heading',
+        text: 'The Installation Process'
+      },
+      {
+        type: 'paragraph',
+        text: "Professional French drain installation follows a specific process. First, the area is assessed to determine optimal drain placement and slope. For exterior drains, a trench is excavated along the foundation—typically 18 to 24 inches wide and deep enough to reach the footer. Landscape fabric lines the trench to prevent soil from clogging the system. A layer of gravel is added, followed by the perforated drain pipe positioned with holes facing down. More gravel covers the pipe, and the trench is backfilled. For interior drains, concrete along the basement perimeter is removed, the drain system installed, and new concrete poured over it."
+      },
+      {
+        type: 'heading',
+        text: 'French Drain Costs in Atlanta'
+      },
+      {
+        type: 'paragraph',
+        text: "Interior French drains in Metro Atlanta typically cost $3,000 to $8,000 depending on basement size and whether a new sump pump is needed. Exterior French drains cost more—usually $4,000 to $12,000—due to excavation requirements. Yard drainage systems to address surface water generally run $1,500 to $5,000. While these aren't small investments, they're significantly less than the cost of repeated water damage, mold remediation, and foundation repairs."
+      },
+      {
+        type: 'heading',
+        text: 'Maintenance and Longevity'
+      },
+      {
+        type: 'paragraph',
+        text: "A properly installed French drain can last 30 to 40 years with minimal maintenance. To maximize lifespan, keep gutters and downspouts clear so they don't overwhelm the system. Avoid planting trees or shrubs with aggressive root systems near the drain line. Periodically check any visible cleanout points for debris. If you have a sump pump as part of the system, test it annually and consider a battery backup for power outages during storms."
+      },
+      {
+        type: 'heading',
+        text: 'Get Expert Installation'
+      },
+      {
+        type: 'paragraph',
+        text: "French drain installation requires proper planning, correct slope calculations, and quality materials to be effective long-term. Poor installation can actually make drainage problems worse by directing water toward your foundation instead of away from it. At Reliable Solutions Atlanta, we've installed hundreds of French drain systems throughout Metro Atlanta. We understand the unique challenges of Georgia's soil and climate. Contact us for a free inspection and estimate—we'll assess your property's drainage issues and recommend the most effective solution."
+      },
+    ],
+  },
   'signs-you-need-basement-waterproofing': {
     title: '7 Warning Signs You Need Basement Waterproofing',
     description: 'Discover the telltale signs that your Atlanta home needs basement waterproofing before minor issues become major problems.',
-    date: 'January 15, 2025',
+    date: 'January 15, 2026',
     readTime: '5 min read',
     category: 'Basement Waterproofing',
     content: [
@@ -85,7 +316,7 @@ const blogPosts = {
   'crawl-space-encapsulation-vs-waterproofing': {
     title: 'Crawl Space Encapsulation vs Waterproofing: Which Do You Need?',
     description: 'Understanding the difference between encapsulation and waterproofing can save you thousands. Learn which solution is right for your home.',
-    date: 'January 10, 2025',
+    date: 'January 10, 2026',
     readTime: '6 min read',
     category: 'Crawl Space',
     content: [
@@ -146,7 +377,7 @@ const blogPosts = {
   'why-atlanta-homes-have-foundation-problems': {
     title: 'Why Atlanta Homes Are Prone to Foundation Problems',
     description: "Georgia's red clay soil creates unique challenges for homeowners. Learn why foundation issues are common in Metro Atlanta and how to prevent them.",
-    date: 'January 5, 2025',
+    date: 'January 5, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
     content: [
@@ -379,6 +610,7 @@ export default async function BlogPost({ params }) {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {Object.entries(blogPosts)
               .filter(([postSlug]) => postSlug !== slug)
+              .slice(0, 3)
               .map(([postSlug, relatedPost]) => (
                 <Link
                   key={postSlug}
