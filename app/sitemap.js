@@ -86,6 +86,7 @@ export default function sitemap() {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
+    // Existing blog posts
     {
       url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
       lastModified: new Date(),
@@ -100,6 +101,37 @@ export default function sitemap() {
     },
     {
       url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    // New blog posts
+    {
+      url: `${baseUrl}/blog/basement-waterproofing-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/what-to-check-after-storm-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/french-drain-vs-sump-pump`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/crawl-space-mold-signs`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-maintenance-seasonal-checklist`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,

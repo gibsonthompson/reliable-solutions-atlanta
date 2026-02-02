@@ -8,7 +8,7 @@ const blogPosts = {
   'signs-you-need-basement-waterproofing': {
     title: '7 Warning Signs You Need Basement Waterproofing',
     description: 'Discover the telltale signs that your Atlanta home needs basement waterproofing before minor issues become major problems.',
-    date: 'January 15, 2025',
+    date: 'January 15, 2026',
     readTime: '5 min read',
     category: 'Basement Waterproofing',
     content: [
@@ -85,7 +85,7 @@ const blogPosts = {
   'crawl-space-encapsulation-vs-waterproofing': {
     title: 'Crawl Space Encapsulation vs Waterproofing: Which Do You Need?',
     description: 'Understanding the difference between encapsulation and waterproofing can save you thousands. Learn which solution is right for your home.',
-    date: 'January 10, 2025',
+    date: 'January 10, 2026',
     readTime: '6 min read',
     category: 'Crawl Space',
     content: [
@@ -146,7 +146,7 @@ const blogPosts = {
   'why-atlanta-homes-have-foundation-problems': {
     title: 'Why Atlanta Homes Are Prone to Foundation Problems',
     description: "Georgia's red clay soil creates unique challenges for homeowners. Learn why foundation issues are common in Metro Atlanta and how to prevent them.",
-    date: 'January 5, 2025',
+    date: 'January 5, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
     content: [
@@ -201,6 +201,491 @@ const blogPosts = {
       {
         type: 'paragraph',
         text: "Foundation repairs are an investment, but they're far less expensive than the alternative. Ignoring foundation problems can lead to major structural damage, decreased home value, and safety hazards. At Reliable Solutions Atlanta, we've been repairing foundations throughout Metro Atlanta for over 20 years. We understand the unique challenges that Georgia's soil and climate create, and we use proven techniques to permanently stabilize your foundation. Contact us for a free inspection and estimate."
+      },
+    ],
+  },
+  'basement-waterproofing-cost-atlanta': {
+    title: 'How Much Does Basement Waterproofing Cost in Atlanta?',
+    description: 'Get real pricing for basement waterproofing in Metro Atlanta. Learn what affects costs and how to budget for interior vs exterior solutions.',
+    date: 'January 29, 2026',
+    readTime: '8 min read',
+    category: 'Basement Waterproofing',
+    content: [
+      {
+        type: 'lead',
+        text: "If you're dealing with a wet basement in Metro Atlanta, one of your first questions is probably: how much is this going to cost? The honest answer is that basement waterproofing costs vary widely—from a few hundred dollars for minor fixes to $15,000+ for comprehensive exterior solutions. Here's a realistic breakdown to help you budget."
+      },
+      {
+        type: 'heading',
+        text: 'Quick Cost Overview for Atlanta Homeowners'
+      },
+      {
+        type: 'paragraph',
+        text: "Based on 2026 industry data, here's what Atlanta homeowners typically pay: Interior waterproofing averages $3,000 to $10,000, with most projects falling in the $4,500 to $7,000 range. Exterior waterproofing costs $10,000 to $15,000+ due to excavation requirements. The national average for a complete basement waterproofing system is around $5,200, but Atlanta's clay soil and high rainfall can push costs higher."
+      },
+      {
+        type: 'heading',
+        text: 'Interior Waterproofing Costs'
+      },
+      {
+        type: 'paragraph',
+        text: "Interior waterproofing manages water that's already entering your basement. It's generally more affordable because it doesn't require excavation. Interior sealants and coatings cost $500 to $2,000—these are temporary fixes for minor dampness, not solutions for active water intrusion. Interior French drain installation runs $40 to $85 per linear foot (for a typical 100-linear-foot basement perimeter, that's $4,000 to $8,500). Sump pump installation costs $600 to $2,500 depending on capacity and whether you add a battery backup. A complete interior system with French drain and sump pump typically costs $5,000 to $10,000."
+      },
+      {
+        type: 'heading',
+        text: 'Exterior Waterproofing Costs'
+      },
+      {
+        type: 'paragraph',
+        text: "Exterior waterproofing stops water before it reaches your foundation—it's more effective but requires significant excavation. Excavation alone costs $50 to $200 per cubic yard, and reaching basement depth can mean 8+ feet of digging around your entire foundation. Exterior waterproofing membranes cost $3 to $8 per square foot after excavation. Exterior French drains run $25 to $100 per linear foot. A complete exterior system typically costs $10,000 to $15,000, sometimes more for larger homes or difficult access."
+      },
+      {
+        type: 'heading',
+        text: 'What Affects Your Cost in Atlanta?'
+      },
+      {
+        type: 'paragraph',
+        text: "Several factors specific to Metro Atlanta affect waterproofing costs. Basement size directly impacts pricing—larger basements need more materials and labor. Georgia's clay soil is harder to excavate than sandy soils, increasing labor costs for exterior work. Foundation type matters too: block foundations often need more work than poured concrete. The severity of your water problem affects scope—minor seepage vs. standing water require different solutions. Finally, accessibility plays a role: if contractors can't easily access your foundation (fences, landscaping, patios), costs increase."
+      },
+      {
+        type: 'heading',
+        text: 'Cost by Basement Size'
+      },
+      {
+        type: 'paragraph',
+        text: "For interior waterproofing (French drain + sump pump), here's what to expect based on basement size: A 500 square foot basement typically costs $3,000 to $5,500. A 1,000 square foot basement runs $5,000 to $8,000. A 1,500 square foot basement costs $7,000 to $10,000. Larger basements often have a lower cost per square foot because fixed costs (equipment, setup) are spread over more area."
+      },
+      {
+        type: 'heading',
+        text: 'Is It Worth the Investment?'
+      },
+      {
+        type: 'paragraph',
+        text: "A wet basement isn't just an inconvenience—it's an ongoing liability. According to FEMA, just one inch of water in your basement can cause over $10,000 in damage. Mold can start growing within 24-48 hours of water exposure. A dry basement adds usable square footage to your home and protects your home's value. Most waterproofing companies report that homeowners recover 30% to 50% of interior waterproofing costs in home value, with exterior systems returning 50% to 70%."
+      },
+      {
+        type: 'heading',
+        text: 'How to Get an Accurate Estimate'
+      },
+      {
+        type: 'paragraph',
+        text: "Every basement is different, and the only way to know your actual cost is with a professional inspection. Be wary of quotes given over the phone without seeing your basement—that's a red flag. At Reliable Solutions Atlanta, we provide free inspections and detailed estimates. We'll explain exactly what your basement needs, why, and what it will cost. No surprises. Call 770-895-2039 to schedule your free inspection."
+      },
+      {
+        type: 'faq',
+        text: 'Frequently Asked Questions'
+      },
+      {
+        type: 'question',
+        text: 'Can I waterproof my basement myself to save money?'
+      },
+      {
+        type: 'answer',
+        text: "DIY waterproofing products like sealant paint may help with minor dampness, but they won't solve active water intrusion. French drain and sump pump installation requires specialized equipment and expertise. Improper installation often leads to system failure and can cost more to fix than doing it right the first time."
+      },
+      {
+        type: 'question',
+        text: 'Does homeowners insurance cover basement waterproofing?'
+      },
+      {
+        type: 'answer',
+        text: "Standard homeowners insurance typically doesn't cover waterproofing as preventive maintenance. However, if you have flood insurance and experience covered water damage, some repair costs may be covered. Check your specific policy."
+      },
+      {
+        type: 'question',
+        text: 'How long does basement waterproofing last?'
+      },
+      {
+        type: 'answer',
+        text: "Properly installed interior drainage systems last 15-25 years. Sump pumps typically need replacement every 7-10 years. Exterior waterproofing membranes can last 20-30 years. Most reputable companies offer warranties—Reliable Solutions Atlanta provides an extensive warranty program on our work."
+      },
+    ],
+  },
+  'what-to-check-after-storm-atlanta': {
+    title: 'What to Check After a Storm: Protecting Your Atlanta Home from Water Damage',
+    description: 'After severe weather hits Metro Atlanta, quick action prevents costly water damage. Learn the post-storm inspection checklist every homeowner needs.',
+    date: 'January 28, 2026',
+    readTime: '7 min read',
+    category: 'Water Damage',
+    content: [
+      {
+        type: 'lead',
+        text: "Metro Atlanta sees its share of severe weather—heavy thunderstorms, tropical storm remnants, and the occasional hurricane that tracks inland. After the storm passes, what you do in the next 24-48 hours can mean the difference between a minor cleanup and thousands in water damage repairs. Here's your post-storm checklist."
+      },
+      {
+        type: 'heading',
+        text: 'Why Quick Action Matters'
+      },
+      {
+        type: 'paragraph',
+        text: "Water damage isn't just about the initial flooding—it's what happens next. Mold can begin growing within 24-48 hours in damp conditions. Wood rot starts when moisture content exceeds 20% for extended periods. Electrical hazards can develop as water reaches outlets and wiring. The sooner you identify and address water intrusion, the less secondary damage you'll face."
+      },
+      {
+        type: 'heading',
+        text: 'Safety First'
+      },
+      {
+        type: 'paragraph',
+        text: "Before inspecting your home, ensure it's safe to do so. If you see downed power lines near your home, stay away and call Georgia Power. Don't enter standing water that may be in contact with electrical sources. If you smell gas, leave immediately and call your gas company. Wear rubber boots and gloves when dealing with flood water, which may contain sewage or chemicals."
+      },
+      {
+        type: 'heading',
+        text: 'Check Your Basement or Crawl Space First'
+      },
+      {
+        type: 'paragraph',
+        text: "Your basement or crawl space is the most vulnerable area after heavy rain. Look for standing water or wet spots on the floor. Check walls for water seepage or new cracks. Inspect the sump pump (if you have one) to ensure it's running. Listen for running water that might indicate a leak. Note the high-water mark if flooding occurred. If you find water, document everything with photos before you start cleanup—you may need this for insurance claims."
+      },
+      {
+        type: 'heading',
+        text: 'Inspect the Exterior Foundation'
+      },
+      {
+        type: 'paragraph',
+        text: "Walk around your home's exterior once it's safe. Look for pooling water near the foundation—this should drain away, not toward your home. Check for soil erosion that may have exposed foundation walls. Inspect visible foundation for new cracks. Look for debris blocking drainage paths. Pay special attention to window wells, which can fill with water and leak into basements."
+      },
+      {
+        type: 'heading',
+        text: 'Check Gutters and Downspouts'
+      },
+      {
+        type: 'paragraph',
+        text: "Your gutter system is your first line of defense against foundation water problems. Look for gutters that pulled away from the house during the storm. Check for clogs from leaves and debris washed down by heavy rain. Ensure downspouts are still directing water at least 6 feet from your foundation. Look for areas where water overflowed—these may indicate undersized gutters or a need for additional downspouts."
+      },
+      {
+        type: 'heading',
+        text: 'Look for Signs Inside Your Home'
+      },
+      {
+        type: 'paragraph',
+        text: "Water intrusion isn't always obvious. Check ceilings for water stains or soft spots. Look at walls, especially near windows, for dampness or discoloration. Open closets and check corners where moisture hides. Smell for musty odors that indicate moisture problems. Check doors and windows—sudden sticking can indicate foundation movement from saturated soil."
+      },
+      {
+        type: 'heading',
+        text: 'Document Everything'
+      },
+      {
+        type: 'paragraph',
+        text: "If you find any damage, document it thoroughly before repairs. Take photos and videos of all damage. Note the date, time, and conditions. Save receipts for any emergency repairs. This documentation is crucial for insurance claims and helps contractors understand the full scope of the problem."
+      },
+      {
+        type: 'heading',
+        text: 'When to Call a Professional'
+      },
+      {
+        type: 'paragraph',
+        text: "Some situations require professional help immediately. Call a waterproofing professional if you have standing water in your basement that won't drain. You should also call if you notice new foundation cracks, especially horizontal ones. Water seeping through basement walls, a sump pump that won't stop running or won't run at all, and musty odors that persist after the area dries all warrant professional inspection."
+      },
+      {
+        type: 'heading',
+        text: 'Preventing Future Storm Damage'
+      },
+      {
+        type: 'paragraph',
+        text: "If this storm revealed vulnerabilities in your home, don't wait for the next one to cause worse damage. Consider professional basement waterproofing if water entered your basement. Install a sump pump with battery backup to handle power outages during storms. Ensure proper grading around your foundation. Clean and maintain gutters regularly. At Reliable Solutions Atlanta, we offer free inspections to assess your home's vulnerability to water damage. Call 770-895-2039 to schedule yours before the next storm season."
+      },
+    ],
+  },
+  'french-drain-vs-sump-pump': {
+    title: 'French Drain vs Sump Pump: Which Does Your Home Need?',
+    description: 'Confused about basement drainage options? Learn how French drains and sump pumps work differently—and why most Atlanta homes need both.',
+    date: 'January 27, 2026',
+    readTime: '8 min read',
+    category: 'Drainage',
+    content: [
+      {
+        type: 'lead',
+        text: "When water threatens your basement, you'll hear a lot about French drains and sump pumps. But what's the difference? Do you need one or the other—or both? Understanding how these systems work (and work together) helps you make the right choice for your home."
+      },
+      {
+        type: 'heading',
+        text: 'The Simple Difference'
+      },
+      {
+        type: 'paragraph',
+        text: "Think of it this way: a French drain is like the gutters on your roof, collecting water and directing it where you want it to go. A sump pump is like the downspout—it moves collected water away from your home. French drains collect water passively using gravity. Sump pumps actively pump water out using electricity. Most effective basement waterproofing systems use both working together."
+      },
+      {
+        type: 'heading',
+        text: 'How French Drains Work'
+      },
+      {
+        type: 'paragraph',
+        text: "A French drain is a gravel-filled trench with a perforated pipe that collects groundwater and directs it away from your foundation. For basement waterproofing, interior French drains are installed along the perimeter of your basement floor. The process involves cutting a channel around the edge of your basement, installing a perforated pipe surrounded by gravel, and sealing the channel back up. Water that seeps through walls or floor is collected in this channel and flows toward a collection point—usually a sump pit."
+      },
+      {
+        type: 'heading',
+        text: 'How Sump Pumps Work'
+      },
+      {
+        type: 'paragraph',
+        text: "A sump pump sits in a pit (the sump basin) at the lowest point of your basement. When water level in the pit rises, a float switch activates the pump, which pushes water out through a discharge pipe to a safe location away from your foundation. Modern sump pumps can move 2,000 to 5,000 gallons per hour—enough to handle even heavy storm events. The best systems include a battery backup so the pump keeps running during power outages (exactly when you need it most)."
+      },
+      {
+        type: 'heading',
+        text: 'When You Need a French Drain'
+      },
+      {
+        type: 'paragraph',
+        text: "French drains are the right choice when water seeps in along the perimeter where your basement walls meet the floor. They're also ideal when you have chronic dampness along foundation walls, water pressure building up against your basement walls, or you need to protect your entire basement perimeter, not just one spot. French drains work continuously without electricity, maintenance, or attention. Once installed, they quietly redirect water 24/7."
+      },
+      {
+        type: 'heading',
+        text: 'When You Need a Sump Pump'
+      },
+      {
+        type: 'paragraph',
+        text: "Sump pumps are essential when water collects faster than gravity can drain it, such as during heavy storms. They're also necessary when your basement sits below the water table, you have a high-volume water intrusion problem, water needs to be pumped uphill or a significant distance from your home, or you're in a flood-prone area. Sump pumps handle emergencies that passive systems can't manage alone."
+      },
+      {
+        type: 'heading',
+        text: 'Why Most Atlanta Homes Need Both'
+      },
+      {
+        type: 'paragraph',
+        text: "Here's what experienced waterproofing contractors know: a French drain without a sump pump just collects water with nowhere to go. A sump pump without a French drain only protects one spot while water enters elsewhere. The combination creates a complete system: the French drain collects water from around your entire basement perimeter and directs it to the sump pit, where the sump pump removes it from your home. This approach costs $5,000 to $15,000 depending on basement size, but provides reliable, comprehensive protection."
+      },
+      {
+        type: 'heading',
+        text: 'Cost Comparison'
+      },
+      {
+        type: 'paragraph',
+        text: "Interior French drain installation costs $40 to $85 per linear foot—for a typical 100-foot basement perimeter, that's $4,000 to $8,500. Sump pump installation costs $600 to $2,500, with battery backup adding $400 to $800. Exterior French drains cost $25 to $100 per linear foot but require excavation, increasing total project costs significantly. A complete interior system (French drain + sump pump) typically runs $5,000 to $10,000 for most Atlanta homes."
+      },
+      {
+        type: 'heading',
+        text: 'Maintenance Requirements'
+      },
+      {
+        type: 'paragraph',
+        text: "French drains are low-maintenance—once installed properly, they can last 15-25 years with minimal attention. Just ensure the discharge area stays clear. Sump pumps need more attention. Test your pump quarterly by pouring water into the pit until the float triggers. Clean the pump inlet screen annually. Replace the battery backup every 2-3 years. Most pumps need replacement every 7-10 years."
+      },
+      {
+        type: 'heading',
+        text: 'Making the Right Choice'
+      },
+      {
+        type: 'paragraph',
+        text: "The right system depends on your specific situation. If you have minor dampness along one wall, you might get by with targeted waterproofing. If you have chronic water intrusion or have experienced basement flooding, a complete French drain and sump pump system is the most reliable solution. At Reliable Solutions Atlanta, we inspect your basement, identify how and where water enters, and recommend the most cost-effective solution for your situation. Call 770-895-2039 for a free inspection."
+      },
+      {
+        type: 'faq',
+        text: 'Frequently Asked Questions'
+      },
+      {
+        type: 'question',
+        text: 'Can I install a French drain myself?'
+      },
+      {
+        type: 'answer',
+        text: "Exterior French drains are sometimes a DIY project, but interior French drains require cutting through your basement floor, ensuring proper slope, and connecting to a sump system. Mistakes can make water problems worse. Most homeowners find professional installation provides better results and warranty protection."
+      },
+      {
+        type: 'question',
+        text: 'How loud is a sump pump?'
+      },
+      {
+        type: 'answer',
+        text: "Modern submersible sump pumps are relatively quiet, but you'll hear them cycle on and off during heavy rain. If pump noise bothers you, we can install quieter models or add sound-dampening features to the basin cover."
+      },
+      {
+        type: 'question',
+        text: 'What happens if the power goes out during a storm?'
+      },
+      {
+        type: 'answer',
+        text: "Without power, a standard sump pump stops working—exactly when you need it most. That's why we strongly recommend battery backup systems. These can run your pump for 8-12 hours (or longer) during outages, protecting your basement when storms knock out power."
+      },
+    ],
+  },
+  'crawl-space-mold-signs': {
+    title: '5 Signs Your Crawl Space Has a Mold Problem',
+    description: "Crawl space mold affects your family's health even if you never go down there. Learn the warning signs and what to do about them.",
+    date: 'January 26, 2026',
+    readTime: '7 min read',
+    category: 'Crawl Space',
+    content: [
+      {
+        type: 'lead',
+        text: "You probably don't spend much time thinking about your crawl space. But here's an uncomfortable truth: up to 50% of the air you breathe on your first floor comes from below—including whatever's growing in your crawl space. If mold is down there, you and your family are breathing it in every day."
+      },
+      {
+        type: 'heading',
+        text: 'Why Crawl Space Mold Is Dangerous'
+      },
+      {
+        type: 'paragraph',
+        text: "Mold releases microscopic spores into the air. Through a phenomenon called the \"stack effect,\" air from your crawl space rises into your living space through gaps, HVAC systems, and natural air pressure. The CDC confirms that mold exposure can cause allergic reactions, respiratory issues, and worsen asthma. For people with compromised immune systems, certain molds can cause serious infections. Beyond health concerns, mold actively breaks down wood—including the floor joists and beams that support your home."
+      },
+      {
+        type: 'heading',
+        text: '1. Persistent Musty Odors'
+      },
+      {
+        type: 'paragraph',
+        text: "The most common sign of crawl space mold is a musty, earthy smell in your home—especially on the first floor. This odor comes from microbial volatile organic compounds (MVOCs) that mold produces as it feeds on organic materials. If your home smells damp or musty no matter how much you clean, and the smell seems to come from the floor or HVAC vents, check your crawl space."
+      },
+      {
+        type: 'heading',
+        text: '2. Unexplained Allergy Symptoms'
+      },
+      {
+        type: 'paragraph',
+        text: "Does your family experience allergy-like symptoms at home that improve when you leave? Common mold-related symptoms include sneezing and runny nose, itchy or watery eyes, coughing or throat irritation, skin rashes or irritation, and sinus congestion that won't clear up. If these symptoms are worse at home than elsewhere, or worse in certain rooms, mold could be the cause."
+      },
+      {
+        type: 'heading',
+        text: '3. Visible Mold or Discoloration'
+      },
+      {
+        type: 'paragraph',
+        text: "If you (carefully) look into your crawl space, you might see direct evidence of mold. White, fuzzy growth on floor joists or soil—this \"white mold\" is common in crawl spaces. Black or greenish-black patches on wood or surfaces—potentially dangerous black mold (Stachybotrys). Yellow or brown discoloration on wood surfaces. Any visible mold indicates a moisture problem that needs to be addressed, not just cleaned."
+      },
+      {
+        type: 'heading',
+        text: '4. Sagging or Soft Floors'
+      },
+      {
+        type: 'paragraph',
+        text: "Mold feeds on wood, and over time, it weakens structural components. If you notice floors that feel bouncy or soft, visible sagging between floor joists, creaking that seems to be getting worse, or doors that have started sticking (indicating floor movement), these could indicate mold-related wood rot in your crawl space. This is a structural concern that needs prompt attention."
+      },
+      {
+        type: 'heading',
+        text: '5. High Humidity or Condensation'
+      },
+      {
+        type: 'paragraph',
+        text: "Mold needs moisture to grow. If your home has any of these signs, mold-friendly conditions exist. Condensation on windows, especially in the morning. HVAC ducts that \"sweat\" in summer. A humidity reading above 60% in your home. Damp-feeling carpet or floors. If your crawl space has standing water, saturated soil, or condensation on pipes and ductwork, mold growth is almost certain."
+      },
+      {
+        type: 'heading',
+        text: 'Common Types of Crawl Space Mold'
+      },
+      {
+        type: 'paragraph',
+        text: "Several mold types commonly grow in crawl spaces. White mold appears powdery or fuzzy on soil and wood—it looks harmless but can still affect air quality. Black mold (Stachybotrys) is dark, sometimes slimy, and releases mycotoxins that can seriously impact respiratory health—this is the most dangerous variety. Yellow mold feeds on wood and accelerates structural decay. Aspergillus and Penicillium are common varieties that trigger allergic reactions. The specific type matters less than addressing the underlying moisture problem that allows any mold to grow."
+      },
+      {
+        type: 'heading',
+        text: 'What to Do If You Suspect Mold'
+      },
+      {
+        type: 'paragraph',
+        text: "Don't try to clean significant mold yourself—disturbing mold releases massive amounts of spores into the air, potentially making your indoor air quality worse. Professional mold remediation safely removes existing mold. But here's the critical point: killing the mold doesn't solve the problem. If you don't address the moisture source, mold will return."
+      },
+      {
+        type: 'heading',
+        text: 'The Long-Term Solution'
+      },
+      {
+        type: 'paragraph',
+        text: "Preventing crawl space mold requires controlling moisture at its source. This typically involves crawl space encapsulation with a heavy-duty vapor barrier. A commercial-grade dehumidifier maintains humidity below 60%. Sealing vents prevents humid outside air from entering. Addressing any water intrusion with proper drainage ensures dry conditions. At Reliable Solutions Atlanta, we address both the mold and the conditions that caused it. Our crawl space encapsulation creates a dry, sealed environment where mold can't grow. Call 770-895-2039 for a free crawl space inspection."
+      },
+      {
+        type: 'faq',
+        text: 'Frequently Asked Questions'
+      },
+      {
+        type: 'question',
+        text: 'Can I kill crawl space mold with bleach?'
+      },
+      {
+        type: 'answer',
+        text: "Bleach kills surface mold but doesn't penetrate porous materials like wood, where mold roots grow. It also doesn't address the moisture problem. Bleach-cleaned mold often returns within weeks or months."
+      },
+      {
+        type: 'question',
+        text: 'Is crawl space mold covered by homeowners insurance?'
+      },
+      {
+        type: 'answer',
+        text: "Generally, insurance doesn't cover mold resulting from ongoing moisture problems or lack of maintenance. It may cover mold from a sudden, covered event (like a burst pipe). Check your specific policy and consider adding mold coverage if available."
+      },
+      {
+        type: 'question',
+        text: 'How quickly can mold grow after water damage?'
+      },
+      {
+        type: 'answer',
+        text: "Mold can begin growing within 24-48 hours in damp conditions. That's why quick response to any water intrusion is critical. If your crawl space floods, address it immediately—don't wait for it to dry on its own."
+      },
+    ],
+  },
+  'foundation-maintenance-seasonal-checklist': {
+    title: 'How to Maintain Your Home\'s Foundation: A Seasonal Checklist',
+    description: 'Prevent costly foundation repairs with these simple seasonal maintenance tasks. A checklist for Atlanta homeowners to protect their biggest investment.',
+    date: 'January 25, 2026',
+    readTime: '6 min read',
+    category: 'Foundation Repair',
+    content: [
+      {
+        type: 'lead',
+        text: "Foundation repairs can cost $5,000 to $25,000 or more. The good news? Many foundation problems are preventable with regular maintenance. This seasonal checklist helps Atlanta homeowners protect their foundation before small issues become expensive repairs."
+      },
+      {
+        type: 'heading',
+        text: 'Why Seasonal Maintenance Matters in Atlanta'
+      },
+      {
+        type: 'paragraph',
+        text: "Georgia's climate is tough on foundations. Our red clay soil expands when wet and contracts when dry, constantly stressing your foundation. Atlanta's pattern of wet springs, dry summers, rainy falls, and mild winters means your foundation experiences the full expansion-contraction cycle multiple times per year. Regular maintenance helps minimize this stress and catch problems early."
+      },
+      {
+        type: 'heading',
+        text: 'Spring Checklist (March-May)'
+      },
+      {
+        type: 'paragraph',
+        text: "Spring brings heavy rain to Atlanta—perfect conditions for foundation stress. Check your gutters and downspouts for winter debris and ensure downspouts extend at least 6 feet from your foundation. Inspect your foundation for new cracks after winter; mark any cracks with tape and date them to monitor growth. Check grading around your home—soil should slope away from the foundation at least 6 inches over the first 10 feet. Inspect your basement or crawl space for signs of water intrusion after spring rains. Test your sump pump by pouring water into the pit until the float activates."
+      },
+      {
+        type: 'heading',
+        text: 'Summer Checklist (June-August)'
+      },
+      {
+        type: 'paragraph',
+        text: "Atlanta summers are hot and can be dry, causing soil to shrink away from foundations. Water the soil around your foundation during dry spells—maintain consistent moisture without creating soggy conditions. Check for gaps between soil and foundation walls; if soil has pulled away more than half an inch, water more frequently. Inspect visible foundation for new cracks. Ensure air conditioning condensate drains away from the foundation, not into soil next to your home. Trim vegetation near the foundation—roots can draw moisture from soil and damage foundation walls."
+      },
+      {
+        type: 'heading',
+        text: 'Fall Checklist (September-November)'
+      },
+      {
+        type: 'paragraph',
+        text: "Fall is prime time for gutter maintenance before winter. Clean gutters thoroughly—clogged gutters overflow and dump water next to your foundation. Inspect downspout extensions and replace any that are cracked or missing. Check basement windows and window wells for proper drainage. Inspect foundation vents (if present) and ensure they're not blocked. Walk around your home after a heavy rain to identify any areas where water pools near the foundation. Re-check any cracks you marked in spring—significant growth indicates a problem that needs professional attention."
+      },
+      {
+        type: 'heading',
+        text: 'Winter Checklist (December-February)'
+      },
+      {
+        type: 'paragraph',
+        text: "Atlanta winters are mild, but occasional freezes can affect foundations. Before the first freeze, disconnect and drain outdoor hoses to prevent pipe bursts near the foundation. Check that basement humidity stays below 60% even with the house closed up. Inspect your sump pump and battery backup—winter storms can cause power outages. After any freeze-thaw cycle, check for new cracks in visible foundation areas. Keep gutters clear of winter debris to prevent ice dams and overflow."
+      },
+      {
+        type: 'heading',
+        text: 'Monthly Quick Checks'
+      },
+      {
+        type: 'paragraph',
+        text: "In addition to seasonal tasks, these quick monthly checks take just a few minutes. Walk through your home and check for doors or windows that have started sticking. Look at interior walls for new cracks, especially above doors and windows. Check basement or crawl space for standing water, dampness, or musty odors. Glance at your foundation from outside while doing yard work. Listen for your sump pump cycling on and off during rain."
+      },
+      {
+        type: 'heading',
+        text: 'Warning Signs That Need Professional Attention'
+      },
+      {
+        type: 'paragraph',
+        text: "Some issues go beyond DIY maintenance. Call a professional if you notice horizontal cracks in foundation walls (these indicate pressure against the wall), stair-step cracks in brick or block foundations, cracks that are wider than 1/4 inch or growing, doors and windows that suddenly won't close properly, visible gaps between walls and ceiling or floor, floors that slope or feel uneven, or water regularly entering your basement despite maintenance efforts."
+      },
+      {
+        type: 'heading',
+        text: 'The Cost of Prevention vs. Repair'
+      },
+      {
+        type: 'paragraph',
+        text: "Consider the math: A few hours of seasonal maintenance costs nothing but your time. A new sump pump battery costs $100-200 every few years. Gutter cleaning runs $150-300 annually if you hire it out. Foundation repair averages $5,000-$15,000, with major repairs reaching $25,000+. Prevention is dramatically cheaper than repair. At Reliable Solutions Atlanta, we've seen countless foundation problems that could have been caught early with basic maintenance. When you do notice warning signs, don't wait—call 770-895-2039 for a free foundation inspection. Early intervention almost always costs less than waiting."
       },
     ],
   },
@@ -326,6 +811,27 @@ export default async function BlogPost({ params }) {
                   </p>
                 )
               }
+              if (block.type === 'faq') {
+                return (
+                  <h2 key={index} className="text-2xl md:text-3xl font-bold text-[#273373] font-display mt-12 mb-6 pt-6 border-t border-gray-200">
+                    {block.text}
+                  </h2>
+                )
+              }
+              if (block.type === 'question') {
+                return (
+                  <h3 key={index} className="text-xl font-bold text-[#273373] mt-6 mb-2">
+                    {block.text}
+                  </h3>
+                )
+              }
+              if (block.type === 'answer') {
+                return (
+                  <p key={index} className="text-gray-700 text-lg leading-relaxed mb-4">
+                    {block.text}
+                  </p>
+                )
+              }
               return null
             })}
           </div>
@@ -379,6 +885,7 @@ export default async function BlogPost({ params }) {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {Object.entries(blogPosts)
               .filter(([postSlug]) => postSlug !== slug)
+              .slice(0, 3)
               .map(([postSlug, relatedPost]) => (
                 <Link
                   key={postSlug}
