@@ -1,63 +1,123 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Service Areas',
-  description: 'Reliable Solutions Atlanta serves Metro Atlanta including Lawrenceville, Stone Mountain, Decatur, Marietta, Roswell, Alpharetta, and surrounding areas. 770-895-2039',
+  description: 'Reliable Solutions Atlanta serves Metro Atlanta including Lawrenceville, Marietta, Roswell, Alpharetta, Decatur, Sandy Springs, Stone Mountain, and surrounding areas. 770-895-2039',
 }
 
 export default function ServiceAreaPage() {
-  const serviceAreas = [
-  { name: 'Atlanta', state: 'GA', lat: 33.749, lng: -84.388 },
-  { name: 'Stone Mountain', state: 'GA', lat: 33.808, lng: -84.170 },
-  { name: 'Tucker', state: 'GA', lat: 33.855, lng: -84.217 },
-  { name: 'Brookhaven', state: 'GA', lat: 33.859, lng: -84.339 },
-  { name: 'Lilburn', state: 'GA', lat: 33.890, lng: -84.143 },
-  { name: 'Decatur', state: 'GA', lat: 33.775, lng: -84.296 },
-  { name: 'Marietta', state: 'GA', lat: 33.953, lng: -84.550 },
-  { name: 'Roswell', state: 'GA', lat: 34.023, lng: -84.362 },
-  { name: 'Sandy Springs', state: 'GA', lat: 33.924, lng: -84.379 },
-  { name: 'Dunwoody', state: 'GA', lat: 33.946, lng: -84.334 },
-  { name: 'Alpharetta', state: 'GA', lat: 34.075, lng: -84.294 },
-  { name: 'Johns Creek', state: 'GA', lat: 34.029, lng: -84.198 },
-  { name: 'Lawrenceville', state: 'GA', lat: 33.956, lng: -83.988 },
-]
+  // Cities WITH dedicated pages (link to them)
+  const featuredAreas = [
+    { name: 'Lawrenceville', state: 'GA', slug: 'lawrenceville', county: 'Gwinnett County', lat: 33.956, lng: -83.988 },
+    { name: 'Marietta', state: 'GA', slug: 'marietta', county: 'Cobb County', lat: 33.953, lng: -84.550 },
+    { name: 'Roswell', state: 'GA', slug: 'roswell', county: 'Fulton County', lat: 34.023, lng: -84.362 },
+    { name: 'Alpharetta', state: 'GA', slug: 'alpharetta', county: 'Fulton County', lat: 34.075, lng: -84.294 },
+    { name: 'Decatur', state: 'GA', slug: 'decatur', county: 'DeKalb County', lat: 33.775, lng: -84.296 },
+    { name: 'Sandy Springs', state: 'GA', slug: 'sandy-springs', county: 'Fulton County', lat: 33.924, lng: -84.379 },
+    { name: 'Stone Mountain', state: 'GA', slug: 'stone-mountain', county: 'DeKalb County', lat: 33.808, lng: -84.170 },
+  ]
+
+  // Additional cities we serve (no dedicated pages yet)
+  const additionalAreas = [
+    { name: 'Atlanta', state: 'GA', lat: 33.749, lng: -84.388 },
+    { name: 'Tucker', state: 'GA', lat: 33.855, lng: -84.217 },
+    { name: 'Brookhaven', state: 'GA', lat: 33.859, lng: -84.339 },
+    { name: 'Lilburn', state: 'GA', lat: 33.890, lng: -84.143 },
+    { name: 'Dunwoody', state: 'GA', lat: 33.946, lng: -84.334 },
+    { name: 'Johns Creek', state: 'GA', lat: 34.029, lng: -84.198 },
+  ]
 
   return (
     <div className="min-h-screen bg-white">
       <Header activePage="service-area" />
 
-      {/* Service Areas Grid */}
+      {/* Hero */}
+      <section className="bg-[#273373] py-14 md:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 font-display">
+            Serving Metro Atlanta
+          </h1>
+          <p className="text-white/80 text-lg max-w-2xl mx-auto">
+            Reliable Solutions Atlanta provides waterproofing and foundation repair services across the greater Metro Atlanta area. Select a city below to learn about the unique challenges we solve in your area.
+          </p>
+        </div>
+      </section>
+
+      {/* Featured Service Areas - with dedicated pages */}
       <section className="py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#273373] mb-8 text-center font-display">
+            Our Primary Service Areas
+          </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {serviceAreas.map((area, index) => (
-              <div 
-                key={index} 
-                className="relative bg-gray-100 rounded-xl overflow-hidden shadow-lg"
+            {featuredAreas.map((area) => (
+              <Link
+                key={area.slug}
+                href={`/service-area/${area.slug}`}
+                className="group relative bg-gray-100 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                {/* Map placeholder with static map image */}
-                <div className="h-[300px] relative">
+                {/* Map */}
+                <div className="h-[250px] relative">
                   <iframe
                     src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(area.name + ', ' + area.state)}&zoom=11`}
                     width="100%"
                     height="100%"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
+                    style={{ border: 0, pointerEvents: 'none' }}
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                     title={`Map of ${area.name}, ${area.state}`}
                   />
-                  {/* Location label overlay */}
-                  <div className="absolute top-4 left-4 bg-white px-4 py-2 rounded-lg shadow-md">
-                    <h3 className="text-xl font-bold text-[#273373] font-display">
-                      {area.name} {area.state}
-                    </h3>
+                </div>
+                {/* Info overlay */}
+                <div className="p-5 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-[#273373] group-hover:text-[#115997] transition-colors font-display">
+                        {area.name}, {area.state}
+                      </h3>
+                      <p className="text-gray-500 text-sm">{area.county}</p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[#115997] font-semibold text-sm group-hover:gap-2 transition-all">
+                      Learn More
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Additional Areas */}
+      <section className="py-12 md:py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-[#273373] mb-8 text-center font-display">
+            We Also Serve
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {additionalAreas.map((area) => (
+              <div
+                key={area.name}
+                className="bg-white rounded-xl p-5 text-center shadow-sm border border-gray-100"
+              >
+                <svg className="w-6 h-6 text-[#115997] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <h3 className="font-semibold text-[#273373]">{area.name}</h3>
+                <p className="text-gray-500 text-xs">{area.state}</p>
               </div>
             ))}
           </div>
+          <p className="text-center text-gray-500 mt-8">
+            Don&apos;t see your city? We may still serve your area!{' '}
+            <a href="tel:770-895-2039" className="text-[#115997] font-semibold hover:underline">Call 770-895-2039</a>
+          </p>
         </div>
       </section>
 
@@ -67,11 +127,11 @@ export default function ServiceAreaPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold text-white font-display italic">
-                Quick & Reliable
+                Quick &amp; Reliable
               </h2>
               <p className="text-white/80 mt-1">We are available via email or phone</p>
             </div>
-            <a 
+            <a
               href="tel:770-895-2039"
               className="inline-flex items-center gap-3 px-8 py-4 bg-[#84d2f2] text-[#273373] rounded-lg font-semibold hover:bg-white transition-all duration-200"
             >
@@ -95,7 +155,7 @@ export default function ServiceAreaPage() {
               </svg>
               <div>
                 <h4 className="text-white font-semibold">Location</h4>
-                <p className="text-gray-400">Atlanta, GA</p>
+                <p className="text-gray-400">Lawrenceville, GA</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
