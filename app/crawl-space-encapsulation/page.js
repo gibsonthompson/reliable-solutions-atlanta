@@ -11,6 +11,11 @@ export const metadata = {
 export default function CrawlSpaceEncapsulationPage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* Service Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context":"https://schema.org","@type":"Service","name":"Crawl Space Encapsulation","description":"Complete crawl space encapsulation services in Metro Atlanta. Vapor barriers, dehumidifiers, and moisture control to prevent mold, improve air quality, and protect your home structure.","url":"https://www.waterhelpme.com/crawl-space-encapsulation","provider":{"@id":"https://www.waterhelpme.com/#business"},"areaServed":{"@type":"State","name":"Georgia"},"serviceType":"Crawl Space Encapsulation"}) }}
+      />
       <Header activePage="services" />
 
       {/* Hero Section */}

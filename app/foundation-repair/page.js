@@ -11,6 +11,11 @@ export const metadata = {
 export default function FoundationRepairPage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* Service Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context":"https://schema.org","@type":"Service","name":"Foundation Repair","description":"Trusted foundation repair services in Metro Atlanta. Crack repair, settling correction, hydraulic push piers, structural engineering, and real estate foundation inspections.","url":"https://www.waterhelpme.com/foundation-repair","provider":{"@id":"https://www.waterhelpme.com/#business"},"areaServed":{"@type":"State","name":"Georgia"},"serviceType":"Foundation Repair"}) }}
+      />
       <Header activePage="services" />
 
       {/* Hero Section */}

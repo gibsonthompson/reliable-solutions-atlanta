@@ -10,6 +10,24 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'crawl-space-repair-cost-atlanta',
+    title: 'How Much Does Crawl Space Repair Cost in Atlanta?',
+    excerpt: 'Realistic crawl space repair pricing for Metro Atlanta homes. Compare costs for encapsulation, structural repair, mold remediation, and waterproofing.',
+    date: 'February 11, 2026',
+    readTime: '8 min read',
+    category: 'Crawl Space',
+    image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
+  },
+  {
+    slug: 'foundation-repair-cost-atlanta',
+    title: 'How Much Does Foundation Repair Cost in Atlanta?',
+    excerpt: 'Get realistic foundation repair pricing for Metro Atlanta homes. Learn what affects costs, compare repair methods, and know what to expect.',
+    date: 'February 11, 2026',
+    readTime: '8 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
     slug: 'interior-vs-exterior-basement-waterproofing',
     title: 'Interior vs Exterior Basement Waterproofing: Which Approach Is Right for Your Home?',
     excerpt: 'Compare interior and exterior basement waterproofing methods, costs, and effectiveness. Learn which approach works best for Atlanta homes.',

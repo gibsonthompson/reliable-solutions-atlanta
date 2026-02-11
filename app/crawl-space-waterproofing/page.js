@@ -11,6 +11,11 @@ export const metadata = {
 export default function CrawlSpaceWaterproofingPage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* Service Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context":"https://schema.org","@type":"Service","name":"Crawl Space Waterproofing","description":"Professional crawl space waterproofing in Metro Atlanta. Vapor barriers, drainage systems, and encapsulation to prevent standing water, mold, and structural damage.","url":"https://www.waterhelpme.com/crawl-space-waterproofing","provider":{"@id":"https://www.waterhelpme.com/#business"},"areaServed":{"@type":"State","name":"Georgia"},"serviceType":"Crawl Space Waterproofing"}) }}
+      />
       <Header activePage="services" />
 
       {/* Hero Section */}

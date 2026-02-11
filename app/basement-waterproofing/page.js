@@ -11,6 +11,11 @@ export const metadata = {
 export default function BasementWaterproofingPage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* Service Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context":"https://schema.org","@type":"Service","name":"Basement Waterproofing","description":"Professional interior and exterior basement waterproofing services in Metro Atlanta. French drains, sump pumps, waterproofing membranes, and drainage systems to keep your basement dry permanently.","url":"https://www.waterhelpme.com/basement-waterproofing","provider":{"@id":"https://www.waterhelpme.com/#business"},"areaServed":{"@type":"State","name":"Georgia"},"serviceType":"Basement Waterproofing"}) }}
+      />
       <Header activePage="services" />
 
       {/* Hero Section */}

@@ -24,6 +24,11 @@ export default function ConcreteRepairPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Service Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context":"https://schema.org","@type":"Service","name":"Concrete Repair","description":"Professional concrete and masonry repair services in Metro Atlanta. Brick pointing, stucco repair, chimney repair, retaining walls, sidewalks, patios, and foundation concrete work.","url":"https://www.waterhelpme.com/cocnrete-repair","provider":{"@id":"https://www.waterhelpme.com/#business"},"areaServed":{"@type":"State","name":"Georgia"},"serviceType":"Concrete Repair"}) }}
+      />
       <Header activePage="services" />
 
       {/* Hero Section */}

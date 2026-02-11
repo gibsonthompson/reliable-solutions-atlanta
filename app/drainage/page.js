@@ -11,6 +11,11 @@ export const metadata = {
 export default function DrainagePage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* Service Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({"@context":"https://schema.org","@type":"Service","name":"Drainage Solutions","description":"Expert drainage system installation in Metro Atlanta. French drains, interior perimeter drains, sump pumps, and water management systems to protect your foundation from water damage.","url":"https://www.waterhelpme.com/drainage","provider":{"@id":"https://www.waterhelpme.com/#business"},"areaServed":{"@type":"State","name":"Georgia"},"serviceType":"Drainage Solutions"}) }}
+      />
       <Header activePage="services" />
 
       {/* Hero Section */}
