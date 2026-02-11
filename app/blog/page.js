@@ -25,7 +25,7 @@ const blogPosts = [
     date: 'February 8, 2026',
     readTime: '7 min read',
     category: 'Basement Waterproofing',
-    image: '/images/portfolio/waterproofing-truck-atlanta-job-site.png',
+    image: '/image/waterproofing-truck-atlanta-job-site.png',
   },
   {
     slug: 'foundation-crack-types-atlanta',
@@ -34,7 +34,7 @@ const blogPosts = [
     date: 'February 6, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
-    image: '/images/portfolio/foundation-repair-atlanta.png',
+    image: '/images/foundation-repair-atlanta.png',
   },
   {
     slug: 'crawl-space-vapor-barrier-guide',
