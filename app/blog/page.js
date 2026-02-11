@@ -25,7 +25,7 @@ const blogPosts = [
     date: 'February 8, 2026',
     readTime: '7 min read',
     category: 'Basement Waterproofing',
-    image: '/image/waterproofing-truck-atlanta-job-site.png',
+    image: '/images/waterproofing-truck-atlanta-job-site.png',
   },
   {
     slug: 'foundation-crack-types-atlanta',
