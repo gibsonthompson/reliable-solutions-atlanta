@@ -1,6 +1,7 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Basement Waterproofing Atlanta | Interior & Exterior Solutions',
@@ -93,6 +94,28 @@ export default function BasementWaterproofingPage() {
             <p className="text-gray-700 text-lg leading-relaxed">
               Waterproofing your home is about more than avoiding a mess. A flooded basement can be exceedingly expensive to repair, valued and precious possessions can be permanently damaged if not completely ruined, and the presence of moisture makes your home vulnerable to potentially dangerous mold growth. It can be difficult to tell if you are at risk for water damage, which is why Reliable Solutions offers a free estimate for our potential customers.
             </p>
+          </div>
+
+          {/* Related Blog Resources */}
+          <div className="mt-16 pt-12 border-t border-gray-200">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#273373] font-display mb-8">Basement Waterproofing Resources</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Link href="/blog/basement-waterproofing-cost-atlanta" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Cost Guide</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">How Much Does Basement Waterproofing Cost in Atlanta?</h3>
+                <p className="text-gray-600 mt-2 text-sm">Get real pricing for interior vs exterior solutions in Metro Atlanta.</p>
+              </Link>
+              <Link href="/blog/signs-you-need-basement-waterproofing" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Warning Signs</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">7 Warning Signs You Need Basement Waterproofing</h3>
+                <p className="text-gray-600 mt-2 text-sm">Spot the telltale signs before minor issues become major problems.</p>
+              </Link>
+              <Link href="/blog/interior-vs-exterior-basement-waterproofing" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Comparison</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Interior vs Exterior Waterproofing: Which Is Right?</h3>
+                <p className="text-gray-600 mt-2 text-sm">Compare approaches, costs, and effectiveness for your home.</p>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

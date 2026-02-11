@@ -1,6 +1,7 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Crawl Space Encapsulation Atlanta | Moisture & Mold Prevention',
@@ -116,6 +117,28 @@ export default function CrawlSpaceEncapsulationPage() {
                 </span>
               </li>
             </ul>
+          </div>
+
+          {/* Related Blog Resources */}
+          <div className="mt-16 pt-12 border-t border-gray-200">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#273373] font-display mb-8">Crawl Space Encapsulation Resources</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Link href="/blog/crawl-space-encapsulation-vs-waterproofing" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Comparison</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Encapsulation vs Waterproofing: Which Do You Need?</h3>
+                <p className="text-gray-600 mt-2 text-sm">Understanding the difference can save you thousands on the right fix.</p>
+              </Link>
+              <Link href="/blog/crawl-space-mold-signs" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Warning Signs</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">5 Signs Your Crawl Space Has a Mold Problem</h3>
+                <p className="text-gray-600 mt-2 text-sm">Crawl space mold affects your health even if you never go down there.</p>
+              </Link>
+              <Link href="/blog/crawl-space-vapor-barrier-guide" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Guide</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Crawl Space Vapor Barriers: What You Need to Know</h3>
+                <p className="text-gray-600 mt-2 text-sm">Why proper installation matters more than the material itself.</p>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

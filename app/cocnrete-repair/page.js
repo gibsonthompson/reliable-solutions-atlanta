@@ -1,6 +1,7 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Concrete Repair Atlanta | Driveways, Patios & Foundation Slabs',
@@ -103,6 +104,28 @@ export default function ConcreteRepairPage() {
             <p className="text-gray-700 text-lg leading-relaxed">
               We have been working in your community and your neighborhood for many years, and we take pride in the reputation of our company&apos;s masonry. Our commercial and residential clients alike have come to rely on us for all of their masonry needs, and once you&apos;ve used us you will too. Whether your job is big or small, a new installation or a quick repair job, call us today and see the difference working with a true professional can make.
             </p>
+          </div>
+
+          {/* Related Blog Resources */}
+          <div className="mt-16 pt-12 border-t border-gray-200">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#273373] font-display mb-8">Concrete & Foundation Resources</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Link href="/blog/foundation-crack-types-atlanta" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Crack Guide</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Types of Foundation Cracks and What They Mean</h3>
+                <p className="text-gray-600 mt-2 text-sm">Learn which cracks are cosmetic and which signal structural problems.</p>
+              </Link>
+              <Link href="/blog/signs-foundation-settling-vs-structural-damage" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Diagnosis</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Foundation Settling vs. Structural Damage</h3>
+                <p className="text-gray-600 mt-2 text-sm">Know when settling is normal and when it signals a serious problem.</p>
+              </Link>
+              <Link href="/blog/why-atlanta-homes-have-foundation-problems" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Local Insight</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Why Atlanta Homes Are Prone to Foundation Problems</h3>
+                <p className="text-gray-600 mt-2 text-sm">How Georgia&apos;s red clay soil creates unique challenges for homeowners.</p>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

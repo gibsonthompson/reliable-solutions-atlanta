@@ -1,6 +1,7 @@
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Image from 'next/image'
+import Link from 'next/link'
 
 export const metadata = {
   title: 'Drainage Solutions Atlanta | French Drains & Water Management',
@@ -72,6 +73,28 @@ export default function DrainagePage() {
             <p className="text-gray-700 text-lg leading-relaxed">
               To learn more about installing or upgrading your basement drainage system, contact us today to request a consultation with your local Reliable Solutions Atlanta waterproofing contractor.
             </p>
+          </div>
+
+          {/* Related Blog Resources */}
+          <div className="mt-16 pt-12 border-t border-gray-200">
+            <h2 className="text-2xl md:text-3xl font-bold text-[#273373] font-display mb-8">Drainage Resources</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Link href="/blog/french-drain-vs-sump-pump" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Comparison</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">French Drain vs Sump Pump: Which Does Your Home Need?</h3>
+                <p className="text-gray-600 mt-2 text-sm">Learn how these systems work differently and why most homes need both.</p>
+              </Link>
+              <Link href="/blog/sump-pump-maintenance-guide" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Maintenance</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Sump Pump Maintenance: Keep Your Basement Dry Year-Round</h3>
+                <p className="text-gray-600 mt-2 text-sm">Test, maintain, and troubleshoot your sump pump before the next storm.</p>
+              </Link>
+              <Link href="/blog/what-to-check-after-storm-atlanta" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Storm Prep</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">What to Check After a Storm in Atlanta</h3>
+                <p className="text-gray-600 mt-2 text-sm">Quick action after severe weather prevents costly water damage.</p>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
