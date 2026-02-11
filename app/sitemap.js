@@ -74,49 +74,6 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
-    // City-specific service area pages
-    {
-      url: `${baseUrl}/service-area/lawrenceville`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/service-area/marietta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/service-area/roswell`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/service-area/alpharetta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/service-area/decatur`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/service-area/sandy-springs`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/service-area/stone-mountain`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
     {
       url: `${baseUrl}/portfolio`,
       lastModified: new Date(),
@@ -129,26 +86,43 @@ export default function sitemap() {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
-    // Existing blog posts
+    // Blog posts
     {
-      url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
+      url: `${baseUrl}/blog/interior-vs-exterior-basement-waterproofing`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/crawl-space-encapsulation-vs-waterproofing`,
+      url: `${baseUrl}/blog/how-to-choose-waterproofing-contractor-atlanta`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
+      url: `${baseUrl}/blog/foundation-crack-types-atlanta`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
     },
-    // New blog posts
+    {
+      url: `${baseUrl}/blog/crawl-space-vapor-barrier-guide`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/sump-pump-maintenance-guide`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/signs-foundation-settling-vs-structural-damage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
     {
       url: `${baseUrl}/blog/basement-waterproofing-cost-atlanta`,
       lastModified: new Date(),
@@ -175,6 +149,30 @@ export default function sitemap() {
     },
     {
       url: `${baseUrl}/blog/foundation-maintenance-seasonal-checklist`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/basement-waterproofing-vs-damp-proofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/crawl-space-encapsulation-vs-waterproofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
