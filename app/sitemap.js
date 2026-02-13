@@ -152,6 +152,18 @@ export default function sitemap() {
     // BLOG POSTS
     // =============================================
     {
+      url: `${baseUrl}/blog/foundation-repair-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/crawl-space-repair-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/blog/interior-vs-exterior-basement-waterproofing`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
