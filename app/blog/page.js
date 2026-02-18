@@ -16,7 +16,7 @@ const blogPosts = [
     date: 'February 18, 2026',
     readTime: '8 min read',
     category: 'Concrete Repair',
-    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+    image: '/images/portfolio/concrete-pad-finishing.png',
   },
   {
     slug: 'concrete-leveling-vs-replacement-atlanta',
@@ -34,7 +34,7 @@ const blogPosts = [
     date: 'February 15, 2026',
     readTime: '6 min read',
     category: 'Concrete Repair',
-    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+    image: '/images/portfolio/foundation-excavation-crew.png',
   },
   {
     slug: 'crawl-space-repair-cost-atlanta',
