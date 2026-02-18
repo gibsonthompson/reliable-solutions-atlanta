@@ -10,6 +10,33 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'concrete-repair-cost-atlanta',
+    title: 'How Much Does Concrete Repair Cost in Atlanta?',
+    excerpt: 'Realistic concrete repair pricing for Metro Atlanta. Compare costs for leveling, crack repair, replacement, and masonry work\u2014plus what drives costs up or down.',
+    date: 'February 18, 2026',
+    readTime: '8 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'concrete-leveling-vs-replacement-atlanta',
+    title: 'Concrete Leveling vs. Replacement: Which Is Right for Your Atlanta Home?',
+    excerpt: 'Sinking driveway or patio? Learn when concrete leveling saves you thousands vs. when full replacement is the smarter investment for Metro Atlanta homes.',
+    date: 'February 17, 2026',
+    readTime: '7 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'signs-concrete-needs-repair',
+    title: '6 Signs Your Concrete Needs Repair Before It Gets Worse',
+    excerpt: 'Cracked driveway? Uneven sidewalk? Learn the warning signs that your concrete needs professional repair\u2014and why waiting costs more in Metro Atlanta.',
+    date: 'February 15, 2026',
+    readTime: '6 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
     slug: 'crawl-space-repair-cost-atlanta',
     title: 'How Much Does Crawl Space Repair Cost in Atlanta?',
     excerpt: 'Realistic crawl space repair pricing for Metro Atlanta homes. Compare costs for encapsulation, structural repair, mold remediation, and waterproofing.',
@@ -102,7 +129,7 @@ const blogPosts = [
   {
     slug: 'french-drain-vs-sump-pump',
     title: 'French Drain vs Sump Pump: Which Does Your Home Need?',
-    excerpt: "Confused about basement drainage options? Learn how French drains and sump pumps work differently—and why most Atlanta homes need both.",
+    excerpt: "Confused about basement drainage options? Learn how French drains and sump pumps work differently\u2014and why most Atlanta homes need both.",
     date: 'January 27, 2026',
     readTime: '8 min read',
     category: 'Drainage',

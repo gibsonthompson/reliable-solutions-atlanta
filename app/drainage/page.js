@@ -99,6 +99,21 @@ export default function DrainagePage() {
                 <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">What to Check After a Storm in Atlanta</h3>
                 <p className="text-gray-600 mt-2 text-sm">Quick action after severe weather prevents costly water damage.</p>
               </Link>
+              <Link href="/blog/signs-concrete-needs-repair" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Warning Signs</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">6 Signs Your Concrete Needs Repair</h3>
+                <p className="text-gray-600 mt-2 text-sm">Water pooling on concrete and sunken slabs often point to drainage problems.</p>
+              </Link>
+              <Link href="/blog/basement-waterproofing-cost-atlanta" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Cost Guide</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">How Much Does Basement Waterproofing Cost in Atlanta?</h3>
+                <p className="text-gray-600 mt-2 text-sm">French drain and sump pump pricing for interior and exterior systems.</p>
+              </Link>
+              <Link href="/blog/interior-vs-exterior-basement-waterproofing" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Solutions</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Interior vs Exterior Waterproofing: Which Is Right?</h3>
+                <p className="text-gray-600 mt-2 text-sm">Compare drainage approaches, costs, and when each method works best.</p>
+              </Link>
             </div>
           </div>
         </div>

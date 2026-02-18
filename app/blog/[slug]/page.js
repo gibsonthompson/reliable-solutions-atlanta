@@ -4,6 +4,120 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 const blogPosts = {
+  'concrete-repair-cost-atlanta': {
+    title: 'How Much Does Concrete Repair Cost in Atlanta?',
+    description: 'Realistic concrete repair pricing for Metro Atlanta. Compare costs for leveling, crack repair, replacement, and masonry work—plus what drives costs up or down.',
+    date: 'February 18, 2026',
+    readTime: '8 min read',
+    category: 'Concrete Repair',
+    content: [
+      { type: 'lead', text: 'Cracked driveway? Sinking patio? Uneven sidewalk creating a trip hazard? Concrete problems are everywhere in Metro Atlanta, and the cost to fix them ranges from a few hundred dollars for crack sealing to $10,000+ for full slab replacement. Here’s what Atlanta homeowners actually pay for the most common concrete repairs—and what affects your bottom line.' },
+      { type: 'heading', text: 'Quick Cost Overview for Atlanta Homeowners' },
+      { type: 'paragraph', text: 'Based on 2026 pricing, here’s what Metro Atlanta homeowners typically pay for concrete repair. Crack sealing and caulking runs $150 to $500 depending on the number and length of cracks. Concrete leveling (foam injection or mudjacking) costs $500 to $3,000 for most residential jobs. Partial slab replacement runs $1,000 to $3,500 per section. Full driveway replacement costs $3,000 to $10,000+ depending on size. Masonry repair—brick pointing, stone resetting, step repair—typically runs $500 to $3,000. Most homeowners spend between $1,000 and $5,000 on concrete repairs, with leveling being the most common and cost-effective solution.' },
+      { type: 'heading', text: 'Concrete Leveling Costs' },
+      { type: 'paragraph', text: 'If your concrete has sunk but isn’t badly cracked, leveling is almost always cheaper than replacement—often 50% to 70% less. Polyurethane foam injection (polyjacking) is the most common method in Atlanta and costs $5 to $25 per square foot, with most residential jobs falling between $750 and $3,000. Mudjacking uses a cement slurry instead of foam and is slightly cheaper at $3 to $6 per square foot, but the heavier material can cause re-settling on Atlanta’s clay soil. Most concrete leveling companies have a minimum service charge of $500 to $1,000, so even small jobs start there.' },
+      { type: 'paragraph', text: 'Leveling works for driveways, sidewalks, patios, garage floors, pool decks, and concrete steps. The process takes a few hours and you can typically use the surface within a day. It’s a fraction of the cost and disruption of tearing out and pouring new concrete.' },
+      { type: 'heading', text: 'Crack Repair Costs' },
+      { type: 'paragraph', text: 'Not all cracks require major intervention. Hairline surface cracks can be sealed with concrete caulk for $150 to $500—this prevents water from penetrating and washing out the soil underneath (which causes sinking). Epoxy or polyurethane injection for structural cracks runs $250 to $800 per crack. If cracks are caused by underlying settlement, crack repair alone won’t solve the problem—you’ll need leveling or pier work to address the root cause.' },
+      { type: 'link', text: 'Related: Types of Foundation Cracks and What They Mean →', href: '/blog/foundation-crack-types-atlanta' },
+      { type: 'heading', text: 'Concrete Replacement Costs' },
+      { type: 'paragraph', text: 'When concrete is too damaged to repair—badly fragmented, crumbling, or broken into pieces smaller than 3 feet square—replacement is the only option. Concrete removal and disposal costs $2 to $6 per square foot. New concrete pouring runs $6 to $12 per square foot for standard 4-inch residential slabs. A typical two-car driveway (400–600 sq ft) costs $4,000 to $8,000 for full tear-out and replacement. Sidewalk sections run $1,000 to $2,500 each. Patio replacement costs $2,000 to $6,000 depending on size and finish.' },
+      { type: 'heading', text: 'Masonry Repair Costs' },
+      { type: 'paragraph', text: 'Reliable Solutions Atlanta also handles masonry work—brick pointing, stone resetting, concrete step repair, and glass block installation. Brick or stone pointing (repairing deteriorated mortar joints) costs $8 to $20 per square foot. Step repair or rebuilding runs $500 to $2,500 depending on size and materials. Retaining wall repair costs $500 to $3,000. These repairs protect both the appearance and structural integrity of your home’s exterior.' },
+      { type: 'heading', text: 'What Drives Concrete Repair Costs in Atlanta?' },
+      { type: 'paragraph', text: 'Several factors specific to Metro Atlanta affect your repair cost. The size of the repair area is the most obvious—more square footage means more materials and labor. But Georgia’s red clay soil is a major factor too. Clay expands when wet and contracts when dry, which is often what caused the concrete to sink or crack in the first place. If the underlying soil issue isn’t addressed, repairs may not hold.' },
+      { type: 'paragraph', text: 'Accessibility matters—concrete in tight spaces between homes, behind fences, or under carports takes longer to work on. The severity of the damage directly scales cost: a single slab that’s dropped half an inch is a different job than an entire driveway that’s settled 3 inches and cracked in multiple places. Finally, whether the concrete is near your foundation affects urgency—sunken concrete that’s directing water toward your home can cause foundation damage that costs far more than the concrete repair itself.' },
+      { type: 'link', text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems →', href: '/blog/why-atlanta-homes-have-foundation-problems' },
+      { type: 'heading', text: 'When to Repair vs. Replace' },
+      { type: 'paragraph', text: 'Repair (leveling or crack sealing) makes sense when the concrete is structurally sound but has settled unevenly, cracks are isolated and not spreading rapidly, the surface is still in decent condition without major spalling or crumbling, and the concrete has settled less than 4–6 inches. Replacement is the better option when the slab is broken into small, disconnected pieces, there’s extensive surface deterioration (crumbling, flaking, pitting), the concrete has settled so far that leveling would leave it too thick or unstable, or the slab is more than 30–40 years old and showing multiple types of failure.' },
+      { type: 'link', text: 'Related: Concrete Leveling vs. Replacement: Which Is Right? →', href: '/blog/concrete-leveling-vs-replacement-atlanta' },
+      { type: 'heading', text: 'The Connection Between Concrete and Foundation Problems' },
+      { type: 'paragraph', text: 'Sunken concrete isn’t just an eyesore—it can be a warning sign of deeper issues. When soil washes out from under your driveway or patio, that same erosion may be happening around your foundation. Concrete that slopes toward your home instead of away from it directs water straight at your foundation walls. If you’re seeing sunken concrete near your home, it’s worth having both the concrete and your foundation inspected at the same time.' },
+      { type: 'link', text: 'Related: Foundation Settling vs. Structural Damage →', href: '/blog/signs-foundation-settling-vs-structural-damage' },
+      { type: 'heading', text: 'Financing Your Concrete Repair' },
+      { type: 'paragraph', text: 'Concrete repair costs can add up, especially when combined with other home repairs. At Reliable Solutions Atlanta, we partner with GreenSky® to offer flexible financing options. Choose from plans including no interest if paid in full in 6, 12, or 15 months, making it easier to address concrete problems before they get worse—and more expensive. Ask about financing when you schedule your free estimate.' },
+      { type: 'heading', text: 'Getting an Accurate Estimate' },
+      { type: 'paragraph', text: 'Concrete repair pricing varies too much by situation to quote over the phone. A contractor needs to see the actual damage, assess the underlying soil, and determine whether leveling, patching, or replacement is the right fix. Get 2–3 estimates and compare what’s actually included in each. At Reliable Solutions Atlanta, we provide free inspections and detailed written estimates for all concrete and masonry work. We’ll explain what your concrete needs, why, and what it will cost. Call 770-895-2039 to schedule yours.' },
+      { type: 'service-link', text: 'Learn more about our Concrete Repair services →', href: '/cocnrete-repair' },
+      { type: 'faq', text: 'Frequently Asked Questions' },
+      { type: 'question', text: 'Is concrete leveling a permanent fix?' },
+      { type: 'answer', text: 'Polyurethane foam leveling is a long-lasting solution that typically holds for 10+ years when the underlying drainage issue is also addressed. If water continues to wash out soil beneath the slab, any repair—leveling or replacement—can fail over time. That’s why addressing drainage is critical alongside the concrete work.' },
+      { type: 'question', text: 'Does homeowners insurance cover concrete repair?' },
+      { type: 'answer', text: 'Standard homeowners insurance typically doesn’t cover concrete damage from settling, normal wear, or soil movement. It may cover damage from a sudden covered event like a fallen tree or vehicle impact. Check your specific policy for details.' },
+      { type: 'question', text: 'Can I repair cracked concrete myself?' },
+      { type: 'answer', text: 'Minor surface cracks can be sealed with DIY concrete caulk from a hardware store. However, if cracks indicate settling or structural movement, DIY crack filling just masks the problem. Concrete leveling requires specialized equipment and expertise that isn’t available to homeowners.' },
+    ],
+  },
+  'concrete-leveling-vs-replacement-atlanta': {
+    title: 'Concrete Leveling vs. Replacement: Which Is Right for Your Atlanta Home?',
+    description: 'Sinking driveway or patio? Learn when concrete leveling saves you thousands vs. when full replacement is the smarter investment for Metro Atlanta homes.',
+    date: 'February 17, 2026',
+    readTime: '7 min read',
+    category: 'Concrete Repair',
+    content: [
+      { type: 'lead', text: 'Your driveway has sunk. Your patio has a lip that catches every shoe. Your sidewalk has become a trip hazard. The question isn’t whether to fix it—it’s how. Concrete leveling can save you 50–70% over replacement, but it’s not always the right call. Here’s how to decide.' },
+      { type: 'heading', text: 'How Concrete Leveling Works' },
+      { type: 'paragraph', text: 'Concrete leveling raises sunken slabs back to their original position without tearing anything out. The most common method in Atlanta is polyurethane foam injection (often called polyjacking or foam lifting). A technician drills small, penny-sized holes in the sunken slab, then injects expanding polyurethane foam underneath. The foam fills the void beneath the slab, expands, and lifts the concrete back into position. The holes are patched, cracks are sealed, and the surface is usable within hours. The entire process typically takes 2–4 hours for most residential jobs.' },
+      { type: 'paragraph', text: 'Mudjacking is an older method that pumps a cement and sand slurry under the slab. It’s cheaper per square foot but the heavier material can contribute to re-settling, especially on Atlanta’s expansive clay soil. For this reason, most contractors in Metro Atlanta now prefer foam injection for longer-lasting results.' },
+      { type: 'heading', text: 'How Concrete Replacement Works' },
+      { type: 'paragraph', text: 'Replacement means demolishing the existing slab, removing the debris, preparing the sub-base, and pouring new concrete. A typical residential replacement involves breaking up and hauling away the old slab, grading and compacting the sub-base, setting forms, pouring new concrete (usually 4 inches thick for residential), and curing time of 24–48 hours before light use, with full curing taking up to 28 days. The process takes 2–5 days depending on the scope and requires heavy equipment access to your property.' },
+      { type: 'heading', text: 'Cost Comparison' },
+      { type: 'paragraph', text: 'The cost difference is significant. Concrete leveling typically costs $500 to $3,000 for most residential jobs—roughly $5 to $25 per square foot depending on the method. Concrete replacement runs $8 to $18 per square foot when you factor in demolition, disposal, grading, and pouring. For a 500-square-foot driveway section, that’s roughly $1,500 to $3,000 for leveling vs. $4,000 to $9,000 for replacement. Leveling consistently saves 50–70% over full replacement.' },
+      { type: 'link', text: 'Related: How Much Does Concrete Repair Cost in Atlanta? →', href: '/blog/concrete-repair-cost-atlanta' },
+      { type: 'heading', text: 'When Leveling Is the Right Choice' },
+      { type: 'paragraph', text: 'Concrete leveling is the better option in most cases where the slab itself is still in good condition. Choose leveling when the concrete has settled unevenly but isn’t badly fractured—meaning the slab has sunk but is still in large, connected pieces. It’s ideal when settlement is less than 4–6 inches, when the surface is still structurally sound without major crumbling or spalling, and when you need the repair done quickly with minimal disruption. Leveling also makes sense when the concrete is near your foundation and you need to restore proper water drainage away from your home.' },
+      { type: 'heading', text: 'When Replacement Makes More Sense' },
+      { type: 'paragraph', text: 'Sometimes leveling can’t do the job. Replacement is the better investment when the concrete is broken into small, disconnected pieces (generally smaller than 3 feet square—once slabs fragment this much, there’s nothing stable to lift). You should also replace when the surface is severely deteriorated with deep spalling, crumbling, or exposed aggregate, when the concrete has settled more than 6 inches, when the slab is structurally compromised by extensive rebar corrosion or subgrade failure, or when the concrete is old enough (30+ years) that it’s showing multiple failure modes simultaneously.' },
+      { type: 'heading', text: 'Why Atlanta’s Clay Soil Matters for This Decision' },
+      { type: 'paragraph', text: 'Georgia’s red clay soil is the reason most concrete sinks in the first place. Clay expands when it absorbs water and contracts when it dries. This constant swelling and shrinking cycle creates voids under concrete slabs. During heavy rain, water can also physically wash out soil from beneath slabs, especially if drainage directs water along the concrete edge. This means two things for your repair decision. First, if you level the concrete without addressing the drainage issue, the slab may settle again. A good contractor will identify why the soil moved and recommend drainage corrections alongside the leveling. Second, the heavier weight of mudjacking material can accelerate re-settling on clay soil, which is why foam injection is generally preferred in Metro Atlanta.' },
+      { type: 'link', text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems →', href: '/blog/why-atlanta-homes-have-foundation-problems' },
+      { type: 'heading', text: 'Concrete Problems That Signal Foundation Issues' },
+      { type: 'paragraph', text: 'Sometimes sunken concrete is telling you something bigger is happening. If your garage floor has settled and pulled away from the walls, if the concrete slab directly against your foundation has dropped and is directing water toward your home, or if you’re seeing settlement in multiple areas around the house simultaneously, these patterns can indicate foundation movement—not just isolated concrete settling. In these cases, a foundation inspection should happen alongside any concrete repair evaluation.' },
+      { type: 'link', text: 'Related: Foundation Settling vs. Structural Damage →', href: '/blog/signs-foundation-settling-vs-structural-damage' },
+      { type: 'heading', text: 'Making the Right Decision' },
+      { type: 'paragraph', text: 'The only way to know whether your concrete needs leveling or replacement is an in-person inspection. A qualified contractor will assess the slab condition, measure the settlement, evaluate the soil and drainage, and recommend the most cost-effective solution. At Reliable Solutions Atlanta, we provide free concrete inspections and honest assessments. If leveling will solve the problem, we’ll say so—it saves you money and saves us time. If replacement is the right call, we’ll explain why. We also offer financing through GreenSky® to help manage the cost of larger projects. Call 770-895-2039 to schedule your free estimate.' },
+      { type: 'service-link', text: 'Learn more about our Concrete Repair services →', href: '/cocnrete-repair' },
+      { type: 'faq', text: 'Frequently Asked Questions' },
+      { type: 'question', text: 'How long does concrete leveling last?' },
+      { type: 'answer', text: 'Polyurethane foam leveling typically lasts 10–15 years or longer when combined with proper drainage. The foam itself doesn’t degrade, but if the underlying soil continues to wash out due to unresolved drainage issues, settling can recur. Addressing the root cause is key to a lasting repair.' },
+      { type: 'question', text: 'Can you level concrete in cold weather?' },
+      { type: 'answer', text: 'Yes. Polyurethane foam cures through a chemical reaction, not air temperature, so leveling can be done year-round. New concrete pouring, however, should generally be avoided when temperatures drop below 40°F. Atlanta’s mild winters make both options viable most of the year.' },
+      { type: 'question', text: 'Will leveled concrete match the surrounding surface?' },
+      { type: 'answer', text: 'Leveling restores the slab’s position but doesn’t change the surface appearance. The drill holes are small (about the size of a penny) and are patched after injection. Any existing cracks are sealed but will still be visible. If aesthetics are a priority and the surface is heavily worn, replacement may be worth considering for appearance alone.' },
+    ],
+  },
+  'signs-concrete-needs-repair': {
+    title: '6 Signs Your Concrete Needs Repair Before It Gets Worse',
+    description: 'Cracked driveway? Uneven sidewalk? Learn the warning signs that your concrete needs professional repair—and why waiting costs more in Metro Atlanta.',
+    date: 'February 15, 2026',
+    readTime: '6 min read',
+    category: 'Concrete Repair',
+    content: [
+      { type: 'lead', text: 'Concrete is tough, but it’s not invincible. Atlanta’s clay soil, heavy rainfall, and temperature swings take a toll on driveways, sidewalks, patios, and steps. The good news is that concrete gives clear warning signs before small problems become expensive ones. Here are six signs every Metro Atlanta homeowner should watch for.' },
+      { type: 'heading', text: '1. Uneven or Sunken Slabs' },
+      { type: 'paragraph', text: 'The most obvious sign of a concrete problem is a slab that’s no longer level. Maybe one section of your driveway sits lower than the next, or your patio has developed a noticeable slope. Uneven concrete is caused by soil washing out or compressing beneath the slab—and in Metro Atlanta, our clay soil makes this especially common. When clay dries out during summer, it shrinks and creates voids. When it rains, water rushes into those voids and washes out more soil. The result is concrete that slowly sinks, tilts, or develops lips between sections.' },
+      { type: 'paragraph', text: 'Uneven concrete isn’t just ugly—it’s a trip hazard and a liability. Even a half-inch lip between sidewalk sections can catch someone’s foot. And if sunken concrete near your home is directing water toward your foundation instead of away from it, you’re looking at potential foundation damage that costs far more to fix.' },
+      { type: 'heading', text: '2. Cracks That Are Growing' },
+      { type: 'paragraph', text: 'Small hairline cracks in concrete are normal—they happen as concrete cures and are generally cosmetic. But cracks that are widening, lengthening, or multiplying tell a different story. Growing cracks indicate ongoing soil movement, settlement, or water intrusion beneath the slab. In Atlanta, the expansion and contraction of clay soil puts constant pressure on concrete, and cracks are how that stress shows up on the surface. If you can fit a quarter into a crack, or if cracks that were hairline a year ago are now clearly wider, the underlying problem is getting worse.' },
+      { type: 'paragraph', text: 'The real danger with cracks isn’t the crack itself—it’s what happens next. Water enters the crack, reaches the soil below, and accelerates erosion. This creates a feedback loop: cracks let in water, water washes out soil, the slab settles more, and new cracks form. Sealing cracks early breaks this cycle.' },
+      { type: 'heading', text: '3. Water Pooling on or Near Concrete' },
+      { type: 'paragraph', text: 'Properly graded concrete should shed water—it should flow away from your home and not collect in puddles. If you notice standing water on your driveway, patio, or sidewalk after rain, the concrete has likely settled in a way that disrupts drainage. Pooling water is a problem for two reasons. First, it accelerates the deterioration of the concrete surface through repeated wet-dry cycles. Second, water sitting against or near your foundation is the primary cause of basement water problems and foundation damage.' },
+      { type: 'link', text: 'Related: 7 Warning Signs You Need Basement Waterproofing →', href: '/blog/signs-you-need-basement-waterproofing' },
+      { type: 'heading', text: '4. Spalling, Flaking, or Crumbling Surface' },
+      { type: 'paragraph', text: 'Spalling is when the top layer of concrete flakes, chips, or peels away, exposing the rougher aggregate underneath. It makes your driveway or patio look aged and neglected, but more importantly, it means the concrete is losing its protective surface. Spalling is usually caused by water penetrating the surface, freezing (even during Atlanta’s occasional winter freezes), and expanding—popping off the top layer. It can also result from deicing salts, poor original mix, or inadequate curing during installation. Minor spalling can be resurfaced, but widespread spalling often means the concrete is nearing the end of its life.' },
+      { type: 'heading', text: '5. Concrete Pulling Away from Steps, Garage, or Foundation' },
+      { type: 'paragraph', text: 'Gaps forming where your driveway meets the garage floor, where sidewalks meet steps, or where concrete slabs meet your foundation wall are signs of settlement. These gaps widen over time as the settling slab continues to pull away. Beyond being unsightly, these gaps are direct pathways for water to reach the soil around your foundation. A gap between your garage apron and garage floor, for example, funnels every rainstorm straight under your garage slab and toward your foundation. Addressing settlement and sealing these gaps prevents water damage to your home’s structure.' },
+      { type: 'link', text: 'Related: Foundation Maintenance Seasonal Checklist →', href: '/blog/foundation-maintenance-seasonal-checklist' },
+      { type: 'heading', text: '6. Tree Root Damage' },
+      { type: 'paragraph', text: 'Atlanta is a city of trees, and those trees have extensive root systems. Roots growing under concrete slabs can lift, crack, and displace sections. You’ll notice humps or raised sections of sidewalk, cracks radiating from where a root crosses beneath the slab, or one side of a walkway pushed higher than the other. Root damage complicates repairs because the root will continue growing. In some cases, the root must be addressed (carefully, to avoid killing the tree) before leveling or replacement. An experienced contractor can evaluate whether root barriers, root pruning, or slab rerouting makes sense for your situation.' },
+      { type: 'heading', text: 'Why Waiting Costs More' },
+      { type: 'paragraph', text: 'Every concrete problem on this list gets worse with time—and more expensive. A slab that could be leveled for $1,500 today might crack into pieces that require $6,000 replacement next year. Cracks that could be sealed for $200 become entry points for water that washes out soil, causes more settling, and eventually threatens your foundation. The math is clear: early repair is dramatically cheaper than delayed replacement. If the concrete near your home is directing water toward your foundation, the cost of inaction extends well beyond the concrete itself.' },
+      { type: 'link', text: 'Related: Concrete Leveling vs. Replacement: Which Is Right? →', href: '/blog/concrete-leveling-vs-replacement-atlanta' },
+      { type: 'heading', text: 'Get a Free Concrete Inspection' },
+      { type: 'paragraph', text: 'At Reliable Solutions Atlanta, we inspect your concrete, identify what’s causing the damage, and recommend the most cost-effective repair. Whether it’s leveling, crack repair, masonry work, or full replacement, we’ll give you an honest assessment and a written estimate. We also offer financing through GreenSky® to make repairs more manageable. Don’t wait for small problems to become big ones—call 770-895-2039 to schedule your free inspection.' },
+      { type: 'service-link', text: 'Learn more about our Concrete Repair services →', href: '/cocnrete-repair' },
+    ],
+  },
   'signs-you-need-basement-waterproofing': {
     title: '7 Warning Signs You Need Basement Waterproofing',
     description: 'Discover the telltale signs that your Atlanta home needs basement waterproofing before minor issues become major problems.',
@@ -14,26 +128,26 @@ const blogPosts = {
       { type: 'lead', text: "Water damage in your basement can lead to structural issues, mold growth, and thousands of dollars in repairs. The good news? Most basement water problems give warning signs before they become disasters. Here are 7 signs every Atlanta homeowner should watch for." },
       { type: 'heading', text: '1. Musty or Moldy Odors' },
       { type: 'paragraph', text: "If your basement smells damp, musty, or earthy, you likely have moisture problems. Mold and mildew thrive in humid environments and produce distinct odors that shouldn't be ignored. Even if you can't see visible mold, the smell indicates excess moisture that needs to be addressed. Similar odors in your crawl space can indicate an even bigger problem." },
-      { type: 'link', text: 'Related: 5 Signs Your Crawl Space Has a Mold Problem \u2192', href: '/blog/crawl-space-mold-signs' },
+      { type: 'link', text: 'Related: 5 Signs Your Crawl Space Has a Mold Problem →', href: '/blog/crawl-space-mold-signs' },
       { type: 'heading', text: '2. Visible Water Stains or Discoloration' },
       { type: 'paragraph', text: "Water stains on basement walls or floors are obvious signs of water intrusion. Look for white, chalky deposits (efflorescence) on concrete walls, yellow or brown stains along walls, dark patches on the floor, and tide marks showing water levels. These stains indicate that water has been entering your basement, even if it's currently dry." },
       { type: 'heading', text: '3. Cracks in Walls or Floor' },
       { type: 'paragraph', text: "While small hairline cracks are normal in concrete, larger cracks or cracks that seem to be growing are cause for concern. Horizontal cracks in basement walls are particularly serious, as they indicate hydrostatic pressure from water-saturated soil pushing against your foundation. If you're seeing foundation cracks, Georgia's red clay soil is likely a contributing factor." },
-      { type: 'link', text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems \u2192', href: '/blog/why-atlanta-homes-have-foundation-problems' },
+      { type: 'link', text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems →', href: '/blog/why-atlanta-homes-have-foundation-problems' },
       { type: 'heading', text: '4. Peeling Paint or Bubbling Wallpaper' },
       { type: 'paragraph', text: "If paint is peeling or wallpaper is bubbling in your basement, moisture is likely the culprit. Water seeping through walls pushes paint and wallpaper away from the surface. This is often one of the first visible signs of a waterproofing problem." },
       { type: 'heading', text: '5. Wet or Damp Spots After Rain' },
       { type: 'paragraph', text: "Do you notice wet spots on your basement floor or walls after heavy rain? This is a clear sign that water is finding its way into your basement. In Metro Atlanta, our frequent heavy rainstorms can quickly reveal waterproofing weaknesses." },
-      { type: 'link', text: 'Related: What to Check After a Storm \u2192', href: '/blog/what-to-check-after-storm-atlanta' },
+      { type: 'link', text: 'Related: What to Check After a Storm →', href: '/blog/what-to-check-after-storm-atlanta' },
       { type: 'heading', text: '6. Rust on Metal Items' },
       { type: 'paragraph', text: "Rust on appliances, support columns, or other metal items in your basement indicates high humidity levels. Even without visible water, excessive moisture in the air can cause rust and corrosion over time." },
       { type: 'heading', text: '7. Increased Allergy Symptoms' },
       { type: 'paragraph', text: "If family members experience worse allergy symptoms when spending time in or near the basement, mold or mildew may be present. Mold spores can trigger respiratory issues, and a damp basement can significantly impact your home's air quality." },
       { type: 'heading', text: 'What to Do If You Notice These Signs' },
-      { type: 'paragraph', text: "If you've noticed any of these warning signs, don't wait for the problem to get worse. Water damage compounds over time, and what starts as a minor moisture issue can become a major structural problem. The right solution depends on where and how water is entering\u2014it might be an interior drainage system, a sump pump, or exterior waterproofing." },
-      { type: 'link', text: 'Related: How Much Does Basement Waterproofing Cost in Atlanta? \u2192', href: '/blog/basement-waterproofing-cost-atlanta' },
+      { type: 'paragraph', text: "If you've noticed any of these warning signs, don't wait for the problem to get worse. Water damage compounds over time, and what starts as a minor moisture issue can become a major structural problem. The right solution depends on where and how water is entering—it might be an interior drainage system, a sump pump, or exterior waterproofing." },
+      { type: 'link', text: 'Related: How Much Does Basement Waterproofing Cost in Atlanta? →', href: '/blog/basement-waterproofing-cost-atlanta' },
       { type: 'paragraph', text: "At Reliable Solutions Atlanta, we offer free basement inspections to identify the source of your water problems and recommend the most effective solution. Call 770-895-2039 to schedule yours." },
-      { type: 'service-link', text: 'Learn more about our Basement Waterproofing services \u2192', href: '/basement-waterproofing' },
+      { type: 'service-link', text: 'Learn more about our Basement Waterproofing services →', href: '/basement-waterproofing' },
     ],
   },
   'crawl-space-encapsulation-vs-waterproofing': {
@@ -45,21 +159,21 @@ const blogPosts = {
     content: [
       { type: 'lead', text: "When dealing with crawl space moisture problems, homeowners often hear about two solutions: encapsulation and waterproofing. While both address moisture issues, they're not the same thing. Understanding the difference can help you choose the right solution and avoid wasting money on the wrong fix." },
       { type: 'heading', text: 'What Is Crawl Space Waterproofing?' },
-      { type: 'paragraph', text: "Crawl space waterproofing focuses on managing water that enters your crawl space. It typically involves interior drainage systems (French drains installed along the perimeter to collect and redirect water), sump pumps that remove collected water, and exterior waterproofing membranes or coatings applied to foundation walls. Waterproofing is reactive\u2014it deals with water that's already trying to enter your crawl space." },
-      { type: 'link', text: 'Learn more: Our Crawl Space Waterproofing Services \u2192', href: '/crawl-space-waterproofing' },
+      { type: 'paragraph', text: "Crawl space waterproofing focuses on managing water that enters your crawl space. It typically involves interior drainage systems (French drains installed along the perimeter to collect and redirect water), sump pumps that remove collected water, and exterior waterproofing membranes or coatings applied to foundation walls. Waterproofing is reactive—it deals with water that's already trying to enter your crawl space." },
+      { type: 'link', text: 'Learn more: Our Crawl Space Waterproofing Services →', href: '/crawl-space-waterproofing' },
       { type: 'heading', text: 'What Is Crawl Space Encapsulation?' },
-      { type: 'paragraph', text: "Encapsulation is a more comprehensive approach that seals your crawl space from the outside environment. A full encapsulation system includes a heavy-duty vapor barrier (typically 12-20 mil) covering the floor and walls, sealed vents to close off exterior vents that allow humid air to enter, a commercial-grade dehumidifier to control humidity levels, and often insulation added to walls for energy efficiency. Encapsulation is proactive\u2014it prevents moisture from entering in the first place." },
-      { type: 'link', text: 'Learn more: Our Crawl Space Encapsulation Services \u2192', href: '/crawl-space-encapsulation' },
+      { type: 'paragraph', text: "Encapsulation is a more comprehensive approach that seals your crawl space from the outside environment. A full encapsulation system includes a heavy-duty vapor barrier (typically 12-20 mil) covering the floor and walls, sealed vents to close off exterior vents that allow humid air to enter, a commercial-grade dehumidifier to control humidity levels, and often insulation added to walls for energy efficiency. Encapsulation is proactive—it prevents moisture from entering in the first place." },
+      { type: 'link', text: 'Learn more: Our Crawl Space Encapsulation Services →', href: '/crawl-space-encapsulation' },
       { type: 'heading', text: 'When Do You Need Waterproofing?' },
       { type: 'paragraph', text: "Waterproofing is the right choice when you have active water intrusion: standing water in your crawl space after rain, water seeping through foundation walls, high water table issues, or poor exterior drainage directing water toward your foundation. If water is physically entering your crawl space, you need to address the water source before (or along with) encapsulation." },
       { type: 'heading', text: 'When Do You Need Encapsulation?' },
       { type: 'paragraph', text: "Encapsulation is ideal when moisture and humidity are your main concerns: high humidity levels (above 60%), musty odors in your home, mold or mildew growth, condensation on pipes or ductwork, sagging or soft floors above the crawl space, or pest infestations attracted to moisture." },
-      { type: 'link', text: 'Related: 5 Signs Your Crawl Space Has a Mold Problem \u2192', href: '/blog/crawl-space-mold-signs' },
+      { type: 'link', text: 'Related: 5 Signs Your Crawl Space Has a Mold Problem →', href: '/blog/crawl-space-mold-signs' },
       { type: 'heading', text: 'Why Atlanta Homes Often Need Both' },
       { type: 'paragraph', text: "Georgia's climate creates a perfect storm for crawl space problems. Atlanta averages 50+ inches of rain per year, summer humidity regularly exceeds 70%, and Georgia's red clay doesn't drain well, holding water against foundations. Many Atlanta homes benefit from a combined approach: waterproofing to manage water intrusion, plus encapsulation to create a healthier crawl space environment." },
       { type: 'heading', text: 'The Bottom Line' },
       { type: 'paragraph', text: "The right solution depends on your specific situation. Waterproofing addresses water intrusion, while encapsulation controls humidity and seals out moisture. Many homes need both for complete protection. The best way to know what your home needs is a professional inspection. At Reliable Solutions Atlanta, we'll assess your crawl space, identify the source of your moisture problems, and recommend the most cost-effective solution for your situation." },
-      { type: 'service-link', text: 'Learn more about our Crawl Space Repair services \u2192', href: '/crawl-space-repair' },
+      { type: 'service-link', text: 'Learn more about our Crawl Space Repair services →', href: '/crawl-space-repair' },
     ],
   },
   'why-atlanta-homes-have-foundation-problems': {
@@ -74,17 +188,17 @@ const blogPosts = {
       { type: 'paragraph', text: "Georgia is famous for its red clay soil, and while it gives our state its distinctive color, it creates major challenges for home foundations. Red clay is an \"expansive\" soil, meaning it dramatically changes volume based on moisture content. When wet, clay absorbs water and expands, pushing against your foundation. When dry, clay shrinks and pulls away, leaving gaps under your foundation. This constant expansion and contraction cycle puts tremendous stress on foundations, causing cracks, settling, and structural damage over time." },
       { type: 'heading', text: "Atlanta's Climate Makes It Worse" },
       { type: 'paragraph', text: "Our local climate compounds the clay soil problem. Atlanta receives over 50 inches of rain annually, saturating clay soil repeatedly. Summer heat dries out soil quickly, causing rapid shrinkage. The dramatic shift between wet springs and dry summers creates constant soil movement. This weather pattern means your foundation experiences the expansion/contraction cycle multiple times per year, every year. Proper drainage is one of the most effective defenses against this cycle." },
-      { type: 'link', text: 'Related: French Drain vs Sump Pump \u2014 Which Does Your Home Need? \u2192', href: '/blog/french-drain-vs-sump-pump' },
+      { type: 'link', text: 'Related: French Drain vs Sump Pump — Which Does Your Home Need? →', href: '/blog/french-drain-vs-sump-pump' },
       { type: 'heading', text: 'Common Foundation Problems in Atlanta Homes' },
       { type: 'paragraph', text: "Foundation settling occurs when clay soil shrinks during dry periods, creating voids under your foundation. Without proper support, sections of your foundation settle unevenly, causing sloping floors, doors and windows that stick, cracks in drywall, and gaps between walls and ceiling. Foundation cracks from the pressure of expanding soil include vertical cracks (often from settling), horizontal cracks (caused by hydrostatic pressure, more serious), and stair-step cracks in brick or block foundations indicating significant movement." },
       { type: 'heading', text: 'Which Atlanta Areas Are Most Affected?' },
       { type: 'paragraph', text: "While foundation problems occur throughout Metro Atlanta, some areas are particularly prone due to soil composition and topography. These include Gwinnett County (Lawrenceville, Lilburn, Stone Mountain), DeKalb County (Decatur, Tucker, Brookhaven), Cobb County (Marietta, Smyrna, Kennesaw), and North Fulton (Alpharetta, Roswell, Johns Creek). Homes built on slopes or in areas with high water tables face additional risk." },
       { type: 'heading', text: 'How to Protect Your Atlanta Home' },
       { type: 'paragraph', text: "Maintain consistent soil moisture by watering the soil around your foundation during dry periods. Improve drainage by cleaning gutters regularly, extending downspouts at least 6 feet from your foundation, and grading your yard so water flows away from your home. A seasonal maintenance routine can go a long way toward catching issues before they become expensive repairs." },
-      { type: 'link', text: 'Related: Foundation Maintenance \u2014 A Seasonal Checklist \u2192', href: '/blog/foundation-maintenance-seasonal-checklist' },
+      { type: 'link', text: 'Related: Foundation Maintenance — A Seasonal Checklist →', href: '/blog/foundation-maintenance-seasonal-checklist' },
       { type: 'heading', text: "Don't Wait Until It's Too Late" },
       { type: 'paragraph', text: "Foundation repairs are an investment, but they're far less expensive than the alternative. Ignoring foundation problems can lead to major structural damage, decreased home value, and safety hazards. At Reliable Solutions Atlanta, we've been repairing foundations throughout Metro Atlanta for over 20 years. We understand the unique challenges that Georgia's soil and climate create, and we use proven techniques to permanently stabilize your foundation. Contact us for a free inspection and estimate." },
-      { type: 'service-link', text: 'Learn more about our Foundation Repair services \u2192', href: '/foundation-repair' },
+      { type: 'service-link', text: 'Learn more about our Foundation Repair services →', href: '/foundation-repair' },
     ],
   },
   'basement-waterproofing-cost-atlanta': {
@@ -94,31 +208,31 @@ const blogPosts = {
     readTime: '8 min read',
     category: 'Basement Waterproofing',
     content: [
-      { type: 'lead', text: "If you're dealing with a wet basement in Metro Atlanta, one of your first questions is probably: how much is this going to cost? The honest answer is that basement waterproofing costs vary widely\u2014from a few hundred dollars for minor fixes to $15,000+ for comprehensive exterior solutions. Here's a realistic breakdown to help you budget." },
+      { type: 'lead', text: "If you're dealing with a wet basement in Metro Atlanta, one of your first questions is probably: how much is this going to cost? The honest answer is that basement waterproofing costs vary widely—from a few hundred dollars for minor fixes to $15,000+ for comprehensive exterior solutions. Here's a realistic breakdown to help you budget." },
       { type: 'heading', text: 'Quick Cost Overview for Atlanta Homeowners' },
       { type: 'paragraph', text: "Based on 2026 industry data, here's what Atlanta homeowners typically pay: Interior waterproofing averages $3,000 to $10,000, with most projects falling in the $4,500 to $7,000 range. Exterior waterproofing costs $10,000 to $15,000+ due to excavation requirements. The national average for a complete basement waterproofing system is around $5,200, but Atlanta's clay soil and high rainfall can push costs higher." },
       { type: 'heading', text: 'Interior Waterproofing Costs' },
-      { type: 'paragraph', text: "Interior waterproofing manages water that's already entering your basement. It's generally more affordable because it doesn't require excavation. Interior sealants and coatings cost $500 to $2,000\u2014these are temporary fixes for minor dampness, not solutions for active water intrusion. Interior French drain installation runs $40 to $85 per linear foot (for a typical 100-linear-foot basement perimeter, that's $4,000 to $8,500). Sump pump installation costs $600 to $2,500 depending on capacity and whether you add a battery backup. A complete interior system with French drain and sump pump typically costs $5,000 to $10,000." },
-      { type: 'link', text: 'Related: French Drain vs Sump Pump \u2014 Which Does Your Home Need? \u2192', href: '/blog/french-drain-vs-sump-pump' },
+      { type: 'paragraph', text: "Interior waterproofing manages water that's already entering your basement. It's generally more affordable because it doesn't require excavation. Interior sealants and coatings cost $500 to $2,000—these are temporary fixes for minor dampness, not solutions for active water intrusion. Interior French drain installation runs $40 to $85 per linear foot (for a typical 100-linear-foot basement perimeter, that's $4,000 to $8,500). Sump pump installation costs $600 to $2,500 depending on capacity and whether you add a battery backup. A complete interior system with French drain and sump pump typically costs $5,000 to $10,000." },
+      { type: 'link', text: 'Related: French Drain vs Sump Pump — Which Does Your Home Need? →', href: '/blog/french-drain-vs-sump-pump' },
       { type: 'heading', text: 'Exterior Waterproofing Costs' },
-      { type: 'paragraph', text: "Exterior waterproofing stops water before it reaches your foundation\u2014it's more effective but requires significant excavation. Excavation alone costs $50 to $200 per cubic yard, and reaching basement depth can mean 8+ feet of digging around your entire foundation. Exterior waterproofing membranes cost $3 to $8 per square foot after excavation. Exterior French drains run $25 to $100 per linear foot. A complete exterior system typically costs $10,000 to $15,000, sometimes more for larger homes or difficult access." },
+      { type: 'paragraph', text: "Exterior waterproofing stops water before it reaches your foundation—it's more effective but requires significant excavation. Excavation alone costs $50 to $200 per cubic yard, and reaching basement depth can mean 8+ feet of digging around your entire foundation. Exterior waterproofing membranes cost $3 to $8 per square foot after excavation. Exterior French drains run $25 to $100 per linear foot. A complete exterior system typically costs $10,000 to $15,000, sometimes more for larger homes or difficult access." },
       { type: 'heading', text: 'What Affects Your Cost in Atlanta?' },
-      { type: 'paragraph', text: "Several factors specific to Metro Atlanta affect waterproofing costs. Basement size directly impacts pricing\u2014larger basements need more materials and labor. Georgia's clay soil is harder to excavate than sandy soils, increasing labor costs for exterior work. Foundation type matters too: block foundations often need more work than poured concrete. The severity of your water problem affects scope\u2014minor seepage vs. standing water require different solutions. Finally, accessibility plays a role: if contractors can't easily access your foundation (fences, landscaping, patios), costs increase." },
-      { type: 'link', text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems \u2192', href: '/blog/why-atlanta-homes-have-foundation-problems' },
+      { type: 'paragraph', text: "Several factors specific to Metro Atlanta affect waterproofing costs. Basement size directly impacts pricing—larger basements need more materials and labor. Georgia's clay soil is harder to excavate than sandy soils, increasing labor costs for exterior work. Foundation type matters too: block foundations often need more work than poured concrete. The severity of your water problem affects scope—minor seepage vs. standing water require different solutions. Finally, accessibility plays a role: if contractors can't easily access your foundation (fences, landscaping, patios), costs increase." },
+      { type: 'link', text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems →', href: '/blog/why-atlanta-homes-have-foundation-problems' },
       { type: 'heading', text: 'Cost by Basement Size' },
       { type: 'paragraph', text: "For interior waterproofing (French drain + sump pump), here's what to expect based on basement size: A 500 square foot basement typically costs $3,000 to $5,500. A 1,000 square foot basement runs $5,000 to $8,000. A 1,500 square foot basement costs $7,000 to $10,000. Larger basements often have a lower cost per square foot because fixed costs (equipment, setup) are spread over more area." },
       { type: 'heading', text: 'Is It Worth the Investment?' },
-      { type: 'paragraph', text: "A wet basement isn't just an inconvenience\u2014it's an ongoing liability. According to FEMA, just one inch of water in your basement can cause over $10,000 in damage. Mold can start growing within 24-48 hours of water exposure. A dry basement adds usable square footage to your home and protects your home's value. Most waterproofing companies report that homeowners recover 30% to 50% of interior waterproofing costs in home value, with exterior systems returning 50% to 70%." },
+      { type: 'paragraph', text: "A wet basement isn't just an inconvenience—it's an ongoing liability. According to FEMA, just one inch of water in your basement can cause over $10,000 in damage. Mold can start growing within 24-48 hours of water exposure. A dry basement adds usable square footage to your home and protects your home's value. Most waterproofing companies report that homeowners recover 30% to 50% of interior waterproofing costs in home value, with exterior systems returning 50% to 70%." },
       { type: 'heading', text: 'How to Get an Accurate Estimate' },
-      { type: 'paragraph', text: "Every basement is different, and the only way to know your actual cost is with a professional inspection. Be wary of quotes given over the phone without seeing your basement\u2014that's a red flag. At Reliable Solutions Atlanta, we provide free inspections and detailed estimates. We'll explain exactly what your basement needs, why, and what it will cost. No surprises. Call 770-895-2039 to schedule your free inspection." },
-      { type: 'service-link', text: 'Learn more about our Basement Waterproofing services \u2192', href: '/basement-waterproofing' },
+      { type: 'paragraph', text: "Every basement is different, and the only way to know your actual cost is with a professional inspection. Be wary of quotes given over the phone without seeing your basement—that's a red flag. At Reliable Solutions Atlanta, we provide free inspections and detailed estimates. We'll explain exactly what your basement needs, why, and what it will cost. No surprises. Call 770-895-2039 to schedule your free inspection." },
+      { type: 'service-link', text: 'Learn more about our Basement Waterproofing services →', href: '/basement-waterproofing' },
       { type: 'faq', text: 'Frequently Asked Questions' },
       { type: 'question', text: 'Can I waterproof my basement myself to save money?' },
       { type: 'answer', text: "DIY waterproofing products like sealant paint may help with minor dampness, but they won't solve active water intrusion. French drain and sump pump installation requires specialized equipment and expertise. Improper installation often leads to system failure and can cost more to fix than doing it right the first time." },
       { type: 'question', text: 'Does homeowners insurance cover basement waterproofing?' },
       { type: 'answer', text: "Standard homeowners insurance typically doesn't cover waterproofing as preventive maintenance. However, if you have flood insurance and experience covered water damage, some repair costs may be covered. Check your specific policy." },
       { type: 'question', text: 'How long does basement waterproofing last?' },
-      { type: 'answer', text: "Properly installed interior drainage systems last 15-25 years. Sump pumps typically need replacement every 7-10 years. Exterior waterproofing membranes can last 20-30 years. Most reputable companies offer warranties\u2014Reliable Solutions Atlanta provides an extensive warranty program on our work." },
+      { type: 'answer', text: "Properly installed interior drainage systems last 15-25 years. Sump pumps typically need replacement every 7-10 years. Exterior waterproofing membranes can last 20-30 years. Most reputable companies offer warranties—Reliable Solutions Atlanta provides an extensive warranty program on our work." },
     ],
   },
   'what-to-check-after-storm-atlanta': {
@@ -454,134 +568,37 @@ const blogPosts = {
     readTime: '8 min read',
     category: 'Foundation Repair',
     content: [
-      {
-        type: 'lead',
-        text: "Foundation repair is one of those costs that makes every homeowner nervous. The range you'll find online\u2014$2,000 to $25,000+\u2014isn't very helpful when you're trying to budget. Here's a realistic breakdown of what Atlanta homeowners actually pay, what drives the cost, and how to avoid overpaying."
-      },
-      {
-        type: 'heading',
-        text: 'Average Foundation Repair Costs in Atlanta'
-      },
-      {
-        type: 'paragraph',
-        text: "Based on 2026 industry data, most Atlanta homeowners pay between $4,500 and $12,000 for foundation repair. The national average sits around $4,500 to $5,000, but Atlanta's expansive clay soil and deep foundations push costs higher than many other regions. Minor crack repairs start at $500 to $1,500. Moderate repairs involving a few piers typically run $4,000 to $8,000. Major structural repairs with multiple piers or wall stabilization range from $10,000 to $25,000+."
-      },
-      {
-        type: 'heading',
-        text: 'Cost by Repair Method'
-      },
-      {
-        type: 'paragraph',
-        text: "The repair method your contractor recommends depends on what's causing the problem. Each method has a different price point. Crack sealing with epoxy or polyurethane injection costs $250 to $800 per crack\u2014this is for cosmetic or minor structural cracks that aren't caused by active foundation movement. Carbon fiber reinforcement for bowing walls runs $5,000 to $10,000 and is used when basement walls are bowing inward from hydrostatic pressure but haven't moved significantly."
-      },
-      {
-        type: 'paragraph',
-        text: "Push piers (also called resistance piers) cost $1,000 to $3,000 per pier, with most homes needing 6 to 12 piers for a total of $6,000 to $25,000+. These are driven through unstable soil to bedrock or load-bearing strata and are the standard solution for settling foundations. Helical piers cost $1,500 to $3,500 per pier and work like giant screws turned into the ground. They're used when push piers aren't suitable, particularly for lighter structures or when the load-bearing layer is at a moderate depth."
-      },
-      {
-        type: 'heading',
-        text: 'What Drives Foundation Repair Costs in Atlanta?'
-      },
-      {
-        type: 'paragraph',
-        text: "Several factors specific to Metro Atlanta affect your final cost. The severity of the problem is the biggest variable\u2014a single settled corner needing 3-4 piers is dramatically different from a foundation that's shifted along an entire wall. Foundation type matters too: homes with basement foundations typically cost more to repair than slab foundations because of the additional wall stabilization that may be needed."
-      },
-      {
-        type: 'paragraph',
-        text: "Georgia's red clay soil is a cost factor in itself. Clay is harder to work with than sandy soil, and the depth to stable bearing soil varies throughout Metro Atlanta. In some Gwinnett County areas, piers need to be driven 15-20 feet to reach stable ground. In parts of Cobb or North Fulton, that depth may be 25+ feet. Deeper piers mean higher costs. Accessibility also plays a role\u2014if the repair area is blocked by decks, porches, or tight spaces between homes, labor costs increase."
-      },
-      {
-        type: 'link',
-        text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems \u2192',
-        href: '/blog/why-atlanta-homes-have-foundation-problems'
-      },
-      {
-        type: 'heading',
-        text: 'Foundation Repair Cost by Problem Type'
-      },
-      {
-        type: 'paragraph',
-        text: "Settling foundation (one area sinking): $4,000 to $12,000 depending on the number of piers needed. Bowing basement walls: $5,000 to $15,000 for carbon fiber or wall anchor systems. Slab foundation cracks with settling: $3,000 to $10,000 for pier installation and slab leveling. Comprehensive structural repair (multiple walls, significant settling): $15,000 to $30,000+. These ranges reflect typical Atlanta jobs\u2014your specific situation may fall outside these numbers."
-      },
-      {
-        type: 'heading',
-        text: 'How Foundation Repair Compares to Doing Nothing'
-      },
-      {
-        type: 'paragraph',
-        text: "Foundation problems don't stabilize on their own\u2014they get worse. What costs $5,000 to fix today could cost $15,000 in two years if the foundation continues to move. Beyond the repair itself, an unaddressed foundation problem reduces your home value by 10-15% according to most real estate estimates. It can also make your home unsellable\u2014most buyers won't touch a home with known foundation issues, and home inspectors will flag the problem."
-      },
-      {
-        type: 'link',
-        text: 'Related: Foundation Settling vs. Structural Damage \u2192',
-        href: '/blog/signs-foundation-settling-vs-structural-damage'
-      },
-      {
-        type: 'heading',
-        text: 'Does Homeowners Insurance Cover Foundation Repair?'
-      },
-      {
-        type: 'paragraph',
-        text: "In most cases, no. Standard homeowners insurance policies exclude foundation repair caused by settling, soil movement, or poor drainage\u2014which covers the vast majority of foundation problems in Atlanta. Insurance may cover foundation damage caused by a sudden, covered event like a burst pipe or fallen tree. If you believe your foundation damage was caused by a covered event, document everything and file a claim before starting repairs."
-      },
-      {
-        type: 'heading',
-        text: 'Financing Options'
-      },
-      {
-        type: 'paragraph',
-        text: "Most reputable foundation repair companies offer financing because they understand the cost can be significant. Options typically include in-house payment plans, third-party financing with 0% introductory periods, and home equity loans or lines of credit (which may offer tax-deductible interest). At Reliable Solutions Atlanta, we work with homeowners to find payment solutions that fit their budget. The worst financial decision is delaying necessary repairs because the cost compounds over time."
-      },
-      {
-        type: 'heading',
-        text: 'How to Get an Accurate Estimate'
-      },
-      {
-        type: 'paragraph',
-        text: "Never accept a foundation repair quote given over the phone or without an in-person inspection. The contractor needs to see the cracks, measure the movement, and assess the soil conditions around your home. Get at least 3 estimates from licensed, insured contractors with Atlanta-specific experience. Compare not just price but scope of work, warranty terms, and repair method. The cheapest option isn't always the best value\u2014ask what happens if the repair doesn't hold."
-      },
-      {
-        type: 'link',
-        text: 'Related: How to Choose a Waterproofing Contractor in Atlanta \u2192',
-        href: '/blog/how-to-choose-waterproofing-contractor-atlanta'
-      },
-      {
-        type: 'paragraph',
-        text: "At Reliable Solutions Atlanta, we provide free foundation inspections with detailed, written estimates. We explain exactly what's happening with your foundation, what repair method we recommend, and what it will cost. No surprises, no pressure. Call 770-895-2039 to schedule yours."
-      },
-      {
-        type: 'service-link',
-        text: 'Learn more about our Foundation Repair services \u2192',
-        href: '/foundation-repair'
-      },
-      {
-        type: 'faq',
-        text: 'Frequently Asked Questions'
-      },
-      {
-        type: 'question',
-        text: 'How long does foundation repair take?'
-      },
-      {
-        type: 'answer',
-        text: "Most residential foundation repairs take 1-3 days for pier installation. More complex jobs involving multiple walls or extensive stabilization may take 5-7 days. You can typically remain in your home during the work."
-      },
-      {
-        type: 'question',
-        text: 'Will foundation repair fix my cracked drywall?'
-      },
-      {
-        type: 'answer',
-        text: "Foundation repair stabilizes the foundation and often lifts it back toward its original position, which can close some interior cracks. However, cosmetic repairs to drywall, doors, and windows are typically separate and done after the foundation work is complete."
-      },
-      {
-        type: 'question',
-        text: 'What warranty should I expect on foundation repair?'
-      },
-      {
-        type: 'answer',
-        text: "Reputable foundation repair companies offer warranties of 25 years to lifetime on pier installations. Ask whether the warranty is transferable to future homeowners\u2014this adds significant value if you ever sell. Reliable Solutions Atlanta offers an extensive warranty program on all our foundation repair work."
-      },
+      { type: 'lead', text: "Foundation repair is one of those costs that makes every homeowner nervous. The range you'll find online\u2014$2,000 to $25,000+\u2014isn't very helpful when you're trying to budget. Here's a realistic breakdown of what Atlanta homeowners actually pay, what drives the cost, and how to avoid overpaying." },
+      { type: 'heading', text: 'Average Foundation Repair Costs in Atlanta' },
+      { type: 'paragraph', text: "Based on 2026 industry data, most Atlanta homeowners pay between $4,500 and $12,000 for foundation repair. The national average sits around $4,500 to $5,000, but Atlanta's expansive clay soil and deep foundations push costs higher than many other regions. Minor crack repairs start at $500 to $1,500. Moderate repairs involving a few piers typically run $4,000 to $8,000. Major structural repairs with multiple piers or wall stabilization range from $10,000 to $25,000+." },
+      { type: 'heading', text: 'Cost by Repair Method' },
+      { type: 'paragraph', text: "The repair method your contractor recommends depends on what's causing the problem. Each method has a different price point. Crack sealing with epoxy or polyurethane injection costs $250 to $800 per crack\u2014this is for cosmetic or minor structural cracks that aren't caused by active foundation movement. Carbon fiber reinforcement for bowing walls runs $5,000 to $10,000 and is used when basement walls are bowing inward from hydrostatic pressure but haven't moved significantly." },
+      { type: 'paragraph', text: "Push piers (also called resistance piers) cost $1,000 to $3,000 per pier, with most homes needing 6 to 12 piers for a total of $6,000 to $25,000+. These are driven through unstable soil to bedrock or load-bearing strata and are the standard solution for settling foundations. Helical piers cost $1,500 to $3,500 per pier and work like giant screws turned into the ground. They're used when push piers aren't suitable, particularly for lighter structures or when the load-bearing layer is at a moderate depth." },
+      { type: 'heading', text: 'What Drives Foundation Repair Costs in Atlanta?' },
+      { type: 'paragraph', text: "Several factors specific to Metro Atlanta affect your final cost. The severity of the problem is the biggest variable\u2014a single settled corner needing 3-4 piers is dramatically different from a foundation that's shifted along an entire wall. Foundation type matters too: homes with basement foundations typically cost more to repair than slab foundations because of the additional wall stabilization that may be needed." },
+      { type: 'paragraph', text: "Georgia's red clay soil is a cost factor in itself. Clay is harder to work with than sandy soil, and the depth to stable bearing soil varies throughout Metro Atlanta. In some Gwinnett County areas, piers need to be driven 15-20 feet to reach stable ground. In parts of Cobb or North Fulton, that depth may be 25+ feet. Deeper piers mean higher costs. Accessibility also plays a role\u2014if the repair area is blocked by decks, porches, or tight spaces between homes, labor costs increase." },
+      { type: 'link', text: 'Related: Why Atlanta Homes Are Prone to Foundation Problems \u2192', href: '/blog/why-atlanta-homes-have-foundation-problems' },
+      { type: 'heading', text: 'Foundation Repair Cost by Problem Type' },
+      { type: 'paragraph', text: "Settling foundation (one area sinking): $4,000 to $12,000 depending on the number of piers needed. Bowing basement walls: $5,000 to $15,000 for carbon fiber or wall anchor systems. Slab foundation cracks with settling: $3,000 to $10,000 for pier installation and slab leveling. Comprehensive structural repair (multiple walls, significant settling): $15,000 to $30,000+. These ranges reflect typical Atlanta jobs\u2014your specific situation may fall outside these numbers." },
+      { type: 'heading', text: 'How Foundation Repair Compares to Doing Nothing' },
+      { type: 'paragraph', text: "Foundation problems don't stabilize on their own\u2014they get worse. What costs $5,000 to fix today could cost $15,000 in two years if the foundation continues to move. Beyond the repair itself, an unaddressed foundation problem reduces your home value by 10-15% according to most real estate estimates. It can also make your home unsellable\u2014most buyers won't touch a home with known foundation issues, and home inspectors will flag the problem." },
+      { type: 'link', text: 'Related: Foundation Settling vs. Structural Damage \u2192', href: '/blog/signs-foundation-settling-vs-structural-damage' },
+      { type: 'heading', text: 'Does Homeowners Insurance Cover Foundation Repair?' },
+      { type: 'paragraph', text: "In most cases, no. Standard homeowners insurance policies exclude foundation repair caused by settling, soil movement, or poor drainage\u2014which covers the vast majority of foundation problems in Atlanta. Insurance may cover foundation damage caused by a sudden, covered event like a burst pipe or fallen tree. If you believe your foundation damage was caused by a covered event, document everything and file a claim before starting repairs." },
+      { type: 'heading', text: 'Financing Options' },
+      { type: 'paragraph', text: "Most reputable foundation repair companies offer financing because they understand the cost can be significant. Options typically include in-house payment plans, third-party financing with 0% introductory periods, and home equity loans or lines of credit (which may offer tax-deductible interest). At Reliable Solutions Atlanta, we work with homeowners to find payment solutions that fit their budget. The worst financial decision is delaying necessary repairs because the cost compounds over time." },
+      { type: 'heading', text: 'How to Get an Accurate Estimate' },
+      { type: 'paragraph', text: "Never accept a foundation repair quote given over the phone or without an in-person inspection. The contractor needs to see the cracks, measure the movement, and assess the soil conditions around your home. Get at least 3 estimates from licensed, insured contractors with Atlanta-specific experience. Compare not just price but scope of work, warranty terms, and repair method. The cheapest option isn't always the best value\u2014ask what happens if the repair doesn't hold." },
+      { type: 'link', text: 'Related: How to Choose a Waterproofing Contractor in Atlanta \u2192', href: '/blog/how-to-choose-waterproofing-contractor-atlanta' },
+      { type: 'paragraph', text: "At Reliable Solutions Atlanta, we provide free foundation inspections with detailed, written estimates. We explain exactly what's happening with your foundation, what repair method we recommend, and what it will cost. No surprises, no pressure. Call 770-895-2039 to schedule yours." },
+      { type: 'service-link', text: 'Learn more about our Foundation Repair services \u2192', href: '/foundation-repair' },
+      { type: 'faq', text: 'Frequently Asked Questions' },
+      { type: 'question', text: 'How long does foundation repair take?' },
+      { type: 'answer', text: "Most residential foundation repairs take 1-3 days for pier installation. More complex jobs involving multiple walls or extensive stabilization may take 5-7 days. You can typically remain in your home during the work." },
+      { type: 'question', text: 'Will foundation repair fix my cracked drywall?' },
+      { type: 'answer', text: "Foundation repair stabilizes the foundation and often lifts it back toward its original position, which can close some interior cracks. However, cosmetic repairs to drywall, doors, and windows are typically separate and done after the foundation work is complete." },
+      { type: 'question', text: 'What warranty should I expect on foundation repair?' },
+      { type: 'answer', text: "Reputable foundation repair companies offer warranties of 25 years to lifetime on pier installations. Ask whether the warranty is transferable to future homeowners\u2014this adds significant value if you ever sell. Reliable Solutions Atlanta offers an extensive warranty program on all our foundation repair work." },
     ],
   },
   'crawl-space-repair-cost-atlanta': {
@@ -591,142 +608,39 @@ const blogPosts = {
     readTime: '8 min read',
     category: 'Crawl Space',
     content: [
-      {
-        type: 'lead',
-        text: "Crawl space problems don't come with a single price tag because \"crawl space repair\" can mean a dozen different things. A vapor barrier replacement is a completely different job than fixing sagging floor joists or remediating mold. Here's what Atlanta homeowners actually pay for the most common crawl space repairs\u2014and what drives those costs up or down."
-      },
-      {
-        type: 'heading',
-        text: 'Quick Cost Overview'
-      },
-      {
-        type: 'paragraph',
-        text: "Most Atlanta homeowners spend between $2,500 and $15,000 on crawl space repairs, with the wide range reflecting the variety of problems that can occur. Here's how the most common repairs break down: vapor barrier installation runs $1,500 to $3,000, full crawl space encapsulation costs $5,000 to $12,000, structural joist repair runs $3,000 to $10,000, mold remediation costs $1,500 to $5,000, and a complete crawl space overhaul (structural repair + encapsulation + drainage) can reach $10,000 to $20,000+."
-      },
-      {
-        type: 'heading',
-        text: 'Crawl Space Encapsulation Costs'
-      },
-      {
-        type: 'paragraph',
-        text: "Encapsulation is the most common crawl space investment Atlanta homeowners make, and for good reason\u2014it addresses the root cause of most crawl space problems: moisture. A basic encapsulation with a 12-mil vapor barrier on the floor costs $3,000 to $5,000. A full encapsulation with 20-mil barrier on floor and walls, sealed vents, and a commercial dehumidifier runs $5,000 to $12,000. The size of your crawl space is the biggest variable\u2014a 1,000 square foot crawl space costs roughly half what a 2,000 square foot space does."
-      },
-      {
-        type: 'link',
-        text: 'Related: Crawl Space Encapsulation vs Waterproofing \u2014 Which Do You Need? \u2192',
-        href: '/blog/crawl-space-encapsulation-vs-waterproofing'
-      },
-      {
-        type: 'heading',
-        text: 'Structural Repair Costs'
-      },
-      {
-        type: 'paragraph',
-        text: "Structural crawl space repairs address damage to the floor joists, beams, and supports that hold up your home. This is where costs can escalate quickly depending on the extent of the damage. Sistering floor joists (bolting new lumber alongside damaged joists) costs $100 to $300 per joist, with most jobs involving 5-15 joists for a total of $1,500 to $5,000. Replacing severely rotted joists runs $200 to $500 per joist. Support beam replacement costs $1,500 to $5,000 per beam. Adding supplemental support posts costs $250 to $500 each."
-      },
-      {
-        type: 'paragraph',
-        text: "The underlying cause matters too. If wood rot from moisture damage caused the structural failure, you need to fix the moisture problem or the new lumber will rot the same way. That typically means adding encapsulation to the structural repair scope, which increases the total project cost but prevents a repeat failure."
-      },
-      {
-        type: 'heading',
-        text: 'Mold Remediation Costs'
-      },
-      {
-        type: 'paragraph',
-        text: "Crawl space mold remediation in Atlanta typically costs $1,500 to $5,000 depending on the extent of growth and the size of the affected area. Minor surface mold on a few joists can be treated for $1,500 to $2,500. Widespread mold covering most of the crawl space runs $3,000 to $5,000+. If black mold (Stachybotrys) is present, remediation requires additional containment procedures and may cost more. Like structural repairs, mold remediation without addressing the moisture source is throwing money away\u2014the mold will return within months."
-      },
-      {
-        type: 'link',
-        text: 'Related: 5 Signs Your Crawl Space Has a Mold Problem \u2192',
-        href: '/blog/crawl-space-mold-signs'
-      },
-      {
-        type: 'heading',
-        text: 'Crawl Space Waterproofing and Drainage Costs'
-      },
-      {
-        type: 'paragraph',
-        text: "If water is actively entering your crawl space\u2014not just humidity, but standing water after rain\u2014you need waterproofing in addition to encapsulation. An interior French drain in a crawl space costs $2,000 to $5,000 depending on the linear footage. A sump pump installation runs $600 to $2,500. Exterior drainage improvements (grading, downspout extensions) cost $500 to $3,000. A combined waterproofing and encapsulation system typically runs $7,000 to $15,000."
-      },
-      {
-        type: 'link',
-        text: 'Related: Crawl Space Vapor Barriers \u2014 What Atlanta Homeowners Need to Know \u2192',
-        href: '/blog/crawl-space-vapor-barrier-guide'
-      },
-      {
-        type: 'heading',
-        text: 'What Affects Your Cost in Atlanta?'
-      },
-      {
-        type: 'paragraph',
-        text: "Crawl space size is the most obvious factor\u2014more square footage means more materials and labor. But several Atlanta-specific factors also affect pricing. Crawl space height matters: a 4-foot crawl space is much easier (and cheaper) to work in than a 2-foot crawl space where crews are on their stomachs. Georgia's humidity means most crawl spaces need a dehumidifier as part of any encapsulation\u2014add $1,500 to $2,500 for a commercial unit. Accessibility plays a role too\u2014if the crawl space access point is small or poorly located, everything takes longer."
-      },
-      {
-        type: 'paragraph',
-        text: "The condition of existing systems also matters. If there's an old, degraded vapor barrier that needs removal before new installation, that's additional labor. If standing water needs to be pumped out before work can begin, that adds to the timeline and cost. The extent of existing damage\u2014how many joists are compromised, how much mold is present\u2014directly scales the repair scope."
-      },
-      {
-        type: 'heading',
-        text: 'Is Crawl Space Repair Worth the Investment?'
-      },
-      {
-        type: 'paragraph',
-        text: "Crawl space repairs pay for themselves in several ways. Energy savings from encapsulation typically run $150 to $300 per year as your HVAC system no longer fights crawl space humidity. Preventing structural damage avoids far more expensive repairs down the road\u2014replacing a full subfloor system can cost $20,000+. Mold prevention protects your family's health and avoids repeated remediation costs. And a properly maintained crawl space adds to your home's resale value\u2014buyers and inspectors check crawl spaces, and problems there kill deals."
-      },
-      {
-        type: 'heading',
-        text: 'Does Insurance Cover Crawl Space Repair?'
-      },
-      {
-        type: 'paragraph',
-        text: "Standard homeowners insurance typically doesn't cover crawl space repairs resulting from ongoing moisture, settling, or lack of maintenance. It may cover damage from sudden events like a burst pipe or storm damage. Mold coverage varies by policy\u2014some exclude it entirely, others cap it at a low amount. Check your specific policy before assuming coverage. Regardless, most crawl space issues are maintenance-related and fall on the homeowner."
-      },
-      {
-        type: 'heading',
-        text: 'Getting an Accurate Estimate'
-      },
-      {
-        type: 'paragraph',
-        text: "A proper crawl space estimate requires an in-person inspection. The contractor needs to physically enter the crawl space to assess moisture levels, structural condition, mold presence, and drainage. Phone quotes are red flags. Get 2-3 estimates from contractors who specialize in crawl space work\u2014general contractors often lack the specific expertise for moisture management and encapsulation systems."
-      },
-      {
-        type: 'paragraph',
-        text: "At Reliable Solutions Atlanta, we provide free crawl space inspections with detailed assessments and written estimates. We'll photograph the conditions, explain what we find, and recommend only what your crawl space actually needs. Call 770-895-2039 to schedule yours."
-      },
-      {
-        type: 'service-link',
-        text: 'Learn more about our Crawl Space Repair services \u2192',
-        href: '/crawl-space-repair'
-      },
-      {
-        type: 'faq',
-        text: 'Frequently Asked Questions'
-      },
-      {
-        type: 'question',
-        text: 'Can I encapsulate my crawl space myself to save money?'
-      },
-      {
-        type: 'answer',
-        text: "DIY vapor barrier installation is possible for basic ground-only coverage, but full encapsulation requires proper sealing techniques, wall attachment, vent sealing, and dehumidifier installation that affect long-term performance. Improper installation\u2014gaps in the barrier, poorly sealed seams, or inadequate dehumidification\u2014can trap moisture and make problems worse."
-      },
-      {
-        type: 'question',
-        text: 'How long does crawl space encapsulation last?'
-      },
-      {
-        type: 'answer',
-        text: "A properly installed encapsulation system with a 20-mil vapor barrier lasts 20-25 years or more. Dehumidifiers typically need replacement every 8-12 years. The key is proper installation and occasional maintenance\u2014checking for tears, ensuring the dehumidifier is draining correctly, and verifying seams remain sealed."
-      },
-      {
-        type: 'question',
-        text: 'Should I fix structural damage or encapsulate first?'
-      },
-      {
-        type: 'answer',
-        text: "If you have both structural damage and moisture problems, address any active water intrusion first (drainage and waterproofing), then structural repairs, then encapsulation. This sequence ensures the structural repairs aren't compromised by ongoing moisture and the encapsulation seals everything properly once repairs are complete."
-      },
+      { type: 'lead', text: "Crawl space problems don't come with a single price tag because \"crawl space repair\" can mean a dozen different things. A vapor barrier replacement is a completely different job than fixing sagging floor joists or remediating mold. Here's what Atlanta homeowners actually pay for the most common crawl space repairs\u2014and what drives those costs up or down." },
+      { type: 'heading', text: 'Quick Cost Overview' },
+      { type: 'paragraph', text: "Most Atlanta homeowners spend between $2,500 and $15,000 on crawl space repairs, with the wide range reflecting the variety of problems that can occur. Here's how the most common repairs break down: vapor barrier installation runs $1,500 to $3,000, full crawl space encapsulation costs $5,000 to $12,000, structural joist repair runs $3,000 to $10,000, mold remediation costs $1,500 to $5,000, and a complete crawl space overhaul (structural repair + encapsulation + drainage) can reach $10,000 to $20,000+." },
+      { type: 'heading', text: 'Crawl Space Encapsulation Costs' },
+      { type: 'paragraph', text: "Encapsulation is the most common crawl space investment Atlanta homeowners make, and for good reason\u2014it addresses the root cause of most crawl space problems: moisture. A basic encapsulation with a 12-mil vapor barrier on the floor costs $3,000 to $5,000. A full encapsulation with 20-mil barrier on floor and walls, sealed vents, and a commercial dehumidifier runs $5,000 to $12,000. The size of your crawl space is the biggest variable\u2014a 1,000 square foot crawl space costs roughly half what a 2,000 square foot space does." },
+      { type: 'link', text: 'Related: Crawl Space Encapsulation vs Waterproofing \u2014 Which Do You Need? \u2192', href: '/blog/crawl-space-encapsulation-vs-waterproofing' },
+      { type: 'heading', text: 'Structural Repair Costs' },
+      { type: 'paragraph', text: "Structural crawl space repairs address damage to the floor joists, beams, and supports that hold up your home. This is where costs can escalate quickly depending on the extent of the damage. Sistering floor joists (bolting new lumber alongside damaged joists) costs $100 to $300 per joist, with most jobs involving 5-15 joists for a total of $1,500 to $5,000. Replacing severely rotted joists runs $200 to $500 per joist. Support beam replacement costs $1,500 to $5,000 per beam. Adding supplemental support posts costs $250 to $500 each." },
+      { type: 'paragraph', text: "The underlying cause matters too. If wood rot from moisture damage caused the structural failure, you need to fix the moisture problem or the new lumber will rot the same way. That typically means adding encapsulation to the structural repair scope, which increases the total project cost but prevents a repeat failure." },
+      { type: 'heading', text: 'Mold Remediation Costs' },
+      { type: 'paragraph', text: "Crawl space mold remediation in Atlanta typically costs $1,500 to $5,000 depending on the extent of growth and the size of the affected area. Minor surface mold on a few joists can be treated for $1,500 to $2,500. Widespread mold covering most of the crawl space runs $3,000 to $5,000+. If black mold (Stachybotrys) is present, remediation requires additional containment procedures and may cost more. Like structural repairs, mold remediation without addressing the moisture source is throwing money away\u2014the mold will return within months." },
+      { type: 'link', text: 'Related: 5 Signs Your Crawl Space Has a Mold Problem \u2192', href: '/blog/crawl-space-mold-signs' },
+      { type: 'heading', text: 'Crawl Space Waterproofing and Drainage Costs' },
+      { type: 'paragraph', text: "If water is actively entering your crawl space\u2014not just humidity, but standing water after rain\u2014you need waterproofing in addition to encapsulation. An interior French drain in a crawl space costs $2,000 to $5,000 depending on the linear footage. A sump pump installation runs $600 to $2,500. Exterior drainage improvements (grading, downspout extensions) cost $500 to $3,000. A combined waterproofing and encapsulation system typically runs $7,000 to $15,000." },
+      { type: 'link', text: 'Related: Crawl Space Vapor Barriers \u2014 What Atlanta Homeowners Need to Know \u2192', href: '/blog/crawl-space-vapor-barrier-guide' },
+      { type: 'heading', text: 'What Affects Your Cost in Atlanta?' },
+      { type: 'paragraph', text: "Crawl space size is the most obvious factor\u2014more square footage means more materials and labor. But several Atlanta-specific factors also affect pricing. Crawl space height matters: a 4-foot crawl space is much easier (and cheaper) to work in than a 2-foot crawl space where crews are on their stomachs. Georgia's humidity means most crawl spaces need a dehumidifier as part of any encapsulation\u2014add $1,500 to $2,500 for a commercial unit. Accessibility plays a role too\u2014if the crawl space access point is small or poorly located, everything takes longer." },
+      { type: 'paragraph', text: "The condition of existing systems also matters. If there's an old, degraded vapor barrier that needs removal before new installation, that's additional labor. If standing water needs to be pumped out before work can begin, that adds to the timeline and cost. The extent of existing damage\u2014how many joists are compromised, how much mold is present\u2014directly scales the repair scope." },
+      { type: 'heading', text: 'Is Crawl Space Repair Worth the Investment?' },
+      { type: 'paragraph', text: "Crawl space repairs pay for themselves in several ways. Energy savings from encapsulation typically run $150 to $300 per year as your HVAC system no longer fights crawl space humidity. Preventing structural damage avoids far more expensive repairs down the road\u2014replacing a full subfloor system can cost $20,000+. Mold prevention protects your family's health and avoids repeated remediation costs. And a properly maintained crawl space adds to your home's resale value\u2014buyers and inspectors check crawl spaces, and problems there kill deals." },
+      { type: 'heading', text: 'Does Insurance Cover Crawl Space Repair?' },
+      { type: 'paragraph', text: "Standard homeowners insurance typically doesn't cover crawl space repairs resulting from ongoing moisture, settling, or lack of maintenance. It may cover damage from sudden events like a burst pipe or storm damage. Mold coverage varies by policy\u2014some exclude it entirely, others cap it at a low amount. Check your specific policy before assuming coverage. Regardless, most crawl space issues are maintenance-related and fall on the homeowner." },
+      { type: 'heading', text: 'Getting an Accurate Estimate' },
+      { type: 'paragraph', text: "A proper crawl space estimate requires an in-person inspection. The contractor needs to physically enter the crawl space to assess moisture levels, structural condition, mold presence, and drainage. Phone quotes are red flags. Get 2-3 estimates from contractors who specialize in crawl space work\u2014general contractors often lack the specific expertise for moisture management and encapsulation systems." },
+      { type: 'paragraph', text: "At Reliable Solutions Atlanta, we provide free crawl space inspections with detailed assessments and written estimates. We'll photograph the conditions, explain what we find, and recommend only what your crawl space actually needs. Call 770-895-2039 to schedule yours." },
+      { type: 'service-link', text: 'Learn more about our Crawl Space Repair services \u2192', href: '/crawl-space-repair' },
+      { type: 'faq', text: 'Frequently Asked Questions' },
+      { type: 'question', text: 'Can I encapsulate my crawl space myself to save money?' },
+      { type: 'answer', text: "DIY vapor barrier installation is possible for basic ground-only coverage, but full encapsulation requires proper sealing techniques, wall attachment, vent sealing, and dehumidifier installation that affect long-term performance. Improper installation\u2014gaps in the barrier, poorly sealed seams, or inadequate dehumidification\u2014can trap moisture and make problems worse." },
+      { type: 'question', text: 'How long does crawl space encapsulation last?' },
+      { type: 'answer', text: "A properly installed encapsulation system with a 20-mil vapor barrier lasts 20-25 years or more. Dehumidifiers typically need replacement every 8-12 years. The key is proper installation and occasional maintenance\u2014checking for tears, ensuring the dehumidifier is draining correctly, and verifying seams remain sealed." },
+      { type: 'question', text: 'Should I fix structural damage or encapsulate first?' },
+      { type: 'answer', text: "If you have both structural damage and moisture problems, address any active water intrusion first (drainage and waterproofing), then structural repairs, then encapsulation. This sequence ensures the structural repairs aren't compromised by ongoing moisture and the encapsulation seals everything properly once repairs are complete." },
     ],
   },
 };

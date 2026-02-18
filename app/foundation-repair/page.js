@@ -102,6 +102,11 @@ export default function FoundationRepairPage() {
           <div className="mt-16 pt-12 border-t border-gray-200">
             <h2 className="text-2xl md:text-3xl font-bold text-[#273373] font-display mb-8">Foundation Repair Resources</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Link href="/blog/foundation-repair-cost-atlanta" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Cost Guide</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">How Much Does Foundation Repair Cost in Atlanta?</h3>
+                <p className="text-gray-600 mt-2 text-sm">Realistic pricing for piers, crack sealing, wall stabilization, and more.</p>
+              </Link>
               <Link href="/blog/foundation-crack-types-atlanta" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
                 <span className="text-sm text-[#115997] font-semibold">Crack Guide</span>
                 <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Types of Foundation Cracks and What They Mean</h3>
@@ -116,6 +121,16 @@ export default function FoundationRepairPage() {
                 <span className="text-sm text-[#115997] font-semibold">Diagnosis</span>
                 <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Foundation Settling vs. Structural Damage</h3>
                 <p className="text-gray-600 mt-2 text-sm">Know when settling is normal and when it signals a serious problem.</p>
+              </Link>
+              <Link href="/blog/foundation-maintenance-seasonal-checklist" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Prevention</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">Foundation Maintenance: A Seasonal Checklist</h3>
+                <p className="text-gray-600 mt-2 text-sm">Simple seasonal tasks to prevent costly foundation repairs.</p>
+              </Link>
+              <Link href="/blog/signs-concrete-needs-repair" className="group p-6 bg-gray-50 rounded-xl hover:bg-[#115997]/5 transition-colors border border-gray-100">
+                <span className="text-sm text-[#115997] font-semibold">Warning Signs</span>
+                <h3 className="text-lg font-bold text-[#273373] mt-2 group-hover:text-[#115997] transition-colors">6 Signs Your Concrete Needs Repair</h3>
+                <p className="text-gray-600 mt-2 text-sm">Sunken concrete near your home can signal deeper foundation issues.</p>
               </Link>
             </div>
           </div>
