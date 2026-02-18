@@ -149,7 +149,29 @@ export default function sitemap() {
     },
 
     // =============================================
-    // BLOG POSTS
+    // BLOG POSTS - Concrete Repair
+    // =============================================
+    {
+      url: `${baseUrl}/blog/concrete-repair-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/concrete-leveling-vs-replacement-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/signs-concrete-needs-repair`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+
+    // =============================================
+    // BLOG POSTS - Foundation Repair
     // =============================================
     {
       url: `${baseUrl}/blog/foundation-repair-cost-atlanta`,
@@ -158,7 +180,35 @@ export default function sitemap() {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/crawl-space-repair-cost-atlanta`,
+      url: `${baseUrl}/blog/foundation-crack-types-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/signs-foundation-settling-vs-structural-damage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-maintenance-seasonal-checklist`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+
+    // =============================================
+    // BLOG POSTS - Basement Waterproofing
+    // =============================================
+    {
+      url: `${baseUrl}/blog/basement-waterproofing-cost-atlanta`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
@@ -176,25 +226,7 @@ export default function sitemap() {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/foundation-crack-types-atlanta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/crawl-space-vapor-barrier-guide`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/sump-pump-maintenance-guide`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/signs-foundation-settling-vs-structural-damage`,
+      url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
@@ -205,38 +237,12 @@ export default function sitemap() {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
+
+    // =============================================
+    // BLOG POSTS - Crawl Space
+    // =============================================
     {
-      url: `${baseUrl}/blog/basement-waterproofing-cost-atlanta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/what-to-check-after-storm-atlanta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/french-drain-vs-sump-pump`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/crawl-space-mold-signs`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/foundation-maintenance-seasonal-checklist`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
+      url: `${baseUrl}/blog/crawl-space-repair-cost-atlanta`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
@@ -248,7 +254,35 @@ export default function sitemap() {
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
+      url: `${baseUrl}/blog/crawl-space-mold-signs`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/crawl-space-vapor-barrier-guide`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+
+    // =============================================
+    // BLOG POSTS - Drainage & Water Damage
+    // =============================================
+    {
+      url: `${baseUrl}/blog/french-drain-vs-sump-pump`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/sump-pump-maintenance-guide`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/what-to-check-after-storm-atlanta`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
