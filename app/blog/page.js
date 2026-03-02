@@ -25,7 +25,7 @@ const blogPosts = [
     date: 'March 3, 2026',
     readTime: '7 min read',
     category: 'Drainage',
-    image: '/images/portfolio/french-drain-pipe-installation.png',
+    image: '/images/portfolio/drainage-gravel-install-brick-home.png',
   },
   {
     slug: 'retaining-wall-repair-cost-atlanta',
@@ -34,7 +34,7 @@ const blogPosts = [
     date: 'March 3, 2026',
     readTime: '8 min read',
     category: 'Concrete Repair',
-    image: '/images/portfolio/concrete-pad-finishing.png',
+    image: '/images/portfolio/foundation-excavation-crew.png',
   },
   {
     slug: 'concrete-repair-cost-atlanta',
