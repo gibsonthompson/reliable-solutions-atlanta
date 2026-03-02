@@ -149,8 +149,42 @@ export default function sitemap() {
     },
 
     // =============================================
+    // BLOG POSTS - Drainage
+    // =============================================
+    {
+      url: `${baseUrl}/blog/french-drain-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/yard-drainage-problems-foundation-damage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/french-drain-vs-sump-pump`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/sump-pump-maintenance-guide`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+
+    // =============================================
     // BLOG POSTS - Concrete Repair
     // =============================================
+    {
+      url: `${baseUrl}/blog/retaining-wall-repair-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
     {
       url: `${baseUrl}/blog/concrete-repair-cost-atlanta`,
       lastModified: new Date(),
@@ -267,20 +301,8 @@ export default function sitemap() {
     },
 
     // =============================================
-    // BLOG POSTS - Drainage & Water Damage
+    // BLOG POSTS - Water Damage
     // =============================================
-    {
-      url: `${baseUrl}/blog/french-drain-vs-sump-pump`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/sump-pump-maintenance-guide`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
     {
       url: `${baseUrl}/blog/what-to-check-after-storm-atlanta`,
       lastModified: new Date(),

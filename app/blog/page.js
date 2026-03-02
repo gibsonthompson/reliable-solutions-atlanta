@@ -10,6 +10,33 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'french-drain-cost-atlanta',
+    title: 'How Much Does French Drain Installation Cost in Atlanta?',
+    excerpt: 'Realistic French drain installation pricing for Metro Atlanta. Compare interior vs. exterior costs, learn what affects your price, and understand when a French drain alone isn\'t enough.',
+    date: 'March 3, 2026',
+    readTime: '8 min read',
+    category: 'Drainage',
+    image: '/images/portfolio/french-drain-pipe-installation.png',
+  },
+  {
+    slug: 'yard-drainage-problems-foundation-damage',
+    title: '5 Signs Your Yard Has a Drainage Problem (And Why It\'s Threatening Your Foundation)',
+    excerpt: 'Standing water, soggy soil, and erosion aren\'t just yard problems—they\'re foundation threats. Learn the warning signs of poor yard drainage and how to fix them before serious damage occurs.',
+    date: 'March 3, 2026',
+    readTime: '7 min read',
+    category: 'Drainage',
+    image: '/images/portfolio/french-drain-pipe-installation.png',
+  },
+  {
+    slug: 'retaining-wall-repair-cost-atlanta',
+    title: 'Retaining Wall Repair: Signs, Costs, and Solutions for Atlanta Homeowners',
+    excerpt: 'Leaning, cracking, or bulging retaining wall? Learn the warning signs of failure, realistic repair costs for Metro Atlanta, and when repair vs. rebuild is the right call.',
+    date: 'March 3, 2026',
+    readTime: '8 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/concrete-pad-finishing.png',
+  },
+  {
     slug: 'concrete-repair-cost-atlanta',
     title: 'How Much Does Concrete Repair Cost in Atlanta?',
     excerpt: 'Realistic concrete repair pricing for Metro Atlanta. Compare costs for leveling, crack repair, replacement, and masonry work\u2014plus what drives costs up or down.',
