@@ -10,6 +10,33 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'water-in-basement-after-rain',
+    title: 'Water in Basement After Rain: Causes, Fixes, and What to Do Right Now',
+    excerpt: 'Water in your basement after rain? Learn the most common causes of basement water intrusion in Metro Atlanta, what to do immediately, and how to stop it permanently.',
+    date: 'March 15, 2026',
+    readTime: '8 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'bowing-basement-walls-atlanta',
+    title: 'Bowing Basement Walls: Causes, Repair Options, and Costs for Atlanta Homes',
+    excerpt: 'Is your basement wall bowing, leaning, or cracking horizontally? Learn what causes bowing walls in Metro Atlanta, how they\'re repaired, and what it costs before the problem gets worse.',
+    date: 'March 15, 2026',
+    readTime: '8 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-excavation-crew.png',
+  },
+  {
+    slug: 'does-foundation-repair-increase-home-value',
+    title: 'Does Foundation Repair Increase Home Value? What Atlanta Homeowners Need to Know',
+    excerpt: 'Wondering if foundation repair is worth the investment? Learn how foundation problems affect your home\'s value, what repairs cost vs. what they save, and how to protect your biggest asset.',
+    date: 'March 15, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
     slug: 'french-drain-cost-atlanta',
     title: 'How Much Does French Drain Installation Cost in Atlanta?',
     excerpt: 'Realistic French drain installation pricing for Metro Atlanta. Compare interior vs. exterior costs, learn what affects your price, and understand when a French drain alone isn\'t enough.',
@@ -21,7 +48,7 @@ const blogPosts = [
   {
     slug: 'yard-drainage-problems-foundation-damage',
     title: '5 Signs Your Yard Has a Drainage Problem (And Why It\'s Threatening Your Foundation)',
-    excerpt: 'Standing water, soggy soil, and erosion aren\'t just yard problems—they\'re foundation threats. Learn the warning signs of poor yard drainage and how to fix them before serious damage occurs.',
+    excerpt: 'Standing water, soggy soil, and erosion aren\'t just yard problems\u2014they\'re foundation threats. Learn the warning signs of poor yard drainage and how to fix them before serious damage occurs.',
     date: 'March 3, 2026',
     readTime: '7 min read',
     category: 'Drainage',
@@ -263,7 +290,7 @@ export default function BlogPage() {
                 <div className="p-6">
                   <div className="flex items-center text-sm text-gray-500 mb-3">
                     <span>{post.date}</span>
-                    <span className="mx-2">•</span>
+                    <span className="mx-2">&bull;</span>
                     <span>{post.readTime}</span>
                   </div>
                   <h2 className="text-xl font-bold text-[#273373] mb-3 group-hover:text-[#115997] transition-colors">
