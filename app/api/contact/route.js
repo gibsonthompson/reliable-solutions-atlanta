@@ -1,39 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import Telnyx from 'telnyx'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// Send SMS via Telnyx
-async function sendSMS(to, message) {
-  try {
-    const response = await fetch('https://api.telnyx.com/v2/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.TELNYX_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: '+15058332344',
-        to: to,
-        text: message,
-      }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      console.error('Telnyx SMS error:', error)
-      return false
-    }
-
-    return true
-  } catch (error) {
-    console.error('SMS send error:', error)
-    return false
-  }
-}
+// Initialize Telnyx if API key exists
+const telnyx = process.env.TELNYX_API_KEY ? Telnyx(process.env.TELNYX_API_KEY) : null
+const TELNYX_MSG_PROFILE = '40019bc3-6345-42ca-84bd-a9a2ed3bd66f'
+const TELNYX_FROM = '+15058332344'
 
 export async function POST(request) {
   try {
@@ -58,9 +35,28 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 })
     }
 
-    // Send SMS notification to business owner
-    const smsMessage = `New Lead - RSA\n${name}\n${phone}\n${service_type}${message ? `\n${message}` : ''}`
-    await sendSMS(process.env.RSA_NOTIFICATION_PHONE, smsMessage)
+    // Send SMS notification
+    if (telnyx && process.env.RSA_NOTIFICATION_PHONE) {
+      try {
+        const smsBody = [
+          'New Lead - RSA',
+          name,
+          phone,
+          service_type,
+          message ? message : null,
+        ].filter(Boolean).join('\n')
+
+        await telnyx.messages.create({
+          from: TELNYX_FROM,
+          to: process.env.RSA_NOTIFICATION_PHONE,
+          text: smsBody,
+          messaging_profile_id: TELNYX_MSG_PROFILE,
+        })
+      } catch (smsError) {
+        console.error('SMS notification failed:', smsError)
+        // Don't fail the form submission if SMS fails
+      }
+    }
 
     return NextResponse.json({ success: true, data })
   } catch (error) {
@@ -98,7 +94,7 @@ export async function GET(request) {
 export async function PATCH(request) {
   try {
     const body = await request.json()
-    const { id, status, notes } = body
+    const { id, status, notes, next_follow_up } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 })
@@ -107,6 +103,7 @@ export async function PATCH(request) {
     const updateData = {}
     if (status) updateData.status = status
     if (notes !== undefined) updateData.notes = notes
+    if (next_follow_up !== undefined) updateData.next_follow_up = next_follow_up
 
     const { data, error } = await supabase
       .from('contact_submissions')
