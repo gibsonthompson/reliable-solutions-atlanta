@@ -129,11 +129,18 @@ export async function DELETE(request) {
   }
 }
 
+// Valid database columns for rsa_prospects
+const VALID_COLUMNS = ['name', 'email', 'phone', 'brokerage', 'area', 'notes']
+
 // Bulk CSV import handler
 async function handleBulkImport({ leads, columnMapping, defaultSource }) {
   let imported = 0
   let duplicates = 0
   const errors = []
+
+  console.log('[CSV Import] columnMapping received:', JSON.stringify(columnMapping))
+  console.log('[CSV Import] leads count:', leads.length)
+  console.log('[CSV Import] first row sample:', JSON.stringify(leads[0] || {}))
 
   // Get existing emails to check duplicates
   const existingEmails = new Set()
@@ -153,18 +160,31 @@ async function handleBulkImport({ leads, columnMapping, defaultSource }) {
   for (let i = 0; i < leads.length; i++) {
     const row = leads[i]
     try {
+      // Build prospect dynamically from columnMapping
       const prospect = {
-        name: row[columnMapping.name] || row[columnMapping.contact_name] || '',
-        email: row[columnMapping.email] || '',
-        phone: row[columnMapping.phone] || '',
-        brokerage: row[columnMapping.brokerage] || '',
-        area: row[columnMapping.area] || '',
-        notes: row[columnMapping.notes] || '',
         source: defaultSource || 'csv_import',
         status: 'new',
       }
 
-      if (!prospect.name.trim()) {
+      // Map each field from columnMapping
+      for (const [fieldKey, csvHeader] of Object.entries(columnMapping)) {
+        if (!csvHeader || !csvHeader.trim()) continue // Skip unmapped fields
+
+        const value = row[csvHeader]
+        if (!value || !value.trim()) continue // Skip empty values
+
+        // Only set recognized database columns
+        if (VALID_COLUMNS.includes(fieldKey)) {
+          prospect[fieldKey] = value.trim()
+        }
+        // Handle alternate key names
+        if (fieldKey === 'contact_name' && !prospect.name) {
+          prospect.name = value.trim()
+        }
+      }
+
+      // Must have a name
+      if (!prospect.name || !prospect.name.trim()) {
         errors.push({ row: i + 2, error: 'Missing name' })
         continue
       }
@@ -185,11 +205,17 @@ async function handleBulkImport({ leads, columnMapping, defaultSource }) {
     }
   }
 
+  console.log('[CSV Import] toInsert count:', toInsert.length)
+  if (toInsert.length > 0) {
+    console.log('[CSV Import] first prospect sample:', JSON.stringify(toInsert[0]))
+  }
+
   // Batch insert (chunks of 50)
   for (let i = 0; i < toInsert.length; i += 50) {
     const chunk = toInsert.slice(i, i + 50)
     const { error } = await supabase.from('rsa_prospects').insert(chunk)
     if (error) {
+      console.error('[CSV Import] batch insert error:', error.message)
       errors.push({ row: 0, error: `Batch insert failed: ${error.message}` })
     } else {
       imported += chunk.length
