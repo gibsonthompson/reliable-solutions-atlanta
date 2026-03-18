@@ -31,6 +31,43 @@ async function sendSmsNotification(text) {
   }
 }
 
+// ── Spam Detection (name + email patterns only) ─────────────────
+function isSpam({ name, email }) {
+  // 1. Name pattern detection — gibberish mixed-case like "DaFtEleExbYZPCNV"
+  if (name) {
+    // Count uppercase-to-lowercase transitions (real names have 1-2, gibberish has many)
+    const transitions = (name.match(/[A-Z][a-z]|[a-z][A-Z]/g) || []).length
+    if (transitions > 4) return 'gibberish_name'
+
+    // 3+ consecutive uppercase in a single word (excluding all-caps words like "LLC")
+    const words = name.split(/\s+/)
+    for (const word of words) {
+      if (word.length > 3 && /[A-Z]{3,}/.test(word) && word !== word.toUpperCase()) {
+        return 'gibberish_name'
+      }
+    }
+
+    // Single word with 12+ chars and no spaces — very likely bot
+    if (name.trim().split(/\s+/).length === 1 && name.trim().length > 12) {
+      return 'suspicious_name'
+    }
+  }
+
+  // 2. Email pattern — multiple dots before @ like "ho.l.u.w.o.g.e@gmail.com"
+  if (email) {
+    const localPart = email.split('@')[0] || ''
+    const dotCount = (localPart.match(/\./g) || []).length
+    if (dotCount >= 4) return 'dotted_email'
+
+    // Single-char segments between dots: a.b.c.d.e@
+    const segments = localPart.split('.')
+    const tinySegments = segments.filter(s => s.length <= 2).length
+    if (tinySegments >= 3) return 'fragmented_email'
+  }
+
+  return null
+}
+
 export async function POST(request) {
   try {
     const body = await request.json()
@@ -41,6 +78,14 @@ export async function POST(request) {
         { error: 'Missing required fields' },
         { status: 400 }
       )
+    }
+
+    // Check for spam
+    const spamReason = isSpam({ name, email })
+    if (spamReason) {
+      console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`)
+      // Return 200 so bots think it worked
+      return NextResponse.json({ success: true })
     }
 
     const { data, error } = await supabase
