@@ -85,15 +85,67 @@ const AUTO_MAP = {
   'about': 'notes',
 }
 
+// Headers to completely skip — Apollo/CRM noise that causes mis-mapping
+const IGNORED_HEADERS = new Set([
+  'company name for emails',
+  'primary email catch-all status',
+  'primary email catch all status',
+  'primary email last verified at',
+  'primary email status',
+  'email status',
+  'email confidence',
+  'email verified',
+  'email deliverability',
+  'catch-all status',
+  'seniority',
+  'departments',
+  'sub departments',
+  'contact owner',
+  'account owner',
+  'apollo contact id',
+  'apollo account id',
+  'person id',
+  'contact id',
+  'account id',
+  'organization id',
+  'facebook url',
+  'twitter url',
+  'instagram url',
+  'youtube url',
+  'logo url',
+  'photo url',
+  'alexa ranking',
+  'founded year',
+  'total funding',
+  'latest funding',
+  'last raised at',
+  'seo description',
+  'technologies',
+  'keywords',
+  'tags',
+  'lists',
+  'stage',
+])
+
 function fuzzyMatch(header) {
   const lower = header.toLowerCase().trim()
+
+  // Skip known noise headers first
+  if (IGNORED_HEADERS.has(lower)) return '_skip'
+
+  // Exact match
   if (AUTO_MAP[lower]) return AUTO_MAP[lower]
-  // Fuzzy
+
+  // Skip any header that contains BOTH "company"/"name" AND "email"
+  // (catches "Company Name for Emails" and similar)
+  if ((lower.includes('company') || lower.includes('name for')) && lower.includes('email')) return '_skip'
+
+  // Fuzzy — check multi-word patterns FIRST, then single-word
   if (lower.includes('first name') || lower.includes('firstname')) return '_first_name'
   if (lower.includes('last name') || lower.includes('lastname')) return '_last_name'
+  if (lower.includes('company') || lower.includes('brokerage') || lower.includes('office') || lower.includes('firm')) return 'brokerage'
   if (lower.includes('email')) return 'email'
   if (lower.includes('phone') || lower.includes('mobile') || lower.includes('cell')) return 'phone'
-  if (lower.includes('brokerage') || lower.includes('company') || lower.includes('office') || lower.includes('firm')) return 'brokerage'
   if (lower.includes('area') || lower.includes('market') || lower.includes('city') || lower.includes('region')) return 'area'
   return null
 }
@@ -193,7 +245,7 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
 
       headers.forEach(header => {
         const match = fuzzyMatch(header)
-        if (!match) return
+        if (!match || match === '_skip') return
         if (match === '_first_name') { fnCol = header }
         else if (match === '_last_name') { lnCol = header }
         else if (!usedFields.has(match)) {
@@ -373,7 +425,7 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
                       className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none"
                     >
                       <option value="">-- Skip --</option>
-                      {csvHeaders.map(h => <option key={h} value={h}>{h}</option>)}
+                      {csvHeaders.filter(h => !IGNORED_HEADERS.has(h.toLowerCase().trim())).map(h => <option key={h} value={h}>{h}</option>)}
                     </select>
                   </div>
                 ))}
