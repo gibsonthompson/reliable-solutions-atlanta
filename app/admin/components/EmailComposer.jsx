@@ -138,7 +138,7 @@ function replaceVariables(text, contact) {
     .replace(/\{target_area\}/g, 'Metro Atlanta')
 }
 
-export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
+export default function EmailComposer({ isOpen, onClose, contact, onSent, isProspect = false }) {
   const [templates, setTemplates] = useState([])
   const [selectedTemplate, setSelectedTemplate] = useState('')
   const [subject, setSubject] = useState('')
@@ -220,7 +220,7 @@ export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contact_id: contact.id,
+          ...(isProspect ? { prospect_id: contact.id } : { contact_id: contact.id }),
           type: 'email',
           subject,
           body,

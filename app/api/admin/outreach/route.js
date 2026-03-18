@@ -6,21 +6,29 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
-// GET outreach history for a contact
+// GET outreach history for a contact or prospect
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const contactId = searchParams.get('contact_id')
+    const prospectId = searchParams.get('prospect_id')
 
-    if (!contactId) {
-      return NextResponse.json({ error: 'contact_id required' }, { status: 400 })
+    if (!contactId && !prospectId) {
+      return NextResponse.json({ error: 'contact_id or prospect_id required' }, { status: 400 })
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('rsa_outreach_log')
       .select('*')
-      .eq('contact_id', contactId)
       .order('created_at', { ascending: false })
+
+    if (contactId) {
+      query = query.eq('contact_id', contactId)
+    } else {
+      query = query.eq('prospect_id', prospectId)
+    }
+
+    const { data, error } = await query
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -36,22 +44,25 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { contact_id, type, subject, body: emailBody, template_id } = body
+    const { contact_id, prospect_id, type, subject, body: emailBody, template_id } = body
 
-    if (!contact_id) {
-      return NextResponse.json({ error: 'contact_id required' }, { status: 400 })
+    if (!contact_id && !prospect_id) {
+      return NextResponse.json({ error: 'contact_id or prospect_id required' }, { status: 400 })
     }
 
     // Insert outreach log
+    const insertData = {
+      type: type || 'email',
+      subject,
+      body: emailBody,
+      template_id: template_id || null,
+    }
+    if (contact_id) insertData.contact_id = contact_id
+    if (prospect_id) insertData.prospect_id = prospect_id
+
     const { data, error } = await supabase
       .from('rsa_outreach_log')
-      .insert([{
-        contact_id,
-        type: type || 'email',
-        subject,
-        body: emailBody,
-        template_id: template_id || null,
-      }])
+      .insert([insertData])
       .select()
       .single()
 
@@ -60,34 +71,38 @@ export async function POST(request) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Update contact outreach count and last_contacted_at
-    await supabase.rpc('increment_outreach_count', { contact_uuid: contact_id }).catch(() => {
-      // Fallback if RPC doesn't exist — update directly
-      supabase
+    // Update outreach count on the parent record
+    if (contact_id) {
+      const { data: contactData } = await supabase
+        .from('contact_submissions')
+        .select('outreach_count')
+        .eq('id', contact_id)
+        .single()
+
+      await supabase
         .from('contact_submissions')
         .update({
-          outreach_count: supabase.raw('COALESCE(outreach_count, 0) + 1'),
+          outreach_count: (contactData?.outreach_count || 0) + 1,
           last_contacted_at: new Date().toISOString(),
         })
         .eq('id', contact_id)
-        .then(() => {})
-        .catch(() => {})
-    })
+    }
 
-    // Simple increment fallback
-    const { data: contactData } = await supabase
-      .from('contact_submissions')
-      .select('outreach_count')
-      .eq('id', contact_id)
-      .single()
+    if (prospect_id) {
+      const { data: prospectData } = await supabase
+        .from('rsa_prospects')
+        .select('outreach_count')
+        .eq('id', prospect_id)
+        .single()
 
-    await supabase
-      .from('contact_submissions')
-      .update({
-        outreach_count: (contactData?.outreach_count || 0) + 1,
-        last_contacted_at: new Date().toISOString(),
-      })
-      .eq('id', contact_id)
+      await supabase
+        .from('rsa_prospects')
+        .update({
+          outreach_count: (prospectData?.outreach_count || 0) + 1,
+          last_contacted_at: new Date().toISOString(),
+        })
+        .eq('id', prospect_id)
+    }
 
     return NextResponse.json({ success: true, data })
   } catch (error) {
@@ -96,30 +111,20 @@ export async function POST(request) {
   }
 }
 
-// DELETE outreach entries for a contact (used when deleting contact)
+// DELETE outreach entries (used when deleting a contact or prospect)
 export async function DELETE(request) {
   try {
     const body = await request.json()
-    const { contact_id } = body
+    const { contact_id, prospect_id } = body
 
-    if (!contact_id) {
-      return NextResponse.json({ error: 'contact_id required' }, { status: 400 })
+    if (contact_id) {
+      await supabase.from('rsa_outreach_log').delete().eq('contact_id', contact_id)
+      await supabase.from('contact_submissions').delete().eq('id', contact_id)
     }
 
-    // Delete outreach logs
-    await supabase
-      .from('rsa_outreach_log')
-      .delete()
-      .eq('contact_id', contact_id)
-
-    // Delete the contact itself
-    const { error } = await supabase
-      .from('contact_submissions')
-      .delete()
-      .eq('id', contact_id)
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (prospect_id) {
+      await supabase.from('rsa_outreach_log').delete().eq('prospect_id', prospect_id)
+      await supabase.from('rsa_prospects').delete().eq('id', prospect_id)
     }
 
     return NextResponse.json({ success: true })
