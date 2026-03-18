@@ -2,65 +2,122 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-const RSA_LOGO_URL = 'https://waterhelpme.com/images/rsa-logo.png'
 const RSA_PHONE = '(770) 895-2039'
 const RSA_WEBSITE = 'waterhelpme.com'
+const RSA_EMAIL = 'rsolrepair@gmail.com'
+const GOOGLE_REVIEW_URL = 'https://www.google.com/search?q=(770)+895-2039#lrd=0x88f5bde216fbfbdf:0x8d3c5e27cda0c48b,3'
 
-// Generate branded HTML email
-function generateEmailHTML({ subject, body, contactName }) {
+// Generate branded HTML email shell — wraps plain text body in RSA branding
+function generateEmailHTML({ subject, body }) {
   const bodyHTML = body
-    .replace(/\n\n/g, '</p><p style="margin:0 0 16px 0;color:#374151;font-size:15px;line-height:1.7;">')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n\n/g, '</p><p style="margin:0 0 16px 0;color:#374151;font-size:15px;line-height:1.75;">')
     .replace(/\n/g, '<br>')
 
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:32px 16px;">
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:24px 12px;">
 <tr><td align="center">
-<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px;width:100%;">
 
-<!-- Header -->
-<tr><td style="background:linear-gradient(135deg,#273373 0%,#115997 100%);padding:32px 40px;border-radius:12px 12px 0 0;text-align:center;">
-<img src="${RSA_LOGO_URL}" alt="Reliable Solutions Atlanta" width="180" style="max-width:180px;height:auto;margin-bottom:8px;" />
-<p style="color:rgba(255,255,255,0.8);font-size:13px;margin:0;letter-spacing:0.5px;">Waterproofing & Foundation Repair Experts</p>
+<!-- HEADER -->
+<tr><td style="background-color:#ffffff;padding:28px 40px 20px 40px;border-radius:12px 12px 0 0;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-top:1px solid #e5e7eb;text-align:center;">
+  <img src="https://waterhelpme.com/images/logo.png" alt="Reliable Solutions Atlanta" width="200" style="max-width:200px;height:auto;display:inline-block;margin-bottom:12px;" />
+  <p style="margin:0;color:#6b7280;font-size:12px;letter-spacing:0.5px;text-transform:uppercase;">
+    Waterproofing &amp; Foundation Repair Experts &middot; Metro Atlanta
+  </p>
 </td></tr>
 
-<!-- Body -->
-<tr><td style="background-color:#ffffff;padding:40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-<p style="margin:0 0 16px 0;color:#374151;font-size:15px;line-height:1.7;">${bodyHTML}</p>
+<!-- HEADLINE -->
+<tr><td style="background-color:#115997;padding:24px 40px;text-align:center;">
+  <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;line-height:1.35;">
+    ${subject.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+  </h1>
+</td></tr>
+
+<!-- BODY -->
+<tr><td style="background-color:#ffffff;padding:36px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+  <p style="margin:0 0 16px 0;color:#374151;font-size:15px;line-height:1.75;">${bodyHTML}</p>
 </td></tr>
 
 <!-- CTA -->
-<tr><td style="background-color:#ffffff;padding:0 40px 32px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;text-align:center;">
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
-<tr>
-<td style="background-color:#115997;border-radius:8px;padding:14px 32px;">
-<a href="tel:+17708952039" style="color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;display:inline-block;">
-📞 Call Us: ${RSA_PHONE}
-</a>
-</td>
-</tr>
-</table>
+<tr><td style="background-color:#f8fafc;padding:28px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;text-align:center;">
+  <p style="margin:0 0 4px 0;color:#273373;font-size:17px;font-weight:700;">Alejandro Lopez</p>
+  <p style="margin:0 0 16px 0;color:#6b7280;font-size:14px;">Reliable Solutions Atlanta</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+  <tr><td>
+    <a href="tel:+17708952039" style="display:inline-block;background-color:#115997;color:#ffffff;font-size:15px;font-weight:600;text-decoration:none;padding:14px 32px;border-radius:8px;">
+      Call: ${RSA_PHONE}
+    </a>
+  </td></tr>
+  </table>
+  <p style="margin:12px 0 0 0;color:#9ca3af;font-size:12px;">Or reply directly to this email</p>
 </td></tr>
 
-<!-- Divider -->
-<tr><td style="background-color:#ffffff;padding:0 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
-<hr style="border:none;border-top:1px solid #e5e7eb;margin:0;" />
+<!-- TRUST BAR -->
+<tr><td style="background-color:#ffffff;padding:24px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:0 12px;vertical-align:middle;">
+        <img src="https://waterhelpme.com/images/bbb-badge.png" alt="BBB Accredited Business A+" height="44" style="height:44px;width:auto;display:inline-block;background-color:#ffffff;border-radius:4px;" />
+      </td>
+      <td align="center" style="padding:0 12px;vertical-align:middle;">
+        <img src="https://waterhelpme.com/images/iicrc-badge.png" alt="IICRC Certified" height="44" style="height:44px;width:auto;display:inline-block;" />
+      </td>
+      <td align="center" style="padding:0 12px;vertical-align:middle;">
+        <table role="presentation" cellpadding="0" cellspacing="0">
+          <tr><td align="center" style="padding-bottom:4px;">
+            <img src="https://waterhelpme.com/images/google-logo.png" alt="Google" height="24" style="height:24px;width:auto;display:inline-block;" />
+          </td></tr>
+          <tr><td align="center">
+            <span style="color:#f59e0b;font-size:14px;letter-spacing:1px;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+          </td></tr>
+          <tr><td align="center">
+            <a href="${GOOGLE_REVIEW_URL}" style="color:#374151;font-size:11px;text-decoration:none;font-weight:600;">60+ 5-Star Reviews</a>
+          </td></tr>
+        </table>
+      </td>
+      <td align="center" style="padding:0 12px;vertical-align:middle;">
+        <img src="https://waterhelpme.com/images/greensky-badge.png" alt="GreenSky Financing Available" height="40" style="height:40px;width:auto;display:inline-block;" />
+      </td>
+    </tr>
+  </table>
 </td></tr>
 
-<!-- Footer -->
-<tr><td style="background-color:#ffffff;padding:24px 40px;border-radius:0 0 12px 12px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-<tr>
-<td>
-<p style="margin:0 0 4px 0;color:#273373;font-size:14px;font-weight:700;">Reliable Solutions Atlanta</p>
-<p style="margin:0 0 2px 0;color:#6b7280;font-size:12px;">Waterproofing · Foundation Repair · Drainage</p>
-<p style="margin:0 0 2px 0;color:#6b7280;font-size:12px;">${RSA_PHONE} · ${RSA_WEBSITE}</p>
-<p style="margin:8px 0 0 0;color:#9ca3af;font-size:11px;">Serving Metro Atlanta · Licensed & Insured · 20+ Years Experience</p>
-</td>
-</tr>
-</table>
+<!-- FINANCING -->
+<tr><td style="background-color:#ffffff;padding:0 40px 20px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;text-align:center;">
+  <p style="margin:0;color:#6b7280;font-size:12px;line-height:1.5;">
+    Financing options available through GreenSky &mdash; homeowners can pay over time with plans starting at 0% interest.
+  </p>
+</td></tr>
+
+<!-- FOOTER -->
+<tr><td style="background-color:#1e293b;padding:28px 40px;border-radius:0 0 12px 12px;text-align:center;">
+  <p style="margin:0 0 4px 0;color:#ffffff;font-size:15px;font-weight:700;">Reliable Solutions Atlanta</p>
+  <p style="margin:0 0 4px 0;color:rgba(255,255,255,0.6);font-size:12px;">Waterproofing &middot; Foundation Repair &middot; Drainage &middot; Crawl Space</p>
+  <p style="margin:0 0 4px 0;color:rgba(255,255,255,0.6);font-size:12px;">${RSA_PHONE} &middot; ${RSA_EMAIL} &middot; ${RSA_WEBSITE}</p>
+  <p style="margin:0 0 16px 0;color:rgba(255,255,255,0.4);font-size:11px;">Serving Metro Atlanta &middot; Licensed &amp; Insured &middot; 20+ Years Experience</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 16px auto;">
+    <tr>
+      <td style="padding:0 6px;">
+        <a href="${GOOGLE_REVIEW_URL}" style="display:inline-block;width:30px;height:30px;background-color:rgba(255,255,255,0.12);border-radius:50%;text-align:center;line-height:30px;text-decoration:none;color:#ffffff;font-size:13px;font-weight:700;" title="Google Reviews">G</a>
+      </td>
+      <td style="padding:0 6px;">
+        <a href="#FACEBOOK_URL" style="display:inline-block;width:30px;height:30px;background-color:rgba(255,255,255,0.12);border-radius:50%;text-align:center;line-height:30px;text-decoration:none;color:#ffffff;font-size:13px;font-weight:700;" title="Facebook">f</a>
+      </td>
+      <td style="padding:0 6px;">
+        <a href="#INSTAGRAM_URL" style="display:inline-block;width:30px;height:30px;background-color:rgba(255,255,255,0.12);border-radius:50%;text-align:center;line-height:30px;text-decoration:none;color:#ffffff;font-size:13px;font-weight:700;" title="Instagram">ig</a>
+      </td>
+    </tr>
+  </table>
+  <p style="margin:0;color:rgba(255,255,255,0.25);font-size:10px;line-height:1.5;">
+    You received this because we thought it might be useful for your real estate business.<br>
+    If you&rsquo;d prefer not to hear from us, simply reply &ldquo;unsubscribe&rdquo; and we&rsquo;ll remove you right away.
+  </p>
 </td></tr>
 
 </table>
@@ -78,6 +135,7 @@ function replaceVariables(text, contact) {
     .replace(/\{email\}/g, contact.email || '')
     .replace(/\{phone\}/g, contact.phone || '')
     .replace(/\{service_type\}/g, contact.service_type || '')
+    .replace(/\{target_area\}/g, 'Metro Atlanta')
 }
 
 export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
@@ -130,7 +188,6 @@ export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
   const emailHTML = generateEmailHTML({
     subject,
     body,
-    contactName: contact?.name || '',
   })
 
   const handleCopyHTML = async () => {
@@ -198,7 +255,7 @@ export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
             </div>
             <div className="min-w-0">
               <h3 className="font-semibold text-[#273373] text-sm sm:text-base truncate">Compose Email</h3>
-              <p className="text-xs text-gray-500 truncate">To: {contact.name} · {contact.email}</p>
+              <p className="text-xs text-gray-500 truncate">To: {contact.name} &middot; {contact.email}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
@@ -232,7 +289,7 @@ export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
 
               {/* Subject */}
               <div>
-                <label className="block text-xs text-gray-500 mb-1.5">Subject</label>
+                <label className="block text-xs text-gray-500 mb-1.5">Subject (also used as headline)</label>
                 <input
                   type="text"
                   value={subject}
@@ -246,11 +303,9 @@ export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="block text-xs text-gray-500">Message</label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] text-gray-400">
-                      Variables: {'{name}'} {'{first_name}'} {'{service_type}'}
-                    </span>
-                  </div>
+                  <span className="text-[10px] text-gray-400">
+                    Variables: {'{name}'} {'{first_name}'} {'{service_type}'} {'{target_area}'}
+                  </span>
                 </div>
                 <textarea
                   value={body}
@@ -280,7 +335,7 @@ export default function EmailComposer({ isOpen, onClose, contact, onSent }) {
               <div
                 ref={previewRef}
                 className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
-                style={{ transform: 'scale(0.55)', transformOrigin: 'top left', width: '182%', maxHeight: '600px' }}
+                style={{ transform: 'scale(0.55)', transformOrigin: 'top left', width: '182%', maxHeight: '900px' }}
               >
                 <div dangerouslySetInnerHTML={{ __html: emailHTML }} />
               </div>
