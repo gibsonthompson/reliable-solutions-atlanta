@@ -235,7 +235,8 @@ export default function EmailComposer({ isOpen, onClose, contact, onSent, isPros
     }
   }
 
-  const handleOpenGmail = () => {
+  const handleOpenGmail = async () => {
+    await handleCopyHTML()
     const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(contact.email)}&su=${encodeURIComponent(subject)}`
     window.open(gmailUrl, '_blank')
   }

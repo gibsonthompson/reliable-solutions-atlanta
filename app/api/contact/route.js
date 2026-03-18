@@ -31,8 +31,8 @@ async function sendSmsNotification(text) {
   }
 }
 
-// ── Spam Detection (name + email patterns only) ─────────────────
-function isSpam({ name, email }) {
+// ── Spam Detection (name + email + message patterns) ─────────────────
+function isSpam({ name, email, message }) {
   // 1. Name pattern detection — gibberish mixed-case like "DaFtEleExbYZPCNV"
   if (name) {
     // Count uppercase-to-lowercase transitions (real names have 1-2, gibberish has many)
@@ -65,6 +65,15 @@ function isSpam({ name, email }) {
     if (tinySegments >= 3) return 'fragmented_email'
   }
 
+  // 3. Message keyword detection — spam solicitations
+  if (message) {
+    const msgLower = message.toLowerCase()
+    const spamKeywords = ['seo', 'search engine optimization', 'backlink', 'link building', 'rank your website', 'first page of google', 'domain authority']
+    for (const keyword of spamKeywords) {
+      if (msgLower.includes(keyword)) return 'spam_keyword_' + keyword.replace(/\s+/g, '_')
+    }
+  }
+
   return null
 }
 
@@ -81,7 +90,7 @@ export async function POST(request) {
     }
 
     // Check for spam
-    const spamReason = isSpam({ name, email })
+    const spamReason = isSpam({ name, email, message })
     if (spamReason) {
       console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`)
       // Return 200 so bots think it worked
