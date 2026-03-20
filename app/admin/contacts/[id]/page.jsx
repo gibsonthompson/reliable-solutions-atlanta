@@ -8,10 +8,28 @@ import EmailComposer from '../../components/EmailComposer'
 const STATUS_OPTIONS = [
   { value: 'new', label: 'New', color: 'bg-blue-100 text-blue-700 border-blue-300' },
   { value: 'contacted', label: 'Contacted', color: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  { value: 'quoted', label: 'Quoted', color: 'bg-purple-100 text-purple-700 border-purple-300' },
-  { value: 'scheduled', label: 'Scheduled', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  { value: 'estimate_scheduled', label: 'Est. Scheduled', color: 'bg-indigo-100 text-indigo-700 border-indigo-300' },
+  { value: 'estimate_completed', label: 'Est. Completed', color: 'bg-purple-100 text-purple-700 border-purple-300' },
+  { value: 'job_booked', label: 'Job Booked', color: 'bg-emerald-100 text-emerald-700 border-emerald-300' },
+  { value: 'in_progress', label: 'In Progress', color: 'bg-orange-100 text-orange-700 border-orange-300' },
   { value: 'completed', label: 'Completed', color: 'bg-green-100 text-green-700 border-green-300' },
-  { value: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-700 border-red-300' },
+  { value: 'closed_lost', label: 'Closed/Lost', color: 'bg-red-100 text-red-700 border-red-300' },
+]
+
+const CLOSE_REASONS = [
+  'Too expensive',
+  'Went with competitor',
+  'No response',
+  'Not ready yet',
+  'DIY',
+  'Other',
+]
+
+const SMS_TEMPLATES = [
+  { label: 'On my way', text: "Hey {name}, we're on our way! Should be there in about 20 minutes. - RSA Team" },
+  { label: 'Estimate ready', text: "Hey {name}, thanks for meeting with us today. I'll have your estimate ready by tomorrow. - RSA Team" },
+  { label: 'Job scheduled', text: "Hey {name}, your {service} job is confirmed for {date}. We'll arrive between 8-9am. Call us if anything changes: 770-895-2039 - RSA Team" },
+  { label: 'Follow up', text: "Hey {name}, just checking in on your {service} project. Still interested in moving forward? Happy to answer any questions. 770-895-2039 - RSA Team" },
 ]
 
 export default function ContactDetailPage() {
@@ -21,12 +39,18 @@ export default function ContactDetailPage() {
 
   const [contact, setContact] = useState(null)
   const [outreachLog, setOutreachLog] = useState([])
+  const [activityLog, setActivityLog] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [error, setError] = useState('')
   const [composerOpen, setComposerOpen] = useState(false)
+  const [showCloseModal, setShowCloseModal] = useState(false)
+  const [closeReason, setCloseReason] = useState('')
+  const [showSmsTemplates, setShowSmsTemplates] = useState(false)
+  const [smsText, setSmsText] = useState('')
+  const [sendingSms, setSendingSms] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -37,12 +61,17 @@ export default function ContactDetailPage() {
     status: 'new',
     notes: '',
     next_follow_up: '',
+    scheduled_date: '',
+    scheduled_time: '',
+    quoted_amount: '',
+    address: '',
   })
 
   useEffect(() => {
     if (contactId) {
       fetchContact()
       fetchOutreach()
+      fetchActivity()
     }
   }, [contactId])
 
@@ -63,6 +92,10 @@ export default function ContactDetailPage() {
             status: found.status || 'new',
             notes: found.notes || '',
             next_follow_up: found.next_follow_up || '',
+            scheduled_date: found.scheduled_date || '',
+            scheduled_time: found.scheduled_time || '',
+            quoted_amount: found.quoted_amount || '',
+            address: found.address || '',
           })
         } else {
           setError('Contact not found')
@@ -85,6 +118,16 @@ export default function ContactDetailPage() {
     }
   }
 
+  const fetchActivity = async () => {
+    try {
+      const response = await fetch('/api/admin/activity?contact_id=' + contactId)
+      const data = await response.json()
+      if (data.activity) setActivityLog(data.activity)
+    } catch (err) {
+      console.error('Failed to fetch activity:', err)
+    }
+  }
+
   const handleSave = async () => {
     setSaving(true)
     setError('')
@@ -99,12 +142,17 @@ export default function ContactDetailPage() {
           status: formData.status,
           notes: formData.notes,
           next_follow_up: formData.next_follow_up || null,
+          scheduled_date: formData.scheduled_date || null,
+          scheduled_time: formData.scheduled_time || null,
+          quoted_amount: formData.quoted_amount || null,
+          address: formData.address || null,
         }),
       })
 
       if (response.ok) {
         setSuccessMsg('Saved successfully')
         fetchContact()
+        fetchActivity()
         setTimeout(() => setSuccessMsg(''), 3000)
       } else {
         setError('Failed to save')
@@ -117,17 +165,106 @@ export default function ContactDetailPage() {
   }
 
   const handleStatusChange = async (newStatus) => {
+    if (newStatus === 'closed_lost') {
+      setShowCloseModal(true)
+      return
+    }
+
+    const oldStatus = formData.status
     setFormData(prev => ({ ...prev, status: newStatus }))
+
     try {
       await fetch('/api/contact', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: contactId, status: newStatus }),
       })
+
+      // Log activity
+      await fetch('/api/admin/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact_id: contactId,
+          action: 'status_change',
+          old_value: oldStatus,
+          new_value: newStatus,
+        }),
+      })
+
       setSuccessMsg('Status updated')
+      fetchActivity()
       setTimeout(() => setSuccessMsg(''), 2000)
     } catch (err) {
       console.error('Failed to update status:', err)
+    }
+  }
+
+  const handleCloseLost = async () => {
+    const oldStatus = formData.status
+    setFormData(prev => ({ ...prev, status: 'closed_lost' }))
+    setShowCloseModal(false)
+
+    try {
+      await fetch('/api/contact', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: contactId,
+          status: 'closed_lost',
+          close_reason: closeReason,
+        }),
+      })
+
+      await fetch('/api/admin/activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact_id: contactId,
+          action: 'status_change',
+          old_value: oldStatus,
+          new_value: 'closed_lost',
+          note: 'Reason: ' + closeReason,
+        }),
+      })
+
+      setSuccessMsg('Marked as closed/lost')
+      fetchActivity()
+      setTimeout(() => setSuccessMsg(''), 2000)
+    } catch (err) {
+      console.error('Failed:', err)
+    }
+  }
+
+  const handleSendSms = async (text) => {
+    setSendingSms(true)
+    try {
+      const response = await fetch('/api/admin/sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contact_id: contactId,
+          phone: contact.phone,
+          text: text
+            .replace('{name}', contact.name.split(' ')[0])
+            .replace('{service}', contact.service_type)
+            .replace('{date}', formData.scheduled_date ? new Date(formData.scheduled_date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'TBD'),
+        }),
+      })
+
+      if (response.ok) {
+        setSuccessMsg('SMS sent')
+        setShowSmsTemplates(false)
+        setSmsText('')
+        fetchActivity()
+        setTimeout(() => setSuccessMsg(''), 2000)
+      } else {
+        setError('Failed to send SMS')
+      }
+    } catch (err) {
+      setError('Failed to send SMS')
+    } finally {
+      setSendingSms(false)
     }
   }
 
@@ -135,12 +272,11 @@ export default function ContactDetailPage() {
     if (!confirm('Delete this contact permanently?')) return
     setDeleting(true)
     try {
-      const response = await fetch('/api/admin/outreach', {
+      await fetch('/api/admin/outreach', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contact_id: contactId }),
       })
-      // We'll need a delete endpoint — for now just navigate back
       router.push('/admin/contacts')
     } catch (err) {
       setError('Failed to delete')
@@ -149,6 +285,7 @@ export default function ContactDetailPage() {
   }
 
   const handleCall = (phone) => { window.location.href = 'tel:' + phone }
+  const handleText = (phone) => { window.location.href = 'sms:' + phone }
   const handleEmailClient = (email) => { window.location.href = 'mailto:' + email }
 
   const formatPhone = (phone) => {
@@ -178,17 +315,20 @@ export default function ContactDetailPage() {
     if (!contact) return null
     const hoursOld = (Date.now() - new Date(contact.created_at)) / (1000 * 60 * 60)
 
-    if (formData.status === 'new' && outreachLog.length === 0) {
-      return { text: 'Send initial follow-up email', urgency: hoursOld > 24 ? 'high' : 'medium' }
+    if (formData.status === 'new' && hoursOld > 0.5) {
+      return { text: 'Call this lead ASAP — ' + Math.floor(hoursOld) + 'h old', urgency: hoursOld > 24 ? 'high' : 'medium', action: 'call' }
     }
-    if (formData.status === 'new' && outreachLog.length > 0) {
-      return { text: 'Mark as Contacted since email was sent', urgency: 'low' }
+    if (formData.status === 'contacted') {
+      return { text: 'Schedule an estimate for this lead', urgency: hoursOld > 72 ? 'high' : 'medium', action: 'schedule' }
     }
-    if (formData.status === 'contacted' && hoursOld > 72) {
-      return { text: 'Send quote follow-up — 3+ days since first contact', urgency: 'high' }
+    if (formData.status === 'estimate_completed' && !formData.quoted_amount) {
+      return { text: 'Enter the quoted amount', urgency: 'medium', action: 'quote' }
     }
-    if (formData.status === 'quoted') {
-      return { text: 'Follow up on quote — ready to schedule?', urgency: 'medium' }
+    if (formData.status === 'estimate_completed' && formData.quoted_amount) {
+      return { text: 'Follow up — ready to book the job?', urgency: 'medium', action: 'followup' }
+    }
+    if (formData.status === 'completed') {
+      return { text: 'Send a review request to this customer', urgency: 'low', action: 'review' }
     }
     return null
   }
@@ -207,9 +347,7 @@ export default function ContactDetailPage() {
     return (
       <div className="px-4 py-8 text-center">
         <p className="text-gray-500 mb-4">{error}</p>
-        <Link href="/admin/contacts" className="text-[#115997] font-medium text-sm">
-          ← Back to Contacts
-        </Link>
+        <Link href="/admin/contacts" className="text-[#115997] font-medium text-sm">← Back to Contacts</Link>
       </div>
     )
   }
@@ -222,23 +360,21 @@ export default function ContactDetailPage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Contacts
+          Back to Pipeline
         </Link>
 
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold text-[#273373] truncate">{contact?.name}</h1>
-            <p className="text-sm text-gray-500">{contact?.service_type} · Submitted {timeAgo(contact?.created_at)}</p>
+            <p className="text-sm text-gray-500">{contact?.service_type} · {timeAgo(contact?.created_at)}</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-3 sm:px-4 py-2 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373] transition-colors disabled:opacity-50 active:scale-[0.98]"
-            >
-              {saving ? 'Saving...' : 'Save'}
-            </button>
-          </div>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-3 sm:px-4 py-2 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373] transition-colors disabled:opacity-50 active:scale-[0.98] flex-shrink-0"
+          >
+            {saving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
 
@@ -258,41 +394,18 @@ export default function ContactDetailPage() {
       {/* Recommended Action */}
       {recommendedAction && (
         <div className={'mb-4 sm:mb-6 rounded-xl p-3 sm:p-4 flex items-center justify-between ' +
-          (recommendedAction.urgency === 'high'
-            ? 'bg-amber-50 border border-amber-200'
-            : 'bg-blue-50 border border-blue-200')}>
+          (recommendedAction.urgency === 'high' ? 'bg-amber-50 border border-amber-200' : 'bg-blue-50 border border-blue-200')}>
           <div className="flex items-center gap-2 sm:gap-3">
-            {recommendedAction.urgency === 'high' ? (
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse flex-shrink-0" />
-            ) : (
-              <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
+            {recommendedAction.urgency === 'high' && <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse flex-shrink-0" />}
             <p className={'text-sm font-medium ' + (recommendedAction.urgency === 'high' ? 'text-amber-800' : 'text-blue-800')}>
               {recommendedAction.text}
             </p>
           </div>
-          <button
-            onClick={() => setComposerOpen(true)}
-            className="text-xs sm:text-sm font-medium text-[#115997] hover:underline flex-shrink-0 ml-3"
-          >
-            Send Email →
-          </button>
         </div>
       )}
 
       {/* Quick Actions */}
       <div className="flex gap-2 mb-6 sm:mb-8">
-        <button
-          onClick={() => setComposerOpen(true)}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#115997] text-white rounded-xl font-medium text-sm hover:bg-[#273373] transition-colors active:scale-[0.98]"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          Email
-        </button>
         <button
           onClick={() => handleCall(contact.phone)}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl font-medium text-sm hover:bg-green-600 transition-colors active:scale-[0.98]"
@@ -301,6 +414,24 @@ export default function ContactDetailPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
           </svg>
           Call
+        </button>
+        <button
+          onClick={() => setShowSmsTemplates(true)}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#115997] text-white rounded-xl font-medium text-sm hover:bg-[#273373] transition-colors active:scale-[0.98]"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Text
+        </button>
+        <button
+          onClick={() => setComposerOpen(true)}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-purple-500 text-white rounded-xl font-medium text-sm hover:bg-purple-600 transition-colors active:scale-[0.98]"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Email
         </button>
       </div>
 
@@ -328,12 +459,7 @@ export default function ContactDetailPage() {
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Contact Info */}
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm sm:text-base">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Contact Information
-            </h3>
+            <h3 className="font-semibold text-gray-800 mb-4 text-sm sm:text-base">Contact Information</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-xs text-gray-500 mb-0.5">Name</p>
@@ -356,6 +482,19 @@ export default function ContactDetailPage() {
                 </button>
               </div>
             </div>
+
+            {/* Address */}
+            <div className="mt-4">
+              <label className="block text-xs text-gray-500 mb-1.5">Property Address</label>
+              <input
+                type="text"
+                value={formData.address}
+                onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Enter property address..."
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none"
+              />
+            </div>
+
             {contact?.message && (
               <div className="mt-4">
                 <p className="text-xs text-gray-500 mb-1.5">Original Message</p>
@@ -364,14 +503,57 @@ export default function ContactDetailPage() {
             )}
           </div>
 
+          {/* Scheduling & Quote */}
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <h3 className="font-semibold text-gray-800 mb-4 text-sm sm:text-base">Scheduling & Quote</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Scheduled Date</label>
+                <input
+                  type="date"
+                  value={formData.scheduled_date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, scheduled_date: e.target.value }))}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Time</label>
+                <select
+                  value={formData.scheduled_time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, scheduled_time: e.target.value }))}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none bg-white"
+                >
+                  <option value="">Select time...</option>
+                  <option value="8:00 AM - 9:00 AM">8:00 AM - 9:00 AM</option>
+                  <option value="9:00 AM - 10:00 AM">9:00 AM - 10:00 AM</option>
+                  <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                  <option value="11:00 AM - 12:00 PM">11:00 AM - 12:00 PM</option>
+                  <option value="12:00 PM - 1:00 PM">12:00 PM - 1:00 PM</option>
+                  <option value="1:00 PM - 2:00 PM">1:00 PM - 2:00 PM</option>
+                  <option value="2:00 PM - 3:00 PM">2:00 PM - 3:00 PM</option>
+                  <option value="3:00 PM - 4:00 PM">3:00 PM - 4:00 PM</option>
+                  <option value="4:00 PM - 5:00 PM">4:00 PM - 5:00 PM</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Quoted Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">$</span>
+                  <input
+                    type="number"
+                    value={formData.quoted_amount}
+                    onChange={(e) => setFormData(prev => ({ ...prev, quoted_amount: e.target.value }))}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Notes */}
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm sm:text-base">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Internal Notes
-            </h3>
+            <h3 className="font-semibold text-gray-800 mb-4 text-sm sm:text-base">Internal Notes</h3>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
@@ -381,59 +563,74 @@ export default function ContactDetailPage() {
             />
           </div>
 
-          {/* Outreach History */}
+          {/* Activity Timeline */}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-800 flex items-center gap-2 text-sm sm:text-base">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                Outreach History
-                <span className="text-gray-400 font-normal text-sm">({outreachLog.length})</span>
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">
+                Activity Timeline
+                <span className="text-gray-400 font-normal text-sm ml-1">({activityLog.length + outreachLog.length})</span>
               </h3>
-              <button
-                onClick={() => setComposerOpen(true)}
-                className="text-sm text-[#115997] font-medium hover:underline"
-              >
-                + New Email
-              </button>
             </div>
 
-            {outreachLog.length === 0 ? (
+            {(activityLog.length + outreachLog.length) === 0 ? (
               <div className="p-8 text-center">
-                <svg className="w-10 h-10 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                <p className="text-gray-400 text-sm">No emails sent yet</p>
-                <button
-                  onClick={() => setComposerOpen(true)}
-                  className="mt-3 text-sm text-[#115997] font-medium hover:underline"
-                >
-                  Send first email →
-                </button>
+                <p className="text-gray-400 text-sm">No activity yet</p>
               </div>
             ) : (
               <div className="divide-y divide-gray-100">
-                {outreachLog.map((entry) => (
-                  <div key={entry.id} className="p-4 sm:px-6">
-                    <div className="flex items-start justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
+                {/* Merge and sort activity + outreach by date */}
+                {[
+                  ...activityLog.map(a => ({ ...a, type: 'activity' })),
+                  ...outreachLog.map(o => ({ ...o, type: 'outreach' })),
+                ]
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                  .map((entry) => (
+                    <div key={entry.id} className="p-4 sm:px-6">
+                      <div className="flex items-start gap-3">
+                        <div className={'w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 ' +
+                          (entry.type === 'outreach' ? 'bg-purple-100' :
+                           entry.action === 'status_change' ? 'bg-blue-100' :
+                           entry.action === 'sms_sent' ? 'bg-green-100' : 'bg-gray-100')}>
+                          {entry.type === 'outreach' ? (
+                            <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          ) : entry.action === 'sms_sent' ? (
+                            <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                          )}
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">{entry.subject || 'Email sent'}</p>
-                          <p className="text-xs text-gray-500">{timeAgo(entry.created_at)}</p>
+                        <div className="flex-1 min-w-0">
+                          {entry.type === 'outreach' ? (
+                            <>
+                              <p className="text-sm font-medium text-gray-900">Email sent: {entry.subject || 'No subject'}</p>
+                              {entry.body && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{entry.body.substring(0, 150)}...</p>}
+                            </>
+                          ) : entry.action === 'status_change' ? (
+                            <>
+                              <p className="text-sm text-gray-900">
+                                Status changed: <span className="font-medium">{entry.old_value}</span> → <span className="font-medium">{entry.new_value}</span>
+                              </p>
+                              {entry.note && <p className="text-xs text-gray-500 mt-0.5">{entry.note}</p>}
+                            </>
+                          ) : entry.action === 'sms_sent' ? (
+                            <>
+                              <p className="text-sm font-medium text-gray-900">SMS sent</p>
+                              {entry.note && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{entry.note}</p>}
+                            </>
+                          ) : (
+                            <p className="text-sm text-gray-900">{entry.action}{entry.note ? ': ' + entry.note : ''}</p>
+                          )}
+                          <p className="text-xs text-gray-400 mt-1">{timeAgo(entry.created_at)}</p>
                         </div>
                       </div>
                     </div>
-                    {entry.body && (
-                      <p className="text-xs text-gray-500 mt-2 line-clamp-2 ml-9">{entry.body.substring(0, 150)}...</p>
-                    )}
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>
@@ -443,12 +640,7 @@ export default function ContactDetailPage() {
         <div className="space-y-4 sm:space-y-6">
           {/* Follow-up */}
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm sm:text-base">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Follow-up
-            </h3>
+            <h3 className="font-semibold text-gray-800 mb-4 text-sm sm:text-base">Follow-up</h3>
             <div>
               <label className="block text-xs text-gray-500 mb-1.5">Next Follow-up Date</label>
               <input
@@ -472,21 +664,16 @@ export default function ContactDetailPage() {
 
           {/* Stats */}
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm sm:text-base">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Activity
-            </h3>
+            <h3 className="font-semibold text-gray-800 mb-4 text-sm sm:text-base">Activity</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">Emails Sent</span>
                 <span className="text-sm font-semibold text-gray-800">{outreachLog.length}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-500">Last Contact</span>
+                <span className="text-sm text-gray-500">SMS Sent</span>
                 <span className="text-sm font-semibold text-gray-800">
-                  {outreachLog.length > 0 ? timeAgo(outreachLog[0].created_at) : 'Never'}
+                  {activityLog.filter(a => a.action === 'sms_sent').length}
                 </span>
               </div>
               <div className="flex items-center justify-between">
@@ -495,17 +682,18 @@ export default function ContactDetailPage() {
                   {Math.floor((Date.now() - new Date(contact?.created_at)) / (1000 * 60 * 60 * 24))}d
                 </span>
               </div>
+              {formData.quoted_amount && (
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <span className="text-sm text-gray-500">Quote</span>
+                  <span className="text-sm font-bold text-[#273373]">${Number(formData.quoted_amount).toLocaleString()}</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Timestamps */}
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
-            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm sm:text-base">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Timestamps
-            </h3>
+            <h3 className="font-semibold text-gray-800 mb-4 text-sm sm:text-base">Timestamps</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Created</span>
@@ -515,6 +703,12 @@ export default function ContactDetailPage() {
                 <span className="text-gray-500">Updated</span>
                 <span className="text-gray-800">{contact?.updated_at ? formatDate(contact.updated_at) : '—'}</span>
               </div>
+              {contact?.source && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Source</span>
+                  <span className="text-gray-800 capitalize">{contact.source}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -534,6 +728,100 @@ export default function ContactDetailPage() {
         </div>
       </div>
 
+      {/* Close/Lost Modal */}
+      {showCloseModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Close/Lost Reason</h3>
+            <div className="space-y-2 mb-6">
+              {CLOSE_REASONS.map((reason) => (
+                <button
+                  key={reason}
+                  onClick={() => setCloseReason(reason)}
+                  className={'w-full text-left px-4 py-3 rounded-lg border text-sm transition-all ' +
+                    (closeReason === reason
+                      ? 'border-red-300 bg-red-50 text-red-700 font-medium'
+                      : 'border-gray-200 text-gray-700 hover:bg-gray-50')}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setShowCloseModal(false); setCloseReason('') }}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCloseLost}
+                disabled={!closeReason}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-50"
+              >
+                Mark as Lost
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SMS Templates Modal */}
+      {showSmsTemplates && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-gray-900">Send SMS</h3>
+              <button onClick={() => { setShowSmsTemplates(false); setSmsText('') }} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Quick templates */}
+            <p className="text-xs text-gray-500 mb-2">Quick templates</p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {SMS_TEMPLATES.map((t) => (
+                <button
+                  key={t.label}
+                  onClick={() => setSmsText(t.text)}
+                  className="px-3 py-1.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Custom message */}
+            <textarea
+              value={smsText}
+              onChange={(e) => setSmsText(e.target.value)}
+              rows={4}
+              placeholder="Type your message..."
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none resize-none mb-1"
+            />
+            <p className="text-xs text-gray-400 mb-4">{smsText.length}/160 characters · To: {formatPhone(contact?.phone)}</p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleText(contact.phone)}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Open Messages
+              </button>
+              <button
+                onClick={() => handleSendSms(smsText)}
+                disabled={!smsText || sendingSms}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-[#115997] rounded-lg hover:bg-[#273373] disabled:opacity-50"
+              >
+                {sendingSms ? 'Sending...' : 'Send via Telnyx'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Email Composer Modal */}
       <EmailComposer
         isOpen={composerOpen}
@@ -542,6 +830,7 @@ export default function ContactDetailPage() {
         onSent={() => {
           fetchOutreach()
           fetchContact()
+          fetchActivity()
         }}
       />
     </div>

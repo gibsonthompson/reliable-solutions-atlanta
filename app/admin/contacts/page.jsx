@@ -4,13 +4,15 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 const statuses = [
-  { value: 'all', label: 'All', color: 'text-gray-600' },
-  { value: 'new', label: 'New', color: 'text-blue-600', bg: 'bg-blue-100 text-blue-700' },
-  { value: 'contacted', label: 'Contacted', color: 'text-yellow-600', bg: 'bg-yellow-100 text-yellow-700' },
-  { value: 'quoted', label: 'Quoted', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-700' },
-  { value: 'scheduled', label: 'Scheduled', color: 'text-indigo-600', bg: 'bg-indigo-100 text-indigo-700' },
-  { value: 'completed', label: 'Completed', color: 'text-green-600', bg: 'bg-green-100 text-green-700' },
-  { value: 'cancelled', label: 'Cancelled', color: 'text-red-600', bg: 'bg-red-100 text-red-700' },
+  { value: 'all', label: 'All' },
+  { value: 'new', label: 'New', bg: 'bg-blue-100 text-blue-700' },
+  { value: 'contacted', label: 'Contacted', bg: 'bg-yellow-100 text-yellow-700' },
+  { value: 'estimate_scheduled', label: 'Est. Scheduled', bg: 'bg-indigo-100 text-indigo-700' },
+  { value: 'estimate_completed', label: 'Est. Completed', bg: 'bg-purple-100 text-purple-700' },
+  { value: 'job_booked', label: 'Job Booked', bg: 'bg-emerald-100 text-emerald-700' },
+  { value: 'in_progress', label: 'In Progress', bg: 'bg-orange-100 text-orange-700' },
+  { value: 'completed', label: 'Completed', bg: 'bg-green-100 text-green-700' },
+  { value: 'closed_lost', label: 'Closed/Lost', bg: 'bg-red-100 text-red-700' },
 ]
 
 export default function ContactsPage() {
@@ -53,6 +55,12 @@ export default function ContactsPage() {
     .sort((a, b) => {
       if (sortBy === 'newest') return new Date(b.created_at) - new Date(a.created_at)
       if (sortBy === 'oldest') return new Date(a.created_at) - new Date(b.created_at)
+      if (sortBy === 'scheduled') {
+        if (!a.scheduled_date && !b.scheduled_date) return 0
+        if (!a.scheduled_date) return 1
+        if (!b.scheduled_date) return -1
+        return new Date(a.scheduled_date) - new Date(b.scheduled_date)
+      }
       return 0
     })
 
@@ -75,6 +83,11 @@ export default function ContactsPage() {
     return found?.bg || 'bg-gray-100 text-gray-700'
   }
 
+  const getStatusLabel = (status) => {
+    const found = statuses.find(s => s.value === status)
+    return found?.label || status
+  }
+
   const getStatusCount = (status) => {
     if (status === 'all') return submissions.length
     return submissions.filter(s => s.status === status).length
@@ -87,6 +100,24 @@ export default function ContactsPage() {
     if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago'
     return formatDate(dateString)
   }
+
+  // Color code by lead age: green < 1hr, yellow < 24hr, red > 24hr (only for new/contacted)
+  const getUrgencyColor = (contact) => {
+    if (!['new', 'contacted'].includes(contact.status)) return ''
+    const hours = (Date.now() - new Date(contact.created_at)) / (1000 * 60 * 60)
+    if (hours < 1) return 'border-l-4 border-l-green-400'
+    if (hours < 24) return 'border-l-4 border-l-yellow-400'
+    return 'border-l-4 border-l-red-400'
+  }
+
+  // Pipeline value
+  const pipelineValue = submissions
+    .filter(s => ['job_booked', 'in_progress'].includes(s.status) && s.quoted_amount)
+    .reduce((sum, s) => sum + Number(s.quoted_amount), 0)
+
+  const completedValue = submissions
+    .filter(s => s.status === 'completed' && s.quoted_amount)
+    .reduce((sum, s) => sum + Number(s.quoted_amount), 0)
 
   if (loading) {
     return (
@@ -101,8 +132,30 @@ export default function ContactsPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Contacts</h2>
+          <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Lead Pipeline</h2>
           <p className="text-gray-500 text-xs sm:text-sm">{submissions.length} total leads</p>
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="bg-white rounded-xl p-3 shadow-sm">
+          <p className="text-xs text-gray-500">New Leads</p>
+          <p className="text-xl font-bold text-blue-600">{getStatusCount('new')}</p>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm">
+          <p className="text-xs text-gray-500">Upcoming Estimates</p>
+          <p className="text-xl font-bold text-indigo-600">{getStatusCount('estimate_scheduled')}</p>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm">
+          <p className="text-xs text-gray-500">Jobs Booked</p>
+          <p className="text-xl font-bold text-emerald-600">{getStatusCount('job_booked') + getStatusCount('in_progress')}</p>
+        </div>
+        <div className="bg-white rounded-xl p-3 shadow-sm">
+          <p className="text-xs text-gray-500">Pipeline Value</p>
+          <p className="text-xl font-bold text-[#273373]">
+            {pipelineValue > 0 ? '$' + pipelineValue.toLocaleString() : '—'}
+          </p>
         </div>
       </div>
 
@@ -156,6 +209,7 @@ export default function ContactsPage() {
         >
           <option value="newest">Newest first</option>
           <option value="oldest">Oldest first</option>
+          <option value="scheduled">By scheduled date</option>
         </select>
       </div>
 
@@ -180,27 +234,35 @@ export default function ContactsPage() {
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Service</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Outreach</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Scheduled</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Submitted</th>
                     <th className="px-6 py-3"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {filtered.map((contact) => (
-                    <tr key={contact.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={contact.id} className={'hover:bg-gray-50 transition-colors ' + getUrgencyColor(contact)}>
                       <td className="px-6 py-4">
                         <p className="font-medium text-gray-900">{contact.name}</p>
-                        <p className="text-sm text-gray-500">{contact.email}</p>
                         <p className="text-sm text-gray-500">{formatPhone(contact.phone)}</p>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-700">{contact.service_type}</td>
                       <td className="px-6 py-4">
                         <span className={'inline-flex px-2.5 py-1 rounded-full text-xs font-medium ' + getStatusBadge(contact.status)}>
-                          {contact.status}
+                          {getStatusLabel(contact.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {contact.outreach_count || 0} sent
+                        {contact.scheduled_date ? (
+                          <span>
+                            {formatDate(contact.scheduled_date)}
+                            {contact.scheduled_time && <span className="text-gray-400"> · {contact.scheduled_time}</span>}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {contact.quoted_amount ? '$' + Number(contact.quoted_amount).toLocaleString() : '—'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
                         {timeAgo(contact.created_at)}
@@ -225,7 +287,7 @@ export default function ContactsPage() {
                 <Link
                   key={contact.id}
                   href={'/admin/contacts/' + contact.id}
-                  className="block p-4 active:bg-gray-50 transition-colors"
+                  className={'block p-4 active:bg-gray-50 transition-colors ' + getUrgencyColor(contact)}
                 >
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="min-w-0 flex-1">
@@ -234,7 +296,7 @@ export default function ContactsPage() {
                     </div>
                     <div className="flex flex-col items-end ml-3">
                       <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + getStatusBadge(contact.status)}>
-                        {contact.status}
+                        {getStatusLabel(contact.status)}
                       </span>
                       <p className="text-[10px] text-gray-400 mt-1">{timeAgo(contact.created_at)}</p>
                     </div>
@@ -246,13 +308,16 @@ export default function ContactsPage() {
                       </svg>
                       {formatPhone(contact.phone)}
                     </span>
-                    {contact.outreach_count > 0 && (
+                    {contact.scheduled_date && (
                       <span className="flex items-center gap-1">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        {contact.outreach_count}x
+                        {formatDate(contact.scheduled_date)}
                       </span>
+                    )}
+                    {contact.quoted_amount && (
+                      <span className="font-medium text-gray-700">${Number(contact.quoted_amount).toLocaleString()}</span>
                     )}
                   </div>
                 </Link>

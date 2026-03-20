@@ -7,11 +7,11 @@ const supabase = createClient(
 )
 
 const TELNYX_MSG_PROFILE = '40019bc3-6345-42ca-84bd-a9a2ed3bd66f'
-const TELNYX_FROM = '+15058332344'
+const TELNYX_FROM = process.env.RSA_TELNYX_FROM
 
 async function sendSms(to, text) {
-  if (!process.env.TELNYX_API_KEY) {
-    console.error('SMS skipped: no TELNYX_API_KEY')
+  if (!process.env.TELNYX_API_KEY || !TELNYX_FROM) {
+    console.error('SMS skipped: missing TELNYX_API_KEY or RSA_TELNYX_FROM')
     return
   }
 
@@ -175,7 +175,7 @@ export async function GET(request) {
 export async function PATCH(request) {
   try {
     const body = await request.json()
-    const { id, status, notes, next_follow_up } = body
+    const { id, status, notes, next_follow_up, scheduled_date, scheduled_time, quoted_amount, address, close_reason } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 })
@@ -185,6 +185,11 @@ export async function PATCH(request) {
     if (status) updateData.status = status
     if (notes !== undefined) updateData.notes = notes
     if (next_follow_up !== undefined) updateData.next_follow_up = next_follow_up
+    if (scheduled_date !== undefined) updateData.scheduled_date = scheduled_date
+    if (scheduled_time !== undefined) updateData.scheduled_time = scheduled_time
+    if (quoted_amount !== undefined) updateData.quoted_amount = quoted_amount
+    if (address !== undefined) updateData.address = address
+    if (close_reason !== undefined) updateData.close_reason = close_reason
 
     const { data, error } = await supabase
       .from('contact_submissions')
