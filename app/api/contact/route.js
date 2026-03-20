@@ -7,13 +7,16 @@ const supabase = createClient(
 )
 
 const TELNYX_MSG_PROFILE = '40019bc3-6345-42ca-84bd-a9a2ed3bd66f'
-const TELNYX_FROM = '+14046719089'
+const TELNYX_FROM = '+15058332344'
 
 async function sendSms(to, text) {
-  if (!process.env.TELNYX_API_KEY) return
+  if (!process.env.TELNYX_API_KEY) {
+    console.error('SMS skipped: no TELNYX_API_KEY')
+    return
+  }
 
   try {
-    await fetch('https://api.telnyx.com/v2/messages', {
+    const res = await fetch('https://api.telnyx.com/v2/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,6 +29,8 @@ async function sendSms(to, text) {
         messaging_profile_id: TELNYX_MSG_PROFILE,
       }),
     })
+    const data = await res.json()
+    console.log('Telnyx response:', JSON.stringify(data))
   } catch (err) {
     console.error('SMS failed:', err)
   }
