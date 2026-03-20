@@ -47,7 +47,6 @@ export default function AdminLayout({ children }) {
     )
   }
 
-  // PIN Entry
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -103,10 +102,10 @@ export default function AdminLayout({ children }) {
 
   return (
     <AuthContext.Provider value={{ isAuthenticated }}>
-      <div className="min-h-screen bg-gray-50 pb-20 sm:pb-6">
+      <div className="min-h-screen bg-gray-50 pb-20 sm:pb-6" style={{ zoom: 0.9 }}>
         {/* Desktop Header */}
         <header className="bg-white shadow-sm sticky top-0 z-40 hidden sm:block">
-          <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
+          <div className="max-w-[1600px] mx-auto px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
                 <div>
@@ -162,7 +161,7 @@ export default function AdminLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="max-w-7xl mx-auto">
+        <main className="max-w-[1600px] mx-auto">
           {children}
         </main>
 

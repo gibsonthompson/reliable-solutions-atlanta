@@ -6,7 +6,7 @@ import Link from 'next/link'
 const COLUMNS = [
   { key: 'new', label: 'New', color: 'border-blue-400', bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700' },
   { key: 'contacted', label: 'Contacted', color: 'border-yellow-400', bg: 'bg-yellow-50', badge: 'bg-yellow-100 text-yellow-700' },
-  { key: 'estimate_scheduled', label: 'Est. Scheduled', color: 'border-indigo-400', bg: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700' },
+  { key: 'estimate_scheduled', label: 'Est. Sched.', color: 'border-indigo-400', bg: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700' },
   { key: 'estimate_completed', label: 'Est. Done', color: 'border-purple-400', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-700' },
   { key: 'job_booked', label: 'Booked', color: 'border-emerald-400', bg: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700' },
   { key: 'in_progress', label: 'In Progress', color: 'border-orange-400', bg: 'bg-orange-50', badge: 'bg-orange-100 text-orange-700' },
@@ -57,8 +57,8 @@ export default function PipelinePage() {
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
 
   return (
-    <div className="px-4 py-4 sm:py-8">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+    <div className="px-4 py-4 sm:py-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Pipeline Board</h2>
           <p className="text-gray-500 text-xs sm:text-sm">{submissions.length} leads · Drag cards to update status</p>
@@ -73,32 +73,33 @@ export default function PipelinePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+      {/* Single row — 8 equal columns on desktop */}
+      <div className="hidden sm:grid grid-cols-8 gap-2">
         {COLUMNS.map((col) => {
           const cards = submissions.filter(s => s.status === col.key)
           return (
-            <div key={col.key} className={'flex flex-col rounded-xl transition-colors ' + (dragOverCol === col.key ? 'bg-[#115997]/5 ring-2 ring-[#115997]/20' : 'bg-gray-100/80')}
+            <div key={col.key} className={'flex flex-col rounded-xl transition-colors min-w-0 ' + (dragOverCol === col.key ? 'bg-[#115997]/5 ring-2 ring-[#115997]/20' : 'bg-gray-100/80')}
               onDragOver={(e) => handleDragOver(e, col.key)} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, col.key)}>
-              <div className={'px-3 py-2 border-t-2 rounded-t-xl flex items-center gap-2 ' + col.color}>
-                <h3 className="text-xs font-semibold text-gray-800">{col.label}</h3>
-                <span className={'text-[10px] font-bold px-1.5 py-0.5 rounded-full ' + col.badge}>{cards.length}</span>
+              <div className={'px-2 py-2 border-t-2 rounded-t-xl flex items-center gap-1 ' + col.color}>
+                <h3 className="text-[11px] font-semibold text-gray-800 truncate">{col.label}</h3>
+                <span className={'text-[9px] font-bold px-1 py-0.5 rounded-full flex-shrink-0 ' + col.badge}>{cards.length}</span>
               </div>
-              <div className="p-2 space-y-2 min-h-[60px] max-h-[300px] overflow-y-auto scrollbar-hide">
-                {cards.length === 0 && <div className="flex items-center justify-center h-12 text-gray-300 text-xs">Empty</div>}
+              <div className="p-1.5 space-y-1.5 min-h-[80px] max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide">
+                {cards.length === 0 && <div className="flex items-center justify-center h-16 text-gray-300 text-[10px]">Empty</div>}
                 {cards.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((contact) => {
                   const dot = getUrgencyDot(contact)
                   return (
-                    <div key={contact.id} draggable onDragStart={(e) => handleDragStart(e, contact.id)} onDragEnd={handleDragEnd} onClick={() => setMoveModal(contact)}
-                      className={'bg-white rounded-lg p-2.5 shadow-sm border border-gray-100 cursor-grab active:cursor-grabbing transition-all hover:shadow-md ' + (draggingId === contact.id ? 'opacity-40 scale-95' : '')}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-1.5 min-w-0">
+                    <div key={contact.id} draggable onDragStart={(e) => handleDragStart(e, contact.id)} onDragEnd={handleDragEnd}
+                      className={'bg-white rounded-lg p-2 shadow-sm border border-gray-100 cursor-grab active:cursor-grabbing transition-all hover:shadow-md ' + (draggingId === contact.id ? 'opacity-40 scale-95' : '')}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <div className="flex items-center gap-1 min-w-0">
                           {dot && <div className={'w-1.5 h-1.5 rounded-full flex-shrink-0 ' + dot} />}
-                          <Link href={'/admin/contacts/' + contact.id} className="font-semibold text-xs text-gray-900 truncate hover:text-[#115997]" onClick={(e) => e.stopPropagation()}>{contact.name}</Link>
+                          <Link href={'/admin/contacts/' + contact.id} className="font-semibold text-[11px] text-gray-900 truncate hover:text-[#115997]" onClick={(e) => e.stopPropagation()}>{contact.name}</Link>
                         </div>
-                        <span className="text-[9px] text-gray-400 flex-shrink-0 ml-1">{timeAgo(contact.created_at)}</span>
+                        <span className="text-[8px] text-gray-400 flex-shrink-0 ml-1">{timeAgo(contact.created_at)}</span>
                       </div>
-                      <p className="text-[11px] text-gray-500 truncate">{contact.service_type}</p>
-                      <a href={'tel:' + contact.phone} className="text-[10px] text-[#115997] font-medium hover:underline" onClick={(e) => e.stopPropagation()}>{formatPhone(contact.phone)}</a>
+                      <p className="text-[10px] text-gray-500 truncate">{contact.service_type}</p>
+                      <a href={'tel:' + contact.phone} className="text-[9px] text-[#115997] font-medium hover:underline" onClick={(e) => e.stopPropagation()}>{formatPhone(contact.phone)}</a>
                     </div>
                   )
                 })}
@@ -108,6 +109,41 @@ export default function PipelinePage() {
         })}
       </div>
 
+      {/* Mobile: stacked columns */}
+      <div className="sm:hidden space-y-3">
+        {COLUMNS.map((col) => {
+          const cards = submissions.filter(s => s.status === col.key)
+          if (cards.length === 0) return null
+          return (
+            <div key={col.key} className="bg-gray-100/80 rounded-xl">
+              <div className={'px-3 py-2 border-t-2 rounded-t-xl flex items-center gap-2 ' + col.color}>
+                <h3 className="text-xs font-semibold text-gray-800">{col.label}</h3>
+                <span className={'text-[10px] font-bold px-1.5 py-0.5 rounded-full ' + col.badge}>{cards.length}</span>
+              </div>
+              <div className="p-2 space-y-2">
+                {cards.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((contact) => {
+                  const dot = getUrgencyDot(contact)
+                  return (
+                    <div key={contact.id} onClick={() => setMoveModal(contact)} className="bg-white rounded-lg p-3 shadow-sm border border-gray-100 active:bg-gray-50">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {dot && <div className={'w-1.5 h-1.5 rounded-full flex-shrink-0 ' + dot} />}
+                          <span className="font-semibold text-sm text-gray-900 truncate">{contact.name}</span>
+                        </div>
+                        <span className="text-[10px] text-gray-400 flex-shrink-0 ml-1">{timeAgo(contact.created_at)}</span>
+                      </div>
+                      <p className="text-xs text-gray-500">{contact.service_type}</p>
+                      <a href={'tel:' + contact.phone} className="text-xs text-[#115997] font-medium" onClick={(e) => e.stopPropagation()}>{formatPhone(contact.phone)}</a>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Mobile Move Modal */}
       {moveModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center" onClick={() => setMoveModal(null)}>
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>

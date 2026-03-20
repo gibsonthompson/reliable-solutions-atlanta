@@ -46,15 +46,18 @@ export default function AdminDashboard() {
           thisWeek: all.filter(s => new Date(s.created_at) >= new Date(now.getTime() - 7 * 864e5)).length,
         })
 
+        // Only show follow-ups for leads that have a next_follow_up date set and it's due
         setFollowUps(all.filter(s => {
           if (['closed_lost', 'completed'].includes(s.status)) return false
-          const age = (now - new Date(s.created_at)) / 36e5
-          if (s.status === 'new' && age > 1) return true
-          if (s.status === 'contacted' && age > 72) return true
-          if (s.status === 'estimate_completed' && age > 48) return true
-          if (s.next_follow_up) { const f = new Date(s.next_follow_up); f.setHours(0,0,0,0); const t = new Date(); t.setHours(0,0,0,0); if (f <= t) return true }
+          if (s.next_follow_up) {
+            const f = new Date(s.next_follow_up)
+            f.setHours(0, 0, 0, 0)
+            const t = new Date()
+            t.setHours(0, 0, 0, 0)
+            if (f <= t) return true
+          }
           return false
-        }).sort((a, b) => new Date(a.created_at) - new Date(b.created_at)))
+        }).sort((a, b) => new Date(a.next_follow_up) - new Date(b.next_follow_up)))
       }
     } catch (error) { console.error('Failed to fetch:', error) }
     finally { setLoading(false) }
@@ -63,19 +66,11 @@ export default function AdminDashboard() {
   const formatDateShort = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   const formatPhone = (phone) => { if (!phone) return ''; const c = phone.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return phone }
 
-  const getFollowUpReason = (s) => {
-    if (s.next_follow_up) { const f = new Date(s.next_follow_up); const t = new Date(); f.setHours(0,0,0,0); t.setHours(0,0,0,0); if (f <= t) return 'Scheduled follow-up due' }
-    const h = Math.floor((Date.now() - new Date(s.created_at)) / 36e5)
-    if (s.status === 'new') return 'New lead — ' + h + 'h without contact'
-    if (s.status === 'contacted') return 'Contacted ' + Math.floor(h / 24) + 'd ago — needs follow-up'
-    if (s.status === 'estimate_completed') return 'Estimate done — follow up to book'
-    return 'Follow-up recommended'
-  }
-
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
 
   return (
     <div className="px-4 py-4 sm:py-8">
+      {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
@@ -91,7 +86,7 @@ export default function AdminDashboard() {
             <p className="text-2xl sm:text-3xl font-bold text-[#115997] mt-1">{stats.thisWeek}</p>
           </div>
           <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
-            <p className="text-gray-500 text-xs sm:text-sm">Needs Action</p>
+            <p className="text-gray-500 text-xs sm:text-sm">Follow-ups Due</p>
             <p className="text-2xl sm:text-3xl font-bold text-amber-600 mt-1">{followUps.length}</p>
           </div>
         </div>
@@ -130,35 +125,8 @@ export default function AdminDashboard() {
         )
       })()}
 
-      {/* Needs Attention */}
-      {followUps.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm mb-6 sm:mb-8 overflow-hidden">
-          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center gap-2">
-            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-            <h2 className="text-base sm:text-lg font-semibold text-gray-800">Needs Attention</h2>
-            <span className="text-gray-400 text-sm">({followUps.length})</span>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {followUps.slice(0, 5).map((item) => (
-              <Link key={item.id} href={'/admin/contacts/' + item.id} className="flex items-center justify-between p-4 sm:px-6 hover:bg-gray-50 transition-colors">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-gray-900 text-sm truncate">{item.name}</p>
-                    <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + (STATUS_COLORS[item.status] || 'bg-gray-100 text-gray-700')}>{STATUS_LABELS[item.status] || item.status}</span>
-                  </div>
-                  <p className="text-xs text-amber-600">{getFollowUpReason(item)}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{item.service_type} · {formatPhone(item.phone)}</p>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </Link>
-            ))}
-          </div>
-          {followUps.length > 5 && <Link href="/admin/contacts" className="block text-center text-sm text-[#115997] font-medium py-3 border-t border-gray-100 hover:bg-gray-50">View all {followUps.length} leads →</Link>}
-        </div>
-      )}
-
-      {/* Recent Submissions */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+      {/* Recent Submissions — FIRST */}
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-6 sm:mb-8">
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-base sm:text-lg font-semibold text-gray-800">Recent Submissions</h2>
           <Link href="/admin/contacts" className="text-sm text-[#115997] font-medium hover:underline">View all →</Link>
@@ -183,9 +151,36 @@ export default function AdminDashboard() {
         )}
       </div>
 
+      {/* Needs Attention — AFTER recent submissions, only shows if follow-ups are due */}
+      {followUps.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm mb-6 sm:mb-8 overflow-hidden">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center gap-2">
+            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800">Follow-ups Due</h2>
+            <span className="text-gray-400 text-sm">({followUps.length})</span>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {followUps.slice(0, 5).map((item) => (
+              <Link key={item.id} href={'/admin/contacts/' + item.id} className="flex items-center justify-between p-4 sm:px-6 hover:bg-gray-50 transition-colors">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-semibold text-gray-900 text-sm truncate">{item.name}</p>
+                    <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + (STATUS_COLORS[item.status] || 'bg-gray-100 text-gray-700')}>{STATUS_LABELS[item.status] || item.status}</span>
+                  </div>
+                  <p className="text-xs text-amber-600">Follow-up scheduled for {new Date(item.next_follow_up).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{item.service_type} · {formatPhone(item.phone)}</p>
+                </div>
+                <svg className="w-4 h-4 text-gray-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </Link>
+            ))}
+          </div>
+          {followUps.length > 5 && <Link href="/admin/contacts" className="block text-center text-sm text-[#115997] font-medium py-3 border-t border-gray-100 hover:bg-gray-50">View all {followUps.length} →</Link>}
+        </div>
+      )}
+
       {/* Pipeline Overview */}
       {stats && stats.total > 0 && (
-        <div className="mt-6 sm:mt-8 bg-white rounded-xl shadow-sm p-4 sm:p-6">
+        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Pipeline</h2>
           <div className="space-y-3">
             {PIPELINE_BARS.map((stage) => (
