@@ -2,6 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 
 const ADMIN_PIN = '2026'
@@ -52,12 +53,7 @@ export default function AdminLayout({ children }) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 max-w-sm w-full">
           <div className="text-center mb-6 sm:mb-8">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-[#273373] rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-[#273373]">RSA Admin</h1>
+            <Image src="/images/logo.png" alt="Reliable Solutions Atlanta" width={200} height={62} className="h-12 w-auto mx-auto mb-4" />
             <p className="text-gray-500 mt-1 text-sm">Enter PIN to continue</p>
           </div>
           <form onSubmit={handlePinSubmit}>
@@ -108,10 +104,9 @@ export default function AdminLayout({ children }) {
           <div className="max-w-[1600px] mx-auto px-4 py-3 sm:py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-[#273373]">RSA Admin</h1>
-                  <p className="text-gray-500 text-xs sm:text-sm">Reliable Solutions Atlanta</p>
-                </div>
+                <Link href="/admin" className="flex-shrink-0">
+                  <Image src="/images/logo.png" alt="Reliable Solutions Atlanta" width={160} height={50} className="h-10 w-auto" />
+                </Link>
                 <nav className="flex items-center gap-1">
                   {navItems.map((item) => (
                     <Link
@@ -151,7 +146,9 @@ export default function AdminLayout({ children }) {
         {/* Mobile Header */}
         <header className="bg-white shadow-sm sticky top-0 z-40 sm:hidden">
           <div className="px-4 py-3 flex items-center justify-between">
-            <h1 className="text-lg font-bold text-[#273373]">RSA Admin</h1>
+            <Link href="/admin">
+              <Image src="/images/logo.png" alt="Reliable Solutions Atlanta" width={120} height={38} className="h-8 w-auto" />
+            </Link>
             <button onClick={handleLogout} className="text-gray-400 p-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
