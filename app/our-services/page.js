@@ -14,25 +14,25 @@ export default function OurServicesPage() {
       name: 'Basement Waterproofing',
       href: '/basement-waterproofing',
       description: 'Interior and exterior waterproofing solutions to keep your basement dry and protected from water damage.',
-      image: '/images/foundation-waterproofing-membrane.png'
+      image: '/images/portfolio/basement-waterproofing-interior.png'
     },
     {
       name: 'Crawl Space Encapsulation',
       href: '/crawl-space-encapsulation',
       description: '100% sealing of your crawl space with vapor barriers, dehumidifiers, and moisture control systems.',
-      image: '/images/drainage-installation-atlanta-home.png'
+      image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png'
     },
     {
       name: 'Crawl Space Repair',
       href: '/crawl-space-repair',
       description: 'Structural repairs, vent covers, vapor barriers, and drainage solutions for damaged crawl spaces.',
-      image: '/images/foundation-excavation-work.png'
+      image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png'
     },
     {
       name: 'Crawl Space Waterproofing',
       href: '/crawl-space-waterproofing',
       description: 'Vapor barrier installation and waterproofing to prevent moisture, mold, and structural damage.',
-      image: '/images/waterproofing-crew-hard-hats.png'
+      image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png'
     },
     {
       name: 'Concrete Repair',
@@ -44,7 +44,7 @@ export default function OurServicesPage() {
       name: 'Drainage',
       href: '/drainage',
       description: 'Interior and exterior drainage systems, French drains, and sump pumps to manage water around your home.',
-      image: '/images/drainage-installation-atlanta-home.png'
+      image: '/images/portfolio/drainage-crew-excavator.png'
     },
     {
       name: 'Foundation Repair',

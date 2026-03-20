@@ -68,13 +68,13 @@ export default function HomePageClient() {
       title: 'Basement Waterproofing',
       description: 'A common challenge that homeowners face is water in their basements. Not only is a wet basement a pain to clean up, but it can also ruin other parts of the room.',
       href: '/basement-waterproofing',
-      image: '/images/foundation-repair-atlanta.png'
+      image: '/images/portfolio/basement-waterproofing-interior.png'
     },
     {
       title: 'Crawl Space Encapsulation',
       description: "If your crawlspace is musty, smelly, or wet, you've got a leak somewhere. Often times, you will smell a leak long before you see it.",
       href: '/crawl-space-encapsulation',
-      image: '/images/french-drain-installation-crew.png'
+      image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png'
     },
     {
       title: 'Foundation Repair',
@@ -86,7 +86,7 @@ export default function HomePageClient() {
       title: 'Drainage',
       description: 'Poor drainage can destroy your home! It is very important that water can flow away from your structure to prevent basement flooding and foundation damage.',
       href: '/drainage',
-      image: '/images/foundation-excavation-team.png'
+      image: '/images/portfolio/drainage-crew-excavator.png'
     }
   ]
 

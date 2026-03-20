@@ -22,7 +22,7 @@ export default function BasementWaterproofingPage() {
       <section className="relative h-[400px] md:h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/portfolio/exterior-waterproofing-membrane.png"
+            src="/images/portfolio/basement-waterproofing-interior.png"
             alt="Basement waterproofing installation"
             fill
             className="object-cover"
