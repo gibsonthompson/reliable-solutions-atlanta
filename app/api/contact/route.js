@@ -7,10 +7,10 @@ const supabase = createClient(
 )
 
 const TELNYX_MSG_PROFILE = '40019bc3-6345-42ca-84bd-a9a2ed3bd66f'
-const TELNYX_FROM = '+15058332344'
+const TELNYX_FROM = '+14046719089'
 
-async function sendSmsNotification(text) {
-  if (!process.env.TELNYX_API_KEY || !process.env.RSA_NOTIFICATION_PHONE) return
+async function sendSms(to, text) {
+  if (!process.env.TELNYX_API_KEY) return
 
   try {
     await fetch('https://api.telnyx.com/v2/messages', {
@@ -21,14 +21,21 @@ async function sendSmsNotification(text) {
       },
       body: JSON.stringify({
         from: TELNYX_FROM,
-        to: process.env.RSA_NOTIFICATION_PHONE,
+        to,
         text,
         messaging_profile_id: TELNYX_MSG_PROFILE,
       }),
     })
   } catch (err) {
-    console.error('SMS notification failed:', err)
+    console.error('SMS failed:', err)
   }
+}
+
+function formatPhoneForSms(phone) {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10) return '+1' + digits
+  if (digits.length === 11 && digits.startsWith('1')) return '+' + digits
+  return null
 }
 
 // ── Spam Detection (name + email + message patterns) ─────────────────
@@ -108,7 +115,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 })
     }
 
-    // Send SMS notification
+    // Send internal SMS notification
     const smsBody = [
       'New Lead - RSA',
       name,
@@ -117,7 +124,15 @@ export async function POST(request) {
       message ? message : null,
     ].filter(Boolean).join('\n')
 
-    await sendSmsNotification(smsBody)
+    await sendSms(process.env.RSA_NOTIFICATION_PHONE, smsBody)
+
+    // Send confirmation SMS to lead
+    const leadPhone = formatPhoneForSms(phone)
+    if (leadPhone) {
+      const firstName = name.split(' ')[0]
+      const confirmationMsg = `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! We received your request for ${service_type}. Our team will be calling you shortly to schedule your free inspection. If you need us sooner, call or text 770-895-2039. - RSA Team`
+      await sendSms(leadPhone, confirmationMsg)
+    }
 
     return NextResponse.json({ success: true, data })
   } catch (error) {
