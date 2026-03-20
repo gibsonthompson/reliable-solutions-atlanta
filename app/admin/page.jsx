@@ -3,6 +3,38 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+const STATUS_LABELS = {
+  new: 'New',
+  contacted: 'Contacted',
+  estimate_scheduled: 'Est. Scheduled',
+  estimate_completed: 'Est. Completed',
+  job_booked: 'Job Booked',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  closed_lost: 'Closed/Lost',
+}
+
+const STATUS_COLORS = {
+  new: 'bg-blue-100 text-blue-700',
+  contacted: 'bg-yellow-100 text-yellow-700',
+  estimate_scheduled: 'bg-indigo-100 text-indigo-700',
+  estimate_completed: 'bg-purple-100 text-purple-700',
+  job_booked: 'bg-emerald-100 text-emerald-700',
+  in_progress: 'bg-orange-100 text-orange-700',
+  completed: 'bg-green-100 text-green-700',
+  closed_lost: 'bg-red-100 text-red-700',
+}
+
+const PIPELINE_BARS = [
+  { key: 'new', label: 'New', color: 'bg-blue-500' },
+  { key: 'contacted', label: 'Contacted', color: 'bg-yellow-500' },
+  { key: 'estimate_scheduled', label: 'Est. Scheduled', color: 'bg-indigo-500' },
+  { key: 'estimate_completed', label: 'Est. Completed', color: 'bg-purple-500' },
+  { key: 'job_booked', label: 'Job Booked', color: 'bg-emerald-500' },
+  { key: 'in_progress', label: 'In Progress', color: 'bg-orange-500' },
+  { key: 'completed', label: 'Completed', color: 'bg-green-500' },
+]
+
 export default function AdminDashboard() {
   const [submissions, setSubmissions] = useState([])
   const [stats, setStats] = useState(null)
@@ -22,25 +54,38 @@ export default function AdminDashboard() {
         setSubmissions(all)
 
         const now = new Date()
+        const counts = {}
+        for (const key of Object.keys(STATUS_LABELS)) {
+          counts[key] = all.filter(s => s.status === key).length
+        }
+
+        const pipelineValue = all
+          .filter(s => ['job_booked', 'in_progress'].includes(s.status) && s.quoted_amount)
+          .reduce((sum, s) => sum + Number(s.quoted_amount), 0)
+
+        const completedValue = all
+          .filter(s => s.status === 'completed' && s.quoted_amount)
+          .reduce((sum, s) => sum + Number(s.quoted_amount), 0)
+
         setStats({
           total: all.length,
-          new: all.filter(s => s.status === 'new').length,
-          contacted: all.filter(s => s.status === 'contacted').length,
-          quoted: all.filter(s => s.status === 'quoted').length,
-          scheduled: all.filter(s => s.status === 'scheduled').length,
-          completed: all.filter(s => s.status === 'completed').length,
+          ...counts,
           thisWeek: all.filter(s => {
             const created = new Date(s.created_at)
             const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
             return created >= weekAgo
           }).length,
+          pipelineValue,
+          completedValue,
         })
 
-        // Recommended follow-ups: new leads older than 24hrs, contacted older than 3 days
+        // Recommended follow-ups
         const recs = all.filter(s => {
+          if (s.status === 'closed_lost' || s.status === 'completed') return false
           const age = (now - new Date(s.created_at)) / (1000 * 60 * 60)
-          if (s.status === 'new' && age > 24) return true
+          if (s.status === 'new' && age > 1) return true
           if (s.status === 'contacted' && age > 72) return true
+          if (s.status === 'estimate_completed' && age > 48) return true
           if (s.next_follow_up) {
             const followDate = new Date(s.next_follow_up)
             followDate.setHours(0, 0, 0, 0)
@@ -72,18 +117,6 @@ export default function AdminDashboard() {
     return phone
   }
 
-  const getStatusColor = (status) => {
-    const colors = {
-      new: 'bg-blue-100 text-blue-700',
-      contacted: 'bg-yellow-100 text-yellow-700',
-      quoted: 'bg-purple-100 text-purple-700',
-      scheduled: 'bg-indigo-100 text-indigo-700',
-      completed: 'bg-green-100 text-green-700',
-      cancelled: 'bg-red-100 text-red-700',
-    }
-    return colors[status] || 'bg-gray-100 text-gray-700'
-  }
-
   const getFollowUpReason = (submission) => {
     if (submission.next_follow_up) {
       const followDate = new Date(submission.next_follow_up)
@@ -95,6 +128,7 @@ export default function AdminDashboard() {
     const hours = Math.floor((Date.now() - new Date(submission.created_at)) / (1000 * 60 * 60))
     if (submission.status === 'new') return `New lead — ${hours}h without contact`
     if (submission.status === 'contacted') return `Contacted ${Math.floor(hours / 24)}d ago — needs follow-up`
+    if (submission.status === 'estimate_completed') return 'Estimate done — follow up to book'
     return 'Follow-up recommended'
   }
 
@@ -112,11 +146,7 @@ export default function AdminDashboard() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
-            <p className="text-gray-500 text-xs sm:text-sm">Total Leads</p>
-            <p className="text-2xl sm:text-3xl font-bold text-[#273373] mt-1">{stats.total}</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
-            <p className="text-gray-500 text-xs sm:text-sm">New</p>
+            <p className="text-gray-500 text-xs sm:text-sm">New Leads</p>
             <p className="text-2xl sm:text-3xl font-bold text-blue-600 mt-1">{stats.new}</p>
           </div>
           <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
@@ -124,18 +154,72 @@ export default function AdminDashboard() {
             <p className="text-2xl sm:text-3xl font-bold text-[#115997] mt-1">{stats.thisWeek}</p>
           </div>
           <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
-            <p className="text-gray-500 text-xs sm:text-sm">Needs Follow-up</p>
+            <p className="text-gray-500 text-xs sm:text-sm">Pipeline Value</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[#273373] mt-1">
+              {stats.pipelineValue > 0 ? '$' + stats.pipelineValue.toLocaleString() : '—'}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl p-4 sm:p-5 shadow-sm">
+            <p className="text-gray-500 text-xs sm:text-sm">Needs Action</p>
             <p className="text-2xl sm:text-3xl font-bold text-amber-600 mt-1">{followUps.length}</p>
           </div>
         </div>
       )}
+
+      {/* Today's Schedule */}
+      {(() => {
+        const todayStr = new Date().toISOString().split('T')[0]
+        const todayEvents = submissions.filter(s => s.scheduled_date === todayStr)
+        if (todayEvents.length === 0) return null
+        return (
+          <div className="bg-white rounded-xl shadow-sm mb-6 sm:mb-8 overflow-hidden">
+            <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-[#115997]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h2 className="text-base sm:text-lg font-semibold text-gray-800">Today&apos;s Schedule</h2>
+                <span className="text-gray-400 text-sm">({todayEvents.length})</span>
+              </div>
+              <Link href="/admin/calendar" className="text-sm text-[#115997] font-medium hover:underline">
+                Full calendar →
+              </Link>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {todayEvents.map((item) => (
+                <Link
+                  key={item.id}
+                  href={'/admin/contacts/' + item.id}
+                  className="flex items-center justify-between p-4 sm:px-6 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{item.name}</p>
+                      <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + (STATUS_COLORS[item.status] || 'bg-gray-100 text-gray-700')}>
+                        {STATUS_LABELS[item.status] || item.status}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {item.scheduled_time && <span>{item.scheduled_time} · </span>}
+                      {item.service_type} · {formatPhone(item.phone)}
+                    </p>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-400 flex-shrink-0 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Recommended Follow-ups */}
       {followUps.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm mb-6 sm:mb-8 overflow-hidden">
           <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center gap-2">
             <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-            <h2 className="text-base sm:text-lg font-semibold text-gray-800">Recommended Follow-ups</h2>
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800">Needs Attention</h2>
             <span className="text-gray-400 text-sm">({followUps.length})</span>
           </div>
           <div className="divide-y divide-gray-100">
@@ -148,8 +232,8 @@ export default function AdminDashboard() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-gray-900 text-sm truncate">{item.name}</p>
-                    <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + getStatusColor(item.status)}>
-                      {item.status}
+                    <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + (STATUS_COLORS[item.status] || 'bg-gray-100 text-gray-700')}>
+                      {STATUS_LABELS[item.status] || item.status}
                     </span>
                   </div>
                   <p className="text-xs text-amber-600">{getFollowUpReason(item)}</p>
@@ -199,8 +283,8 @@ export default function AdminDashboard() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-gray-900 text-sm truncate">{submission.name}</p>
-                    <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + getStatusColor(submission.status)}>
-                      {submission.status}
+                    <span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + (STATUS_COLORS[submission.status] || 'bg-gray-100 text-gray-700')}>
+                      {STATUS_LABELS[submission.status] || submission.status}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500">{submission.service_type} · {formatDateShort(submission.created_at)}</p>
@@ -219,25 +303,25 @@ export default function AdminDashboard() {
         <div className="mt-6 sm:mt-8 bg-white rounded-xl shadow-sm p-4 sm:p-6">
           <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">Pipeline</h2>
           <div className="space-y-3">
-            {[
-              { label: 'New', count: stats.new, color: 'bg-blue-500' },
-              { label: 'Contacted', count: stats.contacted, color: 'bg-yellow-500' },
-              { label: 'Quoted', count: stats.quoted, color: 'bg-purple-500' },
-              { label: 'Scheduled', count: stats.scheduled, color: 'bg-indigo-500' },
-              { label: 'Completed', count: stats.completed, color: 'bg-green-500' },
-            ].map((stage) => (
-              <div key={stage.label} className="flex items-center gap-3">
-                <p className="text-sm text-gray-600 w-24 flex-shrink-0">{stage.label}</p>
+            {PIPELINE_BARS.map((stage) => (
+              <div key={stage.key} className="flex items-center gap-3">
+                <p className="text-sm text-gray-600 w-28 flex-shrink-0">{stage.label}</p>
                 <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
                   <div
                     className={stage.color + ' h-full rounded-full transition-all duration-500'}
-                    style={{ width: stats.total > 0 ? Math.max((stage.count / stats.total) * 100, stage.count > 0 ? 4 : 0) + '%' : '0%' }}
+                    style={{ width: stats.total > 0 ? Math.max(((stats[stage.key] || 0) / stats.total) * 100, stats[stage.key] > 0 ? 4 : 0) + '%' : '0%' }}
                   />
                 </div>
-                <p className="text-sm font-semibold text-gray-800 w-8 text-right">{stage.count}</p>
+                <p className="text-sm font-semibold text-gray-800 w-8 text-right">{stats[stage.key] || 0}</p>
               </div>
             ))}
           </div>
+          {stats.completedValue > 0 && (
+            <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-sm text-gray-500">Completed Revenue</span>
+              <span className="text-lg font-bold text-green-600">${stats.completedValue.toLocaleString()}</span>
+            </div>
+          )}
         </div>
       )}
     </div>
