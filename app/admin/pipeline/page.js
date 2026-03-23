@@ -4,14 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 const COLUMNS = [
-  { key: 'new', label: 'New', color: 'border-blue-400', bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700' },
-  { key: 'contacted', label: 'Contacted', color: 'border-yellow-400', bg: 'bg-yellow-50', badge: 'bg-yellow-100 text-yellow-700' },
-  { key: 'estimate_scheduled', label: 'Est. Sched.', color: 'border-indigo-400', bg: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700' },
-  { key: 'estimate_completed', label: 'Est. Done', color: 'border-purple-400', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-700' },
-  { key: 'job_booked', label: 'Booked', color: 'border-emerald-400', bg: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700' },
-  { key: 'in_progress', label: 'In Progress', color: 'border-orange-400', bg: 'bg-orange-50', badge: 'bg-orange-100 text-orange-700' },
-  { key: 'completed', label: 'Done', color: 'border-green-400', bg: 'bg-green-50', badge: 'bg-green-100 text-green-700' },
-  { key: 'closed_lost', label: 'Lost', color: 'border-red-400', bg: 'bg-red-50', badge: 'bg-red-100 text-red-700' },
+  { key: 'new', label: 'New', color: 'border-blue-400', bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700', help: 'Leads that just came in from the website. Call them as soon as possible.' },
+  { key: 'contacted', label: 'Contacted', color: 'border-yellow-400', bg: 'bg-yellow-50', badge: 'bg-yellow-100 text-yellow-700', help: 'You spoke with them. Next step is to schedule an estimate.' },
+  { key: 'estimate_scheduled', label: 'Est. Sched.', color: 'border-indigo-400', bg: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700', help: 'Estimate visit is on the calendar. Set the date on their contact page.' },
+  { key: 'estimate_completed', label: 'Est. Done', color: 'border-purple-400', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-700', help: 'You gave them a quote. Follow up to see if they want to move forward.' },
+  { key: 'job_booked', label: 'Booked', color: 'border-emerald-400', bg: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700', help: 'They said yes. Job is scheduled and ready to go.' },
+  { key: 'in_progress', label: 'In Progress', color: 'border-orange-400', bg: 'bg-orange-50', badge: 'bg-orange-100 text-orange-700', help: 'Crew is actively working on this job.' },
+  { key: 'completed', label: 'Done', color: 'border-green-400', bg: 'bg-green-50', badge: 'bg-green-100 text-green-700', help: 'Job is finished. A Google review request will be texted to the customer automatically 3 days after moving here.' },
+  { key: 'closed_lost', label: 'Lost', color: 'border-red-400', bg: 'bg-red-50', badge: 'bg-red-100 text-red-700', help: 'They decided not to move forward. You will be asked for a reason.' },
 ]
 
 export default function PipelinePage() {
@@ -21,6 +21,7 @@ export default function PipelinePage() {
   const [dragOverCol, setDragOverCol] = useState(null)
   const [moveModal, setMoveModal] = useState(null)
   const [successMsg, setSuccessMsg] = useState('')
+  const [showHelp, setShowHelp] = useState(false)
 
   useEffect(() => { fetchSubmissions() }, [])
 
@@ -61,9 +62,16 @@ export default function PipelinePage() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Pipeline Board</h2>
-          <p className="text-gray-500 text-xs sm:text-sm">{submissions.length} leads · Drag cards to update status</p>
+          <p className="text-gray-500 text-xs sm:text-sm">{submissions.length} leads</p>
         </div>
-        <Link href="/admin/contacts" className="px-3 py-1.5 text-xs font-medium text-[#115997] bg-[#115997]/10 rounded-lg hover:bg-[#115997]/20 transition-colors">List View</Link>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowHelp(true)}
+            className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            Help
+          </button>
+          <Link href="/admin/contacts" className="px-3 py-1.5 text-xs font-medium text-[#115997] bg-[#115997]/10 rounded-lg hover:bg-[#115997]/20 transition-colors">List View</Link>
+        </div>
       </div>
 
       {successMsg && (
@@ -73,7 +81,7 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {/* Single row — 8 equal columns on desktop */}
+      {/* Desktop: 8 columns in a row */}
       <div className="hidden sm:grid grid-cols-8 gap-2">
         {COLUMNS.map((col) => {
           const cards = submissions.filter(s => s.status === col.key)
@@ -109,7 +117,7 @@ export default function PipelinePage() {
         })}
       </div>
 
-      {/* Mobile: stacked columns */}
+      {/* Mobile: stacked */}
       <div className="sm:hidden space-y-3">
         {COLUMNS.map((col) => {
           const cards = submissions.filter(s => s.status === col.key)
@@ -163,7 +171,80 @@ export default function PipelinePage() {
               ))}
             </div>
             <div className="p-4 border-t border-gray-100">
-              <Link href={'/admin/contacts/' + moveModal.id} className="block w-full text-center py-2.5 text-sm font-medium text-[#115997] bg-[#115997]/10 rounded-lg" onClick={() => setMoveModal(null)}>Open Lead Details →</Link>
+              <Link href={'/admin/contacts/' + moveModal.id} className="block w-full text-center py-2.5 text-sm font-medium text-[#115997] bg-[#115997]/10 rounded-lg" onClick={() => setMoveModal(null)}>Open Lead Details</Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">How the Pipeline Works</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5 space-y-6">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">The basics</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Every lead moves through stages from left to right. When someone fills out the free estimate form on the website, they show up in "New" automatically and get a confirmation text. Your job is to move them through each stage as things progress.</p>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">How to move a lead</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">On a computer, drag the card and drop it into the column you want. On your phone, tap the card and pick the new stage from the list.</p>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">What each stage means</h4>
+                <div className="space-y-3">
+                  {COLUMNS.map((col) => (
+                    <div key={col.key} className="flex gap-3">
+                      <div className={'w-1 flex-shrink-0 rounded-full ' + col.color.replace('border-', 'bg-')} />
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{col.label}</p>
+                        <p className="text-xs text-gray-500 leading-relaxed">{col.help}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">The colored dots</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Green means the lead came in less than 1 hour ago. Yellow means between 1 and 24 hours. Red means over 24 hours. These only show on New and Contacted leads to help you prioritize who to call first.</p>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">What happens automatically</h4>
+                <p className="text-sm text-gray-600 leading-relaxed mb-3">You do not need to do anything for these. They happen on their own.</p>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-2.5">
+                  <div>
+                    <p className="text-xs font-medium text-gray-800">New lead comes in</p>
+                    <p className="text-xs text-gray-500">Customer gets a confirmation text. You get a notification text with their info.</p>
+                  </div>
+                  <div className="border-t border-gray-200 pt-2.5">
+                    <p className="text-xs font-medium text-gray-800">Lead moved to "Done"</p>
+                    <p className="text-xs text-gray-500">3 days later, the customer gets a text asking them to leave a Google review.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Need more details on a lead?</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Tap or click any lead's name to open their full page. From there you can call them, text them, send an email, add notes, set a schedule date, and see everything that has happened with that lead.</p>
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
             </div>
           </div>
         </div>
