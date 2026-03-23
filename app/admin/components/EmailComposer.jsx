@@ -46,7 +46,7 @@ function generateEmailHTML({ subject, body }) {
 
 <!-- CTA -->
 <tr><td style="background-color:#f8fafc;padding:28px 40px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;text-align:center;">
-  <p style="margin:0 0 4px 0;color:#273373;font-size:17px;font-weight:700;">Alejandro Lopez</p>
+  <p style="margin:0 0 4px 0;color:#273373;font-size:17px;font-weight:700;">Alex Lopez</p>
   <p style="margin:0 0 16px 0;color:#6b7280;font-size:14px;">Reliable Solutions Atlanta</p>
   <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
   <tr><td>
