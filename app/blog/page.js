@@ -1,0 +1,377 @@
+import Header from '../components/Header'
+import Footer from '../components/Footer'
+import Link from 'next/link'
+import Image from 'next/image'
+
+export const metadata = {
+  title: 'Blog',
+  description: 'Waterproofing and foundation repair tips, guides, and news from Reliable Solutions Atlanta. Learn how to protect your home from water damage.',
+}
+
+const blogPosts = [
+  {
+    slug: 'water-in-basement-after-rain',
+    title: 'Water in Basement After Rain: Causes, Fixes, and What to Do Right Now',
+    excerpt: 'Water in your basement after rain? Learn the most common causes of basement water intrusion in Metro Atlanta, what to do immediately, and how to stop it permanently.',
+    date: 'March 15, 2026',
+    readTime: '8 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'bowing-basement-walls-atlanta',
+    title: 'Bowing Basement Walls: Causes, Repair Options, and Costs for Atlanta Homes',
+    excerpt: 'Is your basement wall bowing, leaning, or cracking horizontally? Learn what causes bowing walls in Metro Atlanta, how they\'re repaired, and what it costs before the problem gets worse.',
+    date: 'March 15, 2026',
+    readTime: '8 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-excavation-crew.png',
+  },
+  {
+    slug: 'does-foundation-repair-increase-home-value',
+    title: 'Does Foundation Repair Increase Home Value? What Atlanta Homeowners Need to Know',
+    excerpt: 'Wondering if foundation repair is worth the investment? Learn how foundation problems affect your home\'s value, what repairs cost vs. what they save, and how to protect your biggest asset.',
+    date: 'March 15, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'french-drain-cost-atlanta',
+    title: 'How Much Does French Drain Installation Cost in Atlanta?',
+    excerpt: 'Realistic French drain installation pricing for Metro Atlanta. Compare interior vs. exterior costs, learn what affects your price, and understand when a French drain alone isn\'t enough.',
+    date: 'March 3, 2026',
+    readTime: '8 min read',
+    category: 'Drainage',
+    image: '/images/portfolio/french-drain-pipe-installation.png',
+  },
+  {
+    slug: 'yard-drainage-problems-foundation-damage',
+    title: '5 Signs Your Yard Has a Drainage Problem (And Why It\'s Threatening Your Foundation)',
+    excerpt: 'Standing water, soggy soil, and erosion aren\'t just yard problems\u2014they\'re foundation threats. Learn the warning signs of poor yard drainage and how to fix them before serious damage occurs.',
+    date: 'March 3, 2026',
+    readTime: '7 min read',
+    category: 'Drainage',
+    image: '/images/portfolio/drainage-gravel-install-brick-home.png',
+  },
+  {
+    slug: 'retaining-wall-repair-cost-atlanta',
+    title: 'Retaining Wall Repair: Signs, Costs, and Solutions for Atlanta Homeowners',
+    excerpt: 'Leaning, cracking, or bulging retaining wall? Learn the warning signs of failure, realistic repair costs for Metro Atlanta, and when repair vs. rebuild is the right call.',
+    date: 'March 3, 2026',
+    readTime: '8 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/foundation-excavation-crew.png',
+  },
+  {
+    slug: 'concrete-repair-cost-atlanta',
+    title: 'How Much Does Concrete Repair Cost in Atlanta?',
+    excerpt: 'Realistic concrete repair pricing for Metro Atlanta. Compare costs for leveling, crack repair, replacement, and masonry work\u2014plus what drives costs up or down.',
+    date: 'February 18, 2026',
+    readTime: '8 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/concrete-pad-finishing.png',
+  },
+  {
+    slug: 'concrete-leveling-vs-replacement-atlanta',
+    title: 'Concrete Leveling vs. Replacement: Which Is Right for Your Atlanta Home?',
+    excerpt: 'Sinking driveway or patio? Learn when concrete leveling saves you thousands vs. when full replacement is the smarter investment for Metro Atlanta homes.',
+    date: 'February 17, 2026',
+    readTime: '7 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'signs-concrete-needs-repair',
+    title: '6 Signs Your Concrete Needs Repair Before It Gets Worse',
+    excerpt: 'Cracked driveway? Uneven sidewalk? Learn the warning signs that your concrete needs professional repair\u2014and why waiting costs more in Metro Atlanta.',
+    date: 'February 15, 2026',
+    readTime: '6 min read',
+    category: 'Concrete Repair',
+    image: '/images/portfolio/foundation-excavation-crew.png',
+  },
+  {
+    slug: 'crawl-space-repair-cost-atlanta',
+    title: 'How Much Does Crawl Space Repair Cost in Atlanta?',
+    excerpt: 'Realistic crawl space repair pricing for Metro Atlanta homes. Compare costs for encapsulation, structural repair, mold remediation, and waterproofing.',
+    date: 'February 11, 2026',
+    readTime: '8 min read',
+    category: 'Crawl Space',
+    image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
+  },
+  {
+    slug: 'foundation-repair-cost-atlanta',
+    title: 'How Much Does Foundation Repair Cost in Atlanta?',
+    excerpt: 'Get realistic foundation repair pricing for Metro Atlanta homes. Learn what affects costs, compare repair methods, and know what to expect.',
+    date: 'February 11, 2026',
+    readTime: '8 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'interior-vs-exterior-basement-waterproofing',
+    title: 'Interior vs Exterior Basement Waterproofing: Which Approach Is Right for Your Home?',
+    excerpt: 'Compare interior and exterior basement waterproofing methods, costs, and effectiveness. Learn which approach works best for Atlanta homes.',
+    date: 'February 10, 2026',
+    readTime: '8 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/exterior-waterproofing-membrane.png',
+  },
+  {
+    slug: 'how-to-choose-waterproofing-contractor-atlanta',
+    title: 'How to Choose a Waterproofing Contractor in Atlanta (Without Getting Scammed)',
+    excerpt: 'Not all waterproofing contractors are created equal. Learn the red flags, right questions, and what to look for when hiring in Metro Atlanta.',
+    date: 'February 8, 2026',
+    readTime: '7 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/waterproofing-truck-atlanta-job-site.png',
+  },
+  {
+    slug: 'foundation-crack-types-atlanta',
+    title: 'Types of Foundation Cracks and What They Mean for Your Atlanta Home',
+    excerpt: 'Not all foundation cracks are created equal. Learn which cracks are cosmetic, which signal structural problems, and when to call a professional.',
+    date: 'February 6, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/foundation-repair-atlanta.png',
+  },
+  {
+    slug: 'crawl-space-vapor-barrier-guide',
+    title: 'Crawl Space Vapor Barriers: What Atlanta Homeowners Need to Know',
+    excerpt: 'Learn what a crawl space vapor barrier does, how thick it should be, and why a proper installation matters more than the material itself.',
+    date: 'February 4, 2026',
+    readTime: '6 min read',
+    category: 'Crawl Space',
+    image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
+  },
+  {
+    slug: 'sump-pump-maintenance-guide',
+    title: 'Sump Pump Maintenance: How to Keep Your Basement Dry Year-Round',
+    excerpt: 'Your sump pump is your last line of defense against basement flooding. Learn how to test, maintain, and troubleshoot it before the next storm.',
+    date: 'February 2, 2026',
+    readTime: '6 min read',
+    category: 'Drainage',
+    image: '/images/portfolio/french-drain-pipe-installation.png',
+  },
+  {
+    slug: 'signs-foundation-settling-vs-structural-damage',
+    title: 'Foundation Settling vs. Structural Damage: How to Tell the Difference',
+    excerpt: 'Every house settles, but not every crack means your foundation is failing. Learn when settling is normal and when it signals a serious problem.',
+    date: 'January 31, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'basement-waterproofing-cost-atlanta',
+    title: 'How Much Does Basement Waterproofing Cost in Atlanta?',
+    excerpt: 'Get real pricing for basement waterproofing in Metro Atlanta. Learn what affects costs and how to budget for interior vs exterior solutions.',
+    date: 'January 29, 2026',
+    readTime: '8 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'what-to-check-after-storm-atlanta',
+    title: 'What to Check After a Storm: Protecting Your Atlanta Home from Water Damage',
+    excerpt: 'After severe weather hits Metro Atlanta, quick action prevents costly water damage. Learn the post-storm inspection checklist every homeowner needs.',
+    date: 'January 28, 2026',
+    readTime: '7 min read',
+    category: 'Water Damage',
+    image: '/images/portfolio/exterior-waterproofing-membrane.png',
+  },
+  {
+    slug: 'french-drain-vs-sump-pump',
+    title: 'French Drain vs Sump Pump: Which Does Your Home Need?',
+    excerpt: "Confused about basement drainage options? Learn how French drains and sump pumps work differently\u2014and why most Atlanta homes need both.",
+    date: 'January 27, 2026',
+    readTime: '8 min read',
+    category: 'Drainage',
+    image: '/images/portfolio/french-drain-pipe-installation.png',
+  },
+  {
+    slug: 'crawl-space-mold-signs',
+    title: '5 Signs Your Crawl Space Has a Mold Problem',
+    excerpt: "Crawl space mold affects your family's health even if you never go down there. Learn the warning signs and what to do about them.",
+    date: 'January 26, 2026',
+    readTime: '7 min read',
+    category: 'Crawl Space',
+    image: '/images/portfolio/crawl-space-mold-remediation.png',
+  },
+  {
+    slug: 'foundation-maintenance-seasonal-checklist',
+    title: "How to Maintain Your Home's Foundation: A Seasonal Checklist",
+    excerpt: 'Prevent costly foundation repairs with these simple seasonal maintenance tasks. A checklist for Atlanta homeowners to protect their biggest investment.',
+    date: 'January 25, 2026',
+    readTime: '6 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'basement-waterproofing-vs-damp-proofing',
+    title: 'Waterproofing vs. Damp-Proofing: Why the Difference Matters for Your Basement',
+    excerpt: "Many Atlanta homes were built with damp-proofing, not waterproofing. Learn the critical difference and why damp-proofing fails in Georgia's climate.",
+    date: 'January 20, 2026',
+    readTime: '6 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'signs-you-need-basement-waterproofing',
+    title: '7 Warning Signs You Need Basement Waterproofing',
+    excerpt: 'Discover the telltale signs that your Atlanta home needs basement waterproofing before minor issues become major problems.',
+    date: 'January 15, 2026',
+    readTime: '5 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'crawl-space-encapsulation-vs-waterproofing',
+    title: 'Crawl Space Encapsulation vs Waterproofing: Which Do You Need?',
+    excerpt: 'Understanding the difference between encapsulation and waterproofing can save you thousands. Learn which solution is right for your home.',
+    date: 'January 10, 2026',
+    readTime: '6 min read',
+    category: 'Crawl Space',
+    image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
+  },
+  {
+    slug: 'why-atlanta-homes-have-foundation-problems',
+    title: 'Why Atlanta Homes Are Prone to Foundation Problems',
+    excerpt: "Georgia's red clay soil creates unique challenges for homeowners. Learn why foundation issues are common in Metro Atlanta and how to prevent them.",
+    date: 'January 5, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+]
+
+export default function BlogPage() {
+  return (
+    <div className="min-h-screen bg-white">
+      <Header activePage="blog" />
+
+      {/* Hero Section */}
+      <section className="pt-10 pb-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#273373] font-display mb-4">
+              Expert Tips & Advice
+            </h1>
+            <div className="w-64 h-1.5 bg-gradient-to-r from-[#115997] to-[#84d2f2] mx-auto rounded-full mb-6"></div>
+            <p className="text-gray-700 text-lg max-w-2xl mx-auto">
+              Helpful resources for Atlanta homeowners dealing with water damage, foundation issues, and crawl space problems.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Posts Grid */}
+      <section className="py-12 md:py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {blogPosts.map((post) => (
+              <Link 
+                key={post.slug} 
+                href={`/blog/${post.slug}`}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group"
+              >
+                <div className="relative h-48">
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <span className="absolute bottom-4 left-4 text-white text-sm font-medium px-4 py-1.5 bg-[#115997]/90 rounded-full">
+                    {post.category}
+                  </span>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center text-sm text-gray-500 mb-3">
+                    <span>{post.date}</span>
+                    <span className="mx-2">&bull;</span>
+                    <span>{post.readTime}</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-[#273373] mb-3 group-hover:text-[#115997] transition-colors">
+                    {post.title}
+                  </h2>
+                  <p className="text-gray-600 mb-4">
+                    {post.excerpt}
+                  </p>
+                  <span className="inline-flex items-center gap-2 text-[#115997] font-semibold group-hover:gap-3 transition-all">
+                    Read More
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Quick & Reliable CTA */}
+      <section className="py-12 bg-[#115997]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-white font-display italic">
+                Have a Water Problem?
+              </h2>
+              <p className="text-white/80 mt-1">Contact us for a free inspection and estimate</p>
+            </div>
+            <a 
+              href="tel:770-895-2039"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-[#84d2f2] text-[#273373] rounded-lg font-semibold hover:bg-white transition-all duration-200"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              Call us 770-895-2039
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Info Bar */}
+      <section className="py-8 bg-[#1a1a1a]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="flex items-center gap-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <div>
+                <h4 className="text-white font-semibold">Location</h4>
+                <p className="text-gray-400">Atlanta, GA</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <div>
+                <h4 className="text-white font-semibold">Email</h4>
+                <a href="mailto:rsolrepair@gmail.com" className="text-gray-400 hover:text-[#84d2f2]">rsolrepair@gmail.com</a>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              <div>
+                <h4 className="text-white font-semibold">Call or Text</h4>
+                <a href="tel:770-895-2039" className="text-gray-400 hover:text-[#84d2f2]">770-895-2039</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </div>
+  )
+}

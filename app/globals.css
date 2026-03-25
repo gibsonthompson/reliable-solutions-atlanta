@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&family=Merriweather:wght@700;900&display=swap');
+
+@import "tailwindcss";
+
+* {
+  font-family: 'Raleway', sans-serif;
+}
+
+.font-display {
+  font-family: 'Merriweather', serif;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #115997;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #273373;
+}
