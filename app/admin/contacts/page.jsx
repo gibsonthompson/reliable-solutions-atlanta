@@ -21,6 +21,7 @@ export default function ContactsPage() {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+  const [showHelp, setShowHelp] = useState(false)
 
   useEffect(() => { if (user) fetchSubmissions() }, [user])
 
@@ -59,7 +60,10 @@ export default function ContactsPage() {
     <div className="px-4 py-4 sm:py-8">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">{user?.role === 'member' ? 'My Requests' : 'Requests'}</h2><p className="text-gray-500 text-xs sm:text-sm">{submissions.length} total</p></div>
-        <Link href="/admin/pipeline" className="px-3 py-1.5 text-xs font-medium text-[#115997] bg-[#115997]/10 rounded-lg hover:bg-[#115997]/20 transition-colors">Board View</Link>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowHelp(true)} className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Help</button>
+          <Link href="/admin/pipeline" className="px-3 py-1.5 text-xs font-medium text-[#115997] bg-[#115997]/10 rounded-lg hover:bg-[#115997]/20 transition-colors">Board View</Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-6">
@@ -116,6 +120,45 @@ export default function ContactsPage() {
           </>
         )}
       </div>
+
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">Contacts Help</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">What is this page?</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">This is your list of all leads and contacts. Every person who fills out the form on the website, or is added manually, shows up here.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Status filters</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Use the pill filters at the top to show only leads in a specific stage like New, Contacted, Estimate Sent, Booked, Done, or Lost. The counts update in real time.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Search</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Type a name, phone number, or service type in the search bar to find a specific contact quickly.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Tap a contact</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Tap any contact to open their detail page where you can call, text, email, change their status, add notes, schedule a date, and see the full activity history.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Board View</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Tap "Board View" at the top right to switch to the Pipeline page where you can drag and drop contacts between stages.</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

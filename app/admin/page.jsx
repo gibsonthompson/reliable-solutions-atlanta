@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const isAdmin = user?.role === 'admin'
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showHelp, setShowHelp] = useState(false)
 
   useEffect(() => { if (user) fetchData() }, [user])
 
@@ -68,9 +69,15 @@ export default function AdminDashboard() {
   return (
     <div className="px-4 py-4 sm:py-8">
       {/* Welcome */}
-      <div className="mb-6">
-        <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Welcome back, {user?.name?.split(' ')[0]}</h2>
-        <p className="text-gray-500 text-xs sm:text-sm">{now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Welcome back, {user?.name?.split(' ')[0]}</h2>
+          <p className="text-gray-500 text-xs sm:text-sm">{now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+        </div>
+        <button onClick={() => setShowHelp(true)} className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5">
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Help
+        </button>
       </div>
 
       {/* Quick Actions */}
@@ -83,21 +90,14 @@ export default function AdminDashboard() {
             <span className="text-xs font-medium text-gray-700 text-center">Calendar</span>
           </Link>
         )}
-        {nextLead ? (
-          <button onClick={() => window.location.href = 'tel:' + nextLead.phone} className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
+        {hasPermission('contacts') && (
+          <Link href="/admin/contacts" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
             <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center relative">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"><span className="text-white text-[8px] font-bold">{newLeads.length}</span></div>
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              {newLeads.length > 0 && <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"><span className="text-white text-[8px] font-bold">{newLeads.length}</span></div>}
             </div>
-            <span className="text-xs font-medium text-gray-700 text-center">Call Lead</span>
-          </button>
-        ) : (
-          <div className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 opacity-50">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            </div>
-            <span className="text-xs font-medium text-gray-700 text-center">All called</span>
-          </div>
+            <span className="text-xs font-medium text-gray-700 text-center">Contacts</span>
+          </Link>
         )}
         {hasPermission('pipeline') ? (
           <Link href="/admin/pipeline" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
@@ -174,6 +174,48 @@ export default function AdminDashboard() {
           </div>
           <p className="font-semibold text-gray-800 mb-1">All clear</p>
           <p className="text-sm text-gray-500">No events today and nothing needs attention. Nice work.</p>
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">Dashboard Help</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Quick Actions</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">The buttons at the top are shortcuts to the most-used pages. Tap Calendar to add or view events, Contacts to see all your leads, or Pipeline to see the board view.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">This Week</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Shows a snapshot of activity for the current week: how many new leads came in, active jobs, completed jobs, and how many leads need attention.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Today{"'"}s Jobs</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Any lead with a scheduled date set to today shows up here. Tap one to open their full contact page where you can call, text, or update their status.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Needs Attention</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">This section flags leads that need action. It includes new leads that have been sitting for over an hour without being called, overdue follow-ups, and estimates that were sent more than 3 days ago with no response. If everything is handled, you will see an "All clear" message instead.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">What happens automatically</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">When a new lead fills out the form on the website, they get a confirmation text and you get notified by text. Everything else on this dashboard updates in real time based on the data in your contacts.</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

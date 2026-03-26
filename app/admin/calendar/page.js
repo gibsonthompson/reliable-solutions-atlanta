@@ -30,6 +30,7 @@ export default function CalendarPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
+  const [showHelp, setShowHelp] = useState(false)
   const [newEvent, setNewEvent] = useState({ name: '', phone: '', service_type: '', custom_service: '', scheduled_date: '', scheduled_time: '', status: 'estimate_sent', address: '', notes: '' })
 
   useEffect(() => { if (user) fetchSubmissions() }, [user])
@@ -79,6 +80,7 @@ export default function CalendarPage() {
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">{user?.role === 'member' ? 'My Calendar' : 'Calendar'}</h2><p className="text-gray-500 text-xs sm:text-sm">{submissions.length} scheduled</p></div>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowHelp(true)} className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Help</button>
           {isAdmin && <button onClick={() => openAddModal(selectedDate || new Date())} className="px-3 py-1.5 text-xs font-medium text-white bg-[#115997] rounded-lg hover:bg-[#273373] flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Add</button>}
           <button onClick={goToToday} className="px-3 py-1.5 text-xs font-medium text-[#115997] bg-[#115997]/10 rounded-lg">Today</button>
           <div className="flex bg-gray-100 rounded-lg p-0.5"><button onClick={() => setView('month')} className={'px-3 py-1.5 text-xs font-medium rounded-md ' + (view === 'month' ? 'bg-white text-[#115997] shadow-sm' : 'text-gray-500')}>Month</button><button onClick={() => setView('week')} className={'px-3 py-1.5 text-xs font-medium rounded-md ' + (view === 'week' ? 'bg-white text-[#115997] shadow-sm' : 'text-gray-500')}>Week</button></div>
@@ -213,6 +215,46 @@ export default function CalendarPage() {
               <div><label className="block text-xs text-gray-500 mb-1">Address</label><input type="text" value={newEvent.address} onChange={(e) => setNewEvent(p => ({ ...p, address: e.target.value }))} placeholder="Property address" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Notes</label><textarea value={newEvent.notes} onChange={(e) => setNewEvent(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Optional..." style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none resize-none" /></div>
               <button onClick={handleAddEvent} disabled={saving || !newEvent.name || !serviceValid || !newEvent.scheduled_date} className="w-full mt-2 py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] disabled:opacity-50">{saving ? 'Adding...' : 'Add to Calendar'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">Calendar Help</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">What shows up here?</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Any contact with a scheduled date shows up on the calendar. This includes estimates, inspections, and booked jobs. If a contact does not have a scheduled date set, it will not appear here.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Month vs Week view</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Month view shows the full month at a glance with dots on days that have events. Tap a day to see the details. Week view shows a vertical list of this week{"'"}s events with more detail, starting with today.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Adding events</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Admins can tap the + Add button to create a new event. Fill in the name, phone, service type, date and time. You can also set a scheduled date from any contact{"'"}s detail page.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Tap an event</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Tap any event to go to that contact{"'"}s detail page where you can call them, send a text, update their status, or reschedule.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Color-coded status</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Each event shows a colored badge for its pipeline status so you can quickly see if something is an estimate, a booked job, or already done.</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
             </div>
           </div>
         </div>

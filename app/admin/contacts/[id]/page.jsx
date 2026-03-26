@@ -52,6 +52,7 @@ export default function ContactDetailPage() {
   const [showSmsTemplates, setShowSmsTemplates] = useState(false)
   const [smsText, setSmsText] = useState('')
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', service_type: '', message: '', status: 'new', notes: '', next_follow_up: '', scheduled_date: '', scheduled_time: '', address: '', assigned_to: '' })
+  const [showHelp, setShowHelp] = useState(false)
 
   useEffect(() => { if (contactId && user) { fetchContact(); fetchOutreach(); fetchActivity(); if (user.role === 'admin') fetchUsers() } }, [contactId, user])
 
@@ -92,7 +93,10 @@ export default function ContactDetailPage() {
         <Link href="/admin/contacts" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-[#115997] mb-4"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>Back</Link>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0"><h1 className="text-xl sm:text-2xl font-bold text-[#273373] truncate">{contact?.name}</h1><p className="text-sm text-gray-500">{contact?.service_type} · {timeAgo(contact?.created_at)}</p></div>
-          <button onClick={handleSave} disabled={saving} className="px-3 sm:px-4 py-2 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373] disabled:opacity-50 flex-shrink-0">{saving ? 'Saving...' : 'Save'}</button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button onClick={() => setShowHelp(true)} className="px-2.5 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+            <button onClick={handleSave} disabled={saving} className="px-3 sm:px-4 py-2 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373] disabled:opacity-50">{saving ? 'Saving...' : 'Save'}</button>
+          </div>
         </div>
       </div>
 
@@ -149,6 +153,53 @@ export default function ContactDetailPage() {
       {showSmsTemplates && <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4"><div className="bg-white rounded-2xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"><div className="flex items-center justify-between mb-4"><h3 className="text-lg font-bold text-gray-900">Send SMS</h3><button onClick={() => { setShowSmsTemplates(false); setSmsText('') }} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div><p className="text-xs text-gray-500 mb-2">Quick templates</p><div className="flex flex-wrap gap-1.5 mb-4">{SMS_TEMPLATES.map((t) => <button key={t.label} onClick={() => setSmsText(t.text)} className="px-2.5 py-1 text-[11px] font-medium bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200">{t.label}</button>)}</div><textarea value={smsText} onChange={(e) => setSmsText(e.target.value)} rows={4} placeholder="Type your message..." style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none resize-none mb-1" /><p className="text-xs text-gray-400 mb-4">{smsText.length}/160 · To: {formatPhone(contact?.phone)}</p><button onClick={handleCopyAndOpenMessages} disabled={!smsText} className="w-full px-4 py-2.5 text-sm font-medium text-white bg-[#115997] rounded-lg hover:bg-[#273373] disabled:opacity-50">Copy & Open Messages</button></div></div>}
 
       <EmailComposer isOpen={composerOpen} onClose={() => setComposerOpen(false)} contact={contact} onSent={() => { fetchOutreach(); fetchContact(); fetchActivity() }} />
+
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">Contact Page Help</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Quick actions</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">The buttons at the top let you call the customer, send them a text message using templates, or compose an email. Each one opens right from this page.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Status</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Change the lead{"'"}s pipeline status using the dropdown. Moving to "Lost" will ask you for a reason. The recommended next action updates automatically based on the current status.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Scheduling</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Set a scheduled date and time for estimates or jobs. This date is what makes the contact show up on the Calendar page.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Follow-up date</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Set a follow-up date to remind yourself to check back. If the date passes without action, this lead will show up in the "Needs Attention" section on the Dashboard.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Notes</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Use the notes field to track anything about this lead. Notes are saved when you tap the Save button at the top.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Activity history</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">The timeline at the bottom shows everything that has happened with this contact: status changes, texts sent, emails sent, and when they were created.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Remember to save</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">After editing any field on this page, tap the blue Save button at the top right. Changes are not saved automatically.</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

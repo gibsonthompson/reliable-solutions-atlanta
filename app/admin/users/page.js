@@ -15,8 +15,6 @@ const PERMISSION_LABELS = [
   { key: 'delete_contacts', label: 'Delete Contacts', desc: 'Permanently delete contacts' },
 ]
 
-const DEFAULT_MEMBER_PERMS = { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, templates: false, users: false, sms: false, email: false, delete_contacts: false }
-
 export default function UsersPage() {
   const { hasPermission, user: currentUser } = useAdminAuth()
   const [users, setUsers] = useState([])
@@ -25,9 +23,10 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [error, setError] = useState('')
+  const [showHelp, setShowHelp] = useState(false)
   const [formData, setFormData] = useState({
     username: '', name: '', phone: '', password: '', role: 'member',
-    permissions: { ...DEFAULT_MEMBER_PERMS }
+    permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, templates: false, sms: false, email: false, delete_contacts: false }
   })
 
   useEffect(() => { fetchUsers() }, [])
@@ -36,14 +35,14 @@ export default function UsersPage() {
     catch (e) {} finally { setLoading(false) }
   }
 
-  const handleNew = () => { setEditing('new'); setError(''); setFormData({ username: '', name: '', phone: '', password: '', role: 'member', permissions: { ...DEFAULT_MEMBER_PERMS } }) }
+  const handleNew = () => { setEditing('new'); setError(''); setFormData({ username: '', name: '', phone: '', password: '', role: 'member', permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, templates: false, sms: false, email: false, delete_contacts: false } }) }
   const handleEdit = (u) => { setEditing(u.id); setError(''); setFormData({ username: u.username, name: u.name, phone: u.phone || '', password: '', role: u.role, permissions: u.permissions || {} }) }
   const handleCancel = () => { setEditing(null); setError('') }
 
   const handleSave = async () => {
     if (!formData.name.trim()) { setError('Name is required'); return }
     if (editing === 'new' && !formData.username.trim()) { setError('Username is required'); return }
-    if (editing === 'new' && !formData.password) { setError('Password is required for new users'); return }
+    if (editing === 'new' && (!formData.password || formData.password.length < 4)) { setError('Password required (min 4 characters)'); return }
     setSaving(true); setError('')
     try {
       const isNew = editing === 'new'
@@ -81,7 +80,7 @@ export default function UsersPage() {
   if (!hasPermission('users')) return (
     <div className="px-4 py-16 text-center">
       <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-      <p className="text-gray-500 font-medium">You don't have permission to manage users</p>
+      <p className="text-gray-500 font-medium">You don{"'"}t have permission to manage users</p>
     </div>
   )
 
@@ -91,7 +90,10 @@ export default function UsersPage() {
     <div className="px-4 py-4 sm:py-8">
       <div className="flex items-center justify-between mb-6">
         <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Users</h2><p className="text-gray-500 text-xs sm:text-sm">{users.filter(u=>u.is_active).length} active · {users.length} total</p></div>
-        {!editing && <button onClick={handleNew} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Add User</button>}
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowHelp(true)} className="px-2.5 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+          {!editing && <button onClick={handleNew} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Add User</button>}
+        </div>
       </div>
 
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
@@ -105,25 +107,25 @@ export default function UsersPage() {
               <div>
                 <label className="block text-xs text-gray-500 mb-1.5">Username *{editing !== 'new' && ' (cannot change)'}</label>
                 <input type="text" value={formData.username} onChange={(e) => setFormData(p => ({ ...p, username: e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, '') }))}
-                  placeholder="Username" disabled={editing !== 'new'} autoCapitalize="none"
+                  placeholder="e.g. alex" disabled={editing !== 'new'} autoCapitalize="none" style={{ fontSize: '16px' }}
                   className={'w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none ' + (editing !== 'new' ? 'bg-gray-50 text-gray-500' : '')} />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1.5">Full Name *</label>
                 <input type="text" value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))}
-                  placeholder="Full name" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
+                  placeholder="Full name" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-gray-500 mb-1.5">Phone</label>
                 <input type="tel" value={formData.phone} onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))}
-                  placeholder="(770) 000-0000" className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
+                  placeholder="(770) 000-0000" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-1.5">{editing === 'new' ? 'Password *' : 'Reset Password (leave blank to keep)'}</label>
                 <input type="text" value={formData.password} onChange={(e) => setFormData(p => ({ ...p, password: e.target.value }))}
-                  placeholder={editing === 'new' ? 'Simple is fine' : 'Leave blank to keep current'}
+                  placeholder={editing === 'new' ? 'Simple is fine' : 'Leave blank to keep current'} style={{ fontSize: '16px' }}
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
                 {editing === 'new' && <p className="text-[11px] text-gray-400 mt-1">Password is visible so you can share it with them. Min 4 characters.</p>}
               </div>
@@ -228,6 +230,46 @@ export default function UsersPage() {
           </div>
         )}
       </div>
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">Users Help</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Admins vs Members</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Admins have full access to everything including this page. Members only see contacts assigned to them and only have access to the pages you enable in their permissions.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Permissions</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Use the toggle switches when creating or editing a member to control what they can see and do. For example, you can give someone access to the Calendar and Pipeline but not Templates or User Management.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Data scoping</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Members only see contacts that are assigned to them. To assign a contact, go to the contact{"'"}s detail page and use the "Assigned To" dropdown. Admins always see all contacts.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Passwords</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">You set the password when creating a user. The password field is visible so you can share it with them. To reset someone{"'"}s password, edit their profile and type a new one. There is no email-based password reset.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Deactivating vs Deleting</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">If someone leaves or you want to temporarily remove access, deactivate their account. They will not be able to log in but their history and assigned contacts are preserved. Deleting a user is permanent and unassigns all their contacts.</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

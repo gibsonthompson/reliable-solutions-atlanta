@@ -23,6 +23,7 @@ export default function ProspectsPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [newProspect, setNewProspect] = useState({ name: '', email: '', phone: '', brokerage: '', area: '' })
   const [adding, setAdding] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   useEffect(() => { fetchProspects() }, [])
 
@@ -60,6 +61,7 @@ export default function ProspectsPage() {
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Leads</h2><p className="text-gray-500 text-xs sm:text-sm">{prospects.length} total leads</p></div>
         <div className="flex items-center gap-2">
+          <button onClick={() => setShowHelp(true)} className="px-2.5 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
           <button onClick={() => setShowImport(true)} className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             <span className="hidden sm:inline">Import CSV</span>
@@ -142,6 +144,45 @@ export default function ProspectsPage() {
         )}
       </div>
       <ProspectCSVImport isOpen={showImport} onClose={() => setShowImport(false)} onImportComplete={fetchProspects} />
+
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">Leads Help</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">What is this page?</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">This is your list of leads, partners, and outreach contacts. These are separate from your main Contacts/Requests page. Use this for cold outreach, partner tracking, and prospecting.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Adding leads</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Tap the + Add button to add a single lead manually. Fill in their name, email, phone, company, and area.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Importing from CSV</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Tap Import CSV to upload a spreadsheet of leads in bulk. The importer maps common column headers automatically. This works with exports from Apollo, LinkedIn, and most CRM tools.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Status pipeline</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Each lead has a status: New, Contacted, Interested, Not Interested, or Converted. Use the filter pills at the top to show only leads in a specific stage. Tap a lead to update their status and log outreach.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Outreach tracking</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">When you open a lead{"'"}s detail page, you can log each outreach attempt with a date and notes. This helps you keep track of who you{"'"}ve contacted and when to follow up.</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

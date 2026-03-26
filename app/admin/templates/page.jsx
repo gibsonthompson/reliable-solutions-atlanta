@@ -25,6 +25,8 @@ export default function TemplatesPage() {
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
+  const [showHelp, setShowHelp] = useState(false)
   const [formData, setFormData] = useState({ name: '', subject: '', body: '', category: 'new_lead', is_default: false, type: 'email' })
 
   const categories = CATEGORY_ORDER.filter(c => !c.key.includes('Legacy') || templates.some(t => t.category === c.key))
@@ -67,7 +69,7 @@ export default function TemplatesPage() {
       return a.name.localeCompare(b.name)
     })
     return { ...cat, items }
-  }).filter(g => g.items.length > 0)
+  }).filter(g => g.items.length > 0).filter(g => categoryFilter === 'all' || g.key === categoryFilter)
 
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
 
@@ -75,16 +77,35 @@ export default function TemplatesPage() {
     <div className="px-4 py-4 sm:py-8">
       <div className="flex items-center justify-between mb-6">
         <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Templates</h2><p className="text-gray-500 text-xs sm:text-sm">{templates.length} templates</p></div>
-        {!editing && <button onClick={handleNew} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>New</button>}
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowHelp(true)} className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            Help
+          </button>
+          {!editing && <button onClick={handleNew} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>New</button>}
+        </div>
       </div>
 
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
 
       {!editing && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2 mb-3">
           {[{ v: 'all', l: 'All' }, { v: 'sms', l: 'SMS' }, { v: 'email', l: 'Email' }].map(f => (
             <button key={f.v} onClick={() => setTypeFilter(f.v)} className={'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (typeFilter === f.v ? 'bg-[#115997] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
               {f.l}<span className={'ml-1.5 ' + (typeFilter === f.v ? 'text-white/70' : 'text-gray-400')}>{f.v === 'all' ? templates.length : templates.filter(t => (t.type || 'email') === f.v).length}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Category filter pills */}
+      {!editing && (
+        <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1 scrollbar-hide -mx-4 px-4">
+          <button onClick={() => setCategoryFilter('all')} className={'flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ' + (categoryFilter === 'all' ? 'bg-[#273373] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>All Stages</button>
+          {categories.filter(c => templates.some(t => (t.category || 'general') === c.key)).map(c => (
+            <button key={c.key} onClick={() => setCategoryFilter(c.key)} className={'flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ' + (categoryFilter === c.key ? 'bg-[#273373] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>
+              {c.label}
+              <span className={'ml-1 ' + (categoryFilter === c.key ? 'text-white/60' : 'text-gray-400')}>{templates.filter(t => (t.category || 'general') === c.key).length}</span>
             </button>
           ))}
         </div>
@@ -158,6 +179,46 @@ export default function TemplatesPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#273373]">Templates Help</h3>
+                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+            <div className="p-5 space-y-5">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">What are templates?</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Templates are pre-written messages you can quickly send to leads. Instead of typing the same text over and over, you pick a template, it fills in the customer{"'"}s name and service type automatically, and you send it.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">SMS vs Email</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">SMS templates are short text messages. Email templates have a subject line and longer body. Use the filter buttons at the top to show only one type.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Pipeline Stage categories</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Templates are organized by which stage of the pipeline they are used in. For example, "New Lead" templates are for first contact, "Booked" templates are for active jobs, and "Done" templates are for after the job is complete. Use the stage pills to jump to a specific group.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Personalization variables</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Use {"{"}<span>first_name</span>{"}"} or {"{"}<span>name</span>{"}"} in your template body and it will be replaced with the actual customer{"'"}s name when you send it. {"{"}<span>service_type</span>{"}"} fills in their service request.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">How to send a template</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Go to any contact{"'"}s detail page, tap the SMS or Email button, and pick from your templates. The message gets pre-filled and copied to your clipboard so you can paste it into Messages or Gmail.</p>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
