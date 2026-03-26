@@ -9,7 +9,7 @@ const supabase = createClient(
 const TELNYX_MSG_PROFILE = '40019bc3-6345-42ca-84bd-a9a2ed3bd66f'
 
 async function sendSms(to, text) {
-  if (!process.env.TELNYX_API_KEY) return
+  if (!process.env.TELNYX_API_KEY) return false
   try {
     const res = await fetch('https://api.telnyx.com/v2/messages', {
       method: 'POST',
@@ -18,7 +18,8 @@ async function sendSms(to, text) {
     })
     const data = await res.json()
     console.log('[SMS]', res.status, JSON.stringify(data).substring(0, 200))
-  } catch (err) { console.error('SMS failed:', err) }
+    return res.ok
+  } catch (err) { console.error('SMS failed:', err); return false }
 }
 
 function formatPhoneForSms(phone) {
@@ -56,49 +57,28 @@ export async function POST(request) {
   try {
     const body = await request.json()
     const { name, email, phone, service_type, message, source } = body
-
-    if (!name || !email || !phone || !service_type) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
+    if (!name || !email || !phone || !service_type) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
 
     const isManualEntry = source === 'calendar' || source === 'manual'
-
     if (!isManualEntry) {
       const spamReason = isSpam({ name, email, message })
-      if (spamReason) {
-        console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`)
-        return NextResponse.json({ success: true })
-      }
+      if (spamReason) { console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`); return NextResponse.json({ success: true }) }
     }
 
-    const { data, error } = await supabase
-      .from('contact_submissions')
-      .insert([{ name, email, phone, service_type, message: message || null, source: source || 'website' }])
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Supabase error:', error)
-      return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 })
-    }
+    const { data, error } = await supabase.from('contact_submissions').insert([{ name, email, phone, service_type, message: message || null, source: source || 'website' }]).select().single()
+    if (error) { console.error('Supabase error:', error); return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 }) }
 
     if (!isManualEntry) {
       const smsBody = ['New Lead - RSA', name, phone, service_type, message ? message : null].filter(Boolean).join('\n')
       await sendSms(process.env.RSA_NOTIFICATION_PHONE, smsBody)
-
       const leadPhone = formatPhoneForSms(phone)
       if (leadPhone) {
         const firstName = name.split(' ')[0]
-        const confirmationMsg = `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! We received your request for ${service_type}. Our team will be calling you shortly to schedule your free inspection. If you need us sooner, call or text 770-895-2039. - RSA Team`
-        await sendSms(leadPhone, confirmationMsg)
+        await sendSms(leadPhone, `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! We received your request for ${service_type}. Our team will be calling you shortly to schedule your free inspection. If you need us sooner, call or text 770-895-2039. - RSA Team`)
       }
     }
-
     return NextResponse.json({ success: true, data })
-  } catch (error) {
-    console.error('API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+  } catch (error) { console.error('API error:', error); return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
 }
 
 export async function GET(request) {
@@ -108,31 +88,20 @@ export async function GET(request) {
     const userId = searchParams.get('user_id')
     const userRole = searchParams.get('user_role')
 
-    let query = supabase
-      .from('contact_submissions')
-      .select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)')
-      .order('created_at', { ascending: false })
-
+    let query = supabase.from('contact_submissions').select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)').order('created_at', { ascending: false })
     if (status && status !== 'all') query = query.eq('status', status)
-
-    // Member scoping: only see assigned contacts
-    if (userId && userRole === 'member') {
-      query = query.eq('assigned_to', userId)
-    }
+    if (userId && userRole === 'member') query = query.eq('assigned_to', userId)
 
     const { data, error } = await query
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ data })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+  } catch (error) { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
 }
 
 export async function PATCH(request) {
   try {
     const body = await request.json()
     const { id, status, notes, next_follow_up, scheduled_date, scheduled_time, quoted_amount, address, close_reason, assigned_to } = body
-
     if (!id) return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 })
 
     const updateData = {}
@@ -146,16 +115,9 @@ export async function PATCH(request) {
     if (close_reason !== undefined) updateData.close_reason = close_reason
     if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null
 
-    const { data, error } = await supabase
-      .from('contact_submissions')
-      .update(updateData)
-      .eq('id', id)
-      .select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)')
-      .single()
-
+    const { data, error } = await supabase.from('contact_submissions').update(updateData).eq('id', id).select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)').single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
     return NextResponse.json({ success: true, data })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
+  } catch (error) { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
 }

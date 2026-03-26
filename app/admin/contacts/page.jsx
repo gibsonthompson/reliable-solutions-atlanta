@@ -8,11 +8,10 @@ const statuses = [
   { value: 'all', label: 'All' },
   { value: 'new', label: 'New', bg: 'bg-blue-100 text-blue-700' },
   { value: 'contacted', label: 'Contacted', bg: 'bg-yellow-100 text-yellow-700' },
-  { value: 'estimate_scheduled', label: 'Est. Scheduled', bg: 'bg-indigo-100 text-indigo-700' },
-  { value: 'job_booked', label: 'Job Booked', bg: 'bg-emerald-100 text-emerald-700' },
-  { value: 'in_progress', label: 'In Progress', bg: 'bg-orange-100 text-orange-700' },
-  { value: 'completed', label: 'Completed', bg: 'bg-green-100 text-green-700' },
-  { value: 'closed_lost', label: 'Closed/Lost', bg: 'bg-red-100 text-red-700' },
+  { value: 'estimate_sent', label: 'Estimate Sent', bg: 'bg-indigo-100 text-indigo-700' },
+  { value: 'booked', label: 'Booked', bg: 'bg-emerald-100 text-emerald-700' },
+  { value: 'done', label: 'Done', bg: 'bg-green-100 text-green-700' },
+  { value: 'lost', label: 'Lost', bg: 'bg-red-100 text-red-700' },
 ]
 
 export default function ContactsPage() {
@@ -59,17 +58,17 @@ export default function ContactsPage() {
   return (
     <div className="px-4 py-4 sm:py-8">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">{user?.role === 'member' ? 'My Requests' : 'Requests'}</h2><p className="text-gray-500 text-xs sm:text-sm">{submissions.length} total requests</p></div>
+        <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">{user?.role === 'member' ? 'My Requests' : 'Requests'}</h2><p className="text-gray-500 text-xs sm:text-sm">{submissions.length} total</p></div>
         <Link href="/admin/pipeline" className="px-3 py-1.5 text-xs font-medium text-[#115997] bg-[#115997]/10 rounded-lg hover:bg-[#115997]/20 transition-colors">Board View</Link>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">New</p><p className="text-xl font-bold text-blue-600">{getStatusCount('new')}</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">Estimates</p><p className="text-xl font-bold text-indigo-600">{getStatusCount('estimate_scheduled')}</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">Jobs Active</p><p className="text-xl font-bold text-emerald-600">{getStatusCount('job_booked') + getStatusCount('in_progress')}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">Estimates</p><p className="text-xl font-bold text-indigo-600">{getStatusCount('estimate_sent')}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">Booked</p><p className="text-xl font-bold text-emerald-600">{getStatusCount('booked')}</p></div>
       </div>
 
-      <div className="mb-4 sm:mb-6"><div className="relative"><svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><input type="text" placeholder="Search name, email, phone, service..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none" /></div></div>
+      <div className="mb-4 sm:mb-6"><div className="relative"><svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><input type="text" placeholder="Search name, email, phone, service..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ fontSize: '16px' }} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none" /></div></div>
 
       <div className="mb-4 sm:mb-6 -mx-4 px-4 overflow-x-auto scrollbar-hide"><div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap">{statuses.map((status) => <button key={status.value} onClick={() => setFilter(status.value)} className={'flex-shrink-0 px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-all ' + (filter === status.value ? 'bg-[#115997] text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 active:scale-95')}>{status.label}<span className={'ml-1.5 ' + (filter === status.value ? 'text-white/70' : 'text-gray-400')}>{getStatusCount(status.value)}</span></button>)}</div></div>
 
