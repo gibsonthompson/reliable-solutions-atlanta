@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -17,8 +17,22 @@ const services = [
 export default function Header({ activePage }) {
   const [servicesDropdown, setServicesDropdown] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const dropdownRef = useRef(null)
 
   const isServicePage = services.some(s => s.href === '/' + activePage)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setServicesDropdown(false)
+      }
+    }
+    if (servicesDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [servicesDropdown])
 
   const linkClass = (page) => {
     const isActive = activePage === page
@@ -52,12 +66,11 @@ export default function Header({ activePage }) {
             <Link href="/about" className={linkClass('about')}>
               About
             </Link>
-            <div 
-              className="relative"
-              onMouseEnter={() => setServicesDropdown(true)}
-              onMouseLeave={() => setServicesDropdown(false)}
-            >
-              <button className={'font-medium hover:text-[#115997] transition-colors flex items-center gap-1 ' + (isServicePage || activePage === 'our-services' ? 'text-[#115997] font-semibold' : 'text-gray-700')}>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setServicesDropdown(!servicesDropdown)}
+                className={'font-medium hover:text-[#115997] transition-colors flex items-center gap-1 ' + (isServicePage || activePage === 'our-services' ? 'text-[#115997] font-semibold' : 'text-gray-700')}
+              >
                 Services
                 <svg className={'w-4 h-4 transition-transform ' + (servicesDropdown ? 'rotate-180' : '')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -68,7 +81,8 @@ export default function Header({ activePage }) {
                   {services.map((service) => (
                     <Link 
                       key={service.href} 
-                      href={service.href} 
+                      href={service.href}
+                      onClick={() => setServicesDropdown(false)}
                       className="block px-4 py-2.5 text-gray-700 hover:bg-[#84d2f2]/20 hover:text-[#115997] transition-colors"
                     >
                       {service.name}
