@@ -51,12 +51,12 @@ export default function CrawlSpaceEncapsulationPage() {
       <Header activePage="services" />
 
       {/* Hero */}
-      <section className="relative h-[400px] md:h-[500px] overflow-hidden">
+      <section className="relative min-h-[400px] md:min-h-[500px]">
         <div className="absolute inset-0">
           <Image src="/images/portfolio/crawl-space-encapsulation-vapor-barrier.png" alt="Crawl space encapsulation with white vapor barrier installed in Atlanta home" fill className="object-cover" priority />
           <div className="absolute inset-0 bg-[#273373]/70" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28 md:py-32 flex items-center">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-display leading-tight">Crawl Space Encapsulation in Atlanta, GA</h1>
             <p className="text-white/80 text-lg sm:text-xl mt-6 leading-relaxed max-w-2xl">Crawl space encapsulation in Metro Atlanta typically costs between $5,000 and $12,000. Reliable Solutions Atlanta seals crawl spaces with heavy-duty vapor barriers, vent sealing, wall insulation, and commercial dehumidification to permanently eliminate moisture, mold, and energy waste. Free same-week inspections.</p>

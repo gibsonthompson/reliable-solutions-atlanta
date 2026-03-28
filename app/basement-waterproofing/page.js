@@ -51,12 +51,12 @@ export default function BasementWaterproofingPage() {
       <Header activePage="services" />
 
       {/* Hero */}
-      <section className="relative h-[400px] md:h-[500px] overflow-hidden">
+      <section className="relative min-h-[400px] md:min-h-[500px]">
         <div className="absolute inset-0">
           <Image src="/images/portfolio/basement-waterproofing-interior.png" alt="Interior basement waterproofing installation in an Atlanta home" fill className="object-cover" priority />
           <div className="absolute inset-0 bg-[#273373]/70" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28 md:py-32 flex items-center">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-display leading-tight">Basement Waterproofing in Atlanta, GA</h1>
             <p className="text-white/80 text-lg sm:text-xl mt-6 leading-relaxed max-w-2xl">Basement waterproofing in Metro Atlanta typically costs between $3,000 and $12,000. Reliable Solutions Atlanta stops water from entering basements across Gwinnett, Cobb, Fulton, and DeKalb counties with interior French drains, sump pumps, crack injection, wall stabilization, and exterior membrane systems. Free same-week inspections with written estimates.</p>

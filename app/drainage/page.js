@@ -51,12 +51,12 @@ export default function DrainagePage() {
       <Header activePage="services" />
 
       {/* Hero */}
-      <section className="relative h-[400px] md:h-[500px] overflow-hidden">
+      <section className="relative min-h-[400px] md:min-h-[500px]">
         <div className="absolute inset-0">
           <Image src="/images/portfolio/french-drain-pipe-installation.png" alt="French drain installation in an Atlanta yard" fill className="object-cover" priority />
           <div className="absolute inset-0 bg-[#273373]/70" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28 md:py-32 flex items-center">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-display leading-tight">Drainage Solutions in Atlanta, GA</h1>
             <p className="text-white/80 text-lg sm:text-xl mt-6 leading-relaxed max-w-2xl">Drainage solutions in Metro Atlanta typically cost between $2,000 and $8,000. Reliable Solutions Atlanta designs and installs French drains, sump pumps, yard grading, downspout routing, and retaining wall drainage to protect your foundation and keep your yard usable year-round. Free same-week inspections.</p>

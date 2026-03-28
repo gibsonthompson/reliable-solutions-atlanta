@@ -51,12 +51,12 @@ export default function ConcreteRepairPage() {
       <Header activePage="services" />
 
       {/* Hero */}
-      <section className="relative h-[400px] md:h-[500px] overflow-hidden">
+      <section className="relative min-h-[400px] md:min-h-[500px]">
         <div className="absolute inset-0">
           <Image src="/images/portfolio/concrete-patio-crew-working.png" alt="Concrete repair crew working on an Atlanta driveway" fill className="object-cover" priority />
           <div className="absolute inset-0 bg-[#273373]/70" />
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-28 md:py-32 flex items-center">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-display leading-tight">Concrete Repair in Atlanta, GA</h1>
             <p className="text-white/80 text-lg sm:text-xl mt-6 leading-relaxed max-w-2xl">Concrete repair in Metro Atlanta typically costs between $1,500 and $7,000. Reliable Solutions Atlanta fixes cracked driveways, sinking sidewalks, damaged patios, and failing retaining walls caused by the Georgia red clay that shifts beneath every concrete surface in the metro area. Free same-week estimates.</p>
