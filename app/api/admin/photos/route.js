@@ -1,10 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-)
+let _supabase
+function getSupabase() {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) throw new Error('Missing Supabase env vars')
+    _supabase = createClient(url, key)
+  }
+  return _supabase
+}
 
 // GET — list all photos, newest first
 export async function GET(request) {
@@ -14,7 +20,7 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = (page - 1) * limit
 
-    const { data, error, count } = await supabase
+    const { data, error, count } = await getSupabase()
       .from('rsa_photos')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
@@ -79,7 +85,7 @@ export async function POST(request) {
       const buffer = Buffer.from(arrayBuffer)
 
       // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await getSupabase().storage
         .from('rsa-photos')
         .upload(storagePath, buffer, {
           contentType: file.type,
@@ -94,7 +100,7 @@ export async function POST(request) {
       }
 
       // Get public URL
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = getSupabase().storage
         .from('rsa-photos')
         .getPublicUrl(storagePath)
 
@@ -106,7 +112,7 @@ export async function POST(request) {
       }
 
       // Insert metadata record
-      const { data: record, error: dbError } = await supabase
+      const { data: record, error: dbError } = await getSupabase()
         .from('rsa_photos')
         .insert({
           filename: storagePath,
@@ -151,7 +157,7 @@ export async function DELETE(request) {
     }
 
     // Get the record first (need storage path)
-    const { data: photo, error: fetchError } = await supabase
+    const { data: photo, error: fetchError } = await getSupabase()
       .from('rsa_photos')
       .select('*')
       .eq('id', id)
@@ -162,7 +168,7 @@ export async function DELETE(request) {
     }
 
     // Delete from storage
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await getSupabase().storage
       .from('rsa-photos')
       .remove([photo.filename])
 
@@ -172,7 +178,7 @@ export async function DELETE(request) {
     }
 
     // Delete DB record
-    const { error: dbError } = await supabase
+    const { error: dbError } = await getSupabase()
       .from('rsa_photos')
       .delete()
       .eq('id', id)
