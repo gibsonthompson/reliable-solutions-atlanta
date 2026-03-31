@@ -1,6 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Increase Vercel body size limit (default 4.5MB is too small for photo uploads)
+export const config = {
+  api: { bodyParser: { sizeLimit: '25mb' } }
+}
+
+// Next.js App Router equivalent
+export const maxDuration = 60
+export const dynamic = 'force-dynamic'
+
 let _supabase
 function getSupabase() {
   if (!_supabase) {

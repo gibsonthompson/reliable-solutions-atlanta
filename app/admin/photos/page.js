@@ -43,29 +43,29 @@ export default function PhotosPage() {
     setUploading(true)
     setUploadProgress({ current: 0, total: fileArray.length })
 
-    // Upload in batches of 5 to avoid timeouts
-    const BATCH_SIZE = 5
     let totalUploaded = 0
     let totalErrors = 0
 
-    for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
-      const batch = fileArray.slice(i, i + BATCH_SIZE)
+    // Upload one file at a time to stay under Vercel's 4.5MB body limit
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i]
       const formData = new FormData()
-      batch.forEach(f => formData.append('photos', f))
+      formData.append('photos', file)
       formData.append('uploaded_by', user?.id || '')
       formData.append('uploaded_by_name', user?.name || 'Unknown')
 
       try {
         const r = await fetch('/api/admin/photos', { method: 'POST', body: formData })
+        if (!r.ok) { totalErrors++; continue }
         const res = await r.json()
         totalUploaded += res.total_uploaded || 0
         totalErrors += res.total_errors || 0
       } catch (e) {
-        console.error('Upload batch error:', e)
-        totalErrors += batch.length
+        console.error('Upload error:', e)
+        totalErrors++
       }
 
-      setUploadProgress({ current: Math.min(i + BATCH_SIZE, fileArray.length), total: fileArray.length })
+      setUploadProgress({ current: i + 1, total: fileArray.length })
     }
 
     setUploading(false)
