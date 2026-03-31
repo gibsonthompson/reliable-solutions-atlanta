@@ -45,21 +45,29 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing filename or url' }, { status: 400 })
     }
 
+    // Only include uploaded_by if it's a valid-looking UUID (FK constraint will reject garbage)
+    const isValidUUID = uploaded_by && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uploaded_by)
+
+    const insertData = {
+      filename,
+      original_name: original_name || 'photo.jpg',
+      url,
+      file_size: file_size || 0,
+      mime_type: mime_type || 'image/jpeg',
+      uploaded_by_name: uploaded_by_name || 'Unknown'
+    }
+    if (isValidUUID) insertData.uploaded_by = uploaded_by
+
     const { data: record, error: dbError } = await getSupabase()
       .from('rsa_photos')
-      .insert({
-        filename,
-        original_name: original_name || 'photo.jpg',
-        url,
-        file_size: file_size || 0,
-        mime_type: mime_type || 'image/jpeg',
-        uploaded_by: uploaded_by || null,
-        uploaded_by_name: uploaded_by_name || 'Unknown'
-      })
+      .insert(insertData)
       .select()
       .single()
 
-    if (dbError) throw dbError
+    if (dbError) {
+      console.error('Photos DB insert error:', JSON.stringify(dbError))
+      return NextResponse.json({ error: dbError.message, details: dbError }, { status: 500 })
+    }
 
     return NextResponse.json({ data: record, total_uploaded: 1, total_errors: 0 })
   } catch (err) {

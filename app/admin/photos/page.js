@@ -111,7 +111,11 @@ export default function PhotosPage() {
         })
 
         if (r.ok) totalUploaded++
-        else totalErrors++
+        else {
+          const errBody = await r.json().catch(() => ({}))
+          console.error('Metadata save failed:', r.status, errBody)
+          totalErrors++
+        }
       } catch (e) {
         console.error('Upload error:', e)
         totalErrors++
