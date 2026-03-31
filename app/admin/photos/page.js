@@ -4,11 +4,16 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useAdminAuth } from '../layout'
 
-// Client-side Supabase for direct storage uploads (bypasses Vercel 4.5MB limit)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
+let _supabase
+function getSupabase() {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!url || !key) return null
+    _supabase = createClient(url, key)
+  }
+  return _supabase
+}
 
 export default function PhotosPage() {
   const { user, hasPermission } = useAdminAuth()
@@ -46,11 +51,17 @@ export default function PhotosPage() {
   const handleUpload = async (files) => {
     if (!files || files.length === 0) return
 
+    const sb = getSupabase()
+    if (!sb) {
+      showToast('Storage not configured', 'error')
+      return
+    }
+
     const fileArray = Array.from(files)
     setUploading(true)
     setUploadProgress({ current: 0, total: fileArray.length })
 
-    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+    const MAX_SIZE = 10 * 1024 * 1024
     let totalUploaded = 0
     let totalErrors = 0
 
@@ -75,8 +86,7 @@ export default function PhotosPage() {
         const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
         const storagePath = `photos/${timestamp}-${rand}.${ext}`
 
-        // Upload directly to Supabase Storage from browser (no Vercel limit)
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await sb.storage
           .from('rsa-photos')
           .upload(storagePath, file, {
             contentType: file.type,
@@ -91,11 +101,10 @@ export default function PhotosPage() {
           continue
         }
 
-        const { data: urlData } = supabase.storage
+        const { data: urlData } = sb.storage
           .from('rsa-photos')
           .getPublicUrl(storagePath)
 
-        // Save metadata via API (tiny JSON, no file data)
         const r = await fetch('/api/admin/photos', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -111,11 +120,7 @@ export default function PhotosPage() {
         })
 
         if (r.ok) totalUploaded++
-        else {
-          const errBody = await r.json().catch(() => ({}))
-          console.error('Metadata save failed:', r.status, errBody)
-          totalErrors++
-        }
+        else totalErrors++
       } catch (e) {
         console.error('Upload error:', e)
         totalErrors++
@@ -132,7 +137,7 @@ export default function PhotosPage() {
       fetchPhotos()
     }
     if (totalErrors > 0) {
-      showToast(totalErrors + ' file' + (totalErrors !== 1 ? 's' : '') + ' failed to upload', 'error')
+      showToast(totalErrors + ' file' + (totalErrors !== 1 ? 's' : '') + ' failed', 'error')
     }
 
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -276,7 +281,6 @@ export default function PhotosPage() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Photos</h2>
@@ -299,7 +303,6 @@ export default function PhotosPage() {
         </div>
       </div>
 
-      {/* Select mode toolbar */}
       {selectMode && (
         <div className="bg-white rounded-xl shadow-sm p-3 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -328,7 +331,6 @@ export default function PhotosPage() {
         </div>
       )}
 
-      {/* Upload progress */}
       {uploading && (
         <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
@@ -342,7 +344,6 @@ export default function PhotosPage() {
         </div>
       )}
 
-      {/* Drag overlay */}
       {dragOver && (
         <div className="fixed inset-0 bg-[#115997]/10 z-40 flex items-center justify-center pointer-events-none">
           <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
@@ -352,7 +353,6 @@ export default function PhotosPage() {
         </div>
       )}
 
-      {/* Empty state */}
       {photos.length === 0 && !uploading && (
         <label className="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center mb-6 border-2 border-dashed border-gray-300 hover:border-[#115997] transition-colors cursor-pointer block">
           <div className="w-16 h-16 bg-[#115997]/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -366,7 +366,6 @@ export default function PhotosPage() {
         </label>
       )}
 
-      {/* Download all button */}
       {photos.length > 0 && isAdmin && !selectMode && (
         <button onClick={downloadAll} disabled={downloadingAll}
           className="w-full sm:w-auto mb-4 px-4 py-2.5 text-sm font-medium bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors flex items-center justify-center gap-2">
@@ -375,7 +374,6 @@ export default function PhotosPage() {
         </button>
       )}
 
-      {/* Photo grid */}
       {photos.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-1.5 sm:gap-2">
           {photos.map((photo) => (
@@ -429,7 +427,6 @@ export default function PhotosPage() {
         </div>
       )}
 
-      {/* Preview Modal */}
       {previewPhoto && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-0 sm:p-4"
           onClick={() => setPreviewPhoto(null)}>
@@ -474,7 +471,6 @@ export default function PhotosPage() {
         </div>
       )}
 
-      {/* Toast */}
       {toast && (
         <div className={'fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium ' +
           (toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-800 text-white')}

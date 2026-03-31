@@ -12,7 +12,6 @@ function getSupabase() {
   return _supabase
 }
 
-// GET — list all photos, newest first
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -27,7 +26,6 @@ export async function GET(request) {
       .range(offset, offset + limit - 1)
 
     if (error) throw error
-
     return NextResponse.json({ data, total: count, page, limit })
   } catch (err) {
     console.error('Photos GET error:', err)
@@ -35,7 +33,6 @@ export async function GET(request) {
   }
 }
 
-// POST — save photo metadata (file already uploaded direct to Supabase Storage from client)
 export async function POST(request) {
   try {
     const body = await request.json()
@@ -45,7 +42,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Missing filename or url' }, { status: 400 })
     }
 
-    // Only include uploaded_by if it's a valid-looking UUID (FK constraint will reject garbage)
     const isValidUUID = uploaded_by && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uploaded_by)
 
     const insertData = {
@@ -64,11 +60,7 @@ export async function POST(request) {
       .select()
       .single()
 
-    if (dbError) {
-      console.error('Photos DB insert error:', JSON.stringify(dbError))
-      return NextResponse.json({ error: dbError.message, details: dbError }, { status: 500 })
-    }
-
+    if (dbError) throw dbError
     return NextResponse.json({ data: record, total_uploaded: 1, total_errors: 0 })
   } catch (err) {
     console.error('Photos POST error:', err)
@@ -76,14 +68,10 @@ export async function POST(request) {
   }
 }
 
-// DELETE — delete a photo by ID
 export async function DELETE(request) {
   try {
     const { id } = await request.json()
-
-    if (!id) {
-      return NextResponse.json({ error: 'Missing photo ID' }, { status: 400 })
-    }
+    if (!id) return NextResponse.json({ error: 'Missing photo ID' }, { status: 400 })
 
     const { data: photo, error: fetchError } = await getSupabase()
       .from('rsa_photos')
@@ -95,23 +83,14 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Photo not found' }, { status: 404 })
     }
 
-    // Delete from storage
-    const { error: storageError } = await getSupabase().storage
-      .from('rsa-photos')
-      .remove([photo.filename])
+    await getSupabase().storage.from('rsa-photos').remove([photo.filename])
 
-    if (storageError) {
-      console.error('Storage delete error:', storageError)
-    }
-
-    // Delete DB record
     const { error: dbError } = await getSupabase()
       .from('rsa_photos')
       .delete()
       .eq('id', id)
 
     if (dbError) throw dbError
-
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Photos DELETE error:', err)
