@@ -1,7 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { useAdminAuth } from '../layout'
+
+// Client-side Supabase for direct storage uploads (bypasses Vercel 4.5MB limit)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
 
 export default function PhotosPage() {
   const { user, hasPermission } = useAdminAuth()
@@ -43,23 +50,68 @@ export default function PhotosPage() {
     setUploading(true)
     setUploadProgress({ current: 0, total: fileArray.length })
 
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
     let totalUploaded = 0
     let totalErrors = 0
 
-    // Upload one file at a time to stay under Vercel's 4.5MB body limit
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i]
-      const formData = new FormData()
-      formData.append('photos', file)
-      formData.append('uploaded_by', user?.id || '')
-      formData.append('uploaded_by_name', user?.name || 'Unknown')
+
+      if (file.size > MAX_SIZE) {
+        totalErrors++
+        setUploadProgress({ current: i + 1, total: fileArray.length })
+        continue
+      }
+
+      if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+        totalErrors++
+        setUploadProgress({ current: i + 1, total: fileArray.length })
+        continue
+      }
 
       try {
-        const r = await fetch('/api/admin/photos', { method: 'POST', body: formData })
-        if (!r.ok) { totalErrors++; continue }
-        const res = await r.json()
-        totalUploaded += res.total_uploaded || 0
-        totalErrors += res.total_errors || 0
+        const timestamp = Date.now()
+        const rand = Math.random().toString(36).slice(2, 8)
+        const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+        const storagePath = `photos/${timestamp}-${rand}.${ext}`
+
+        // Upload directly to Supabase Storage from browser (no Vercel limit)
+        const { error: uploadError } = await supabase.storage
+          .from('rsa-photos')
+          .upload(storagePath, file, {
+            contentType: file.type,
+            cacheControl: '31536000',
+            upsert: false
+          })
+
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError)
+          totalErrors++
+          setUploadProgress({ current: i + 1, total: fileArray.length })
+          continue
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('rsa-photos')
+          .getPublicUrl(storagePath)
+
+        // Save metadata via API (tiny JSON, no file data)
+        const r = await fetch('/api/admin/photos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: storagePath,
+            original_name: file.name,
+            url: urlData?.publicUrl,
+            file_size: file.size,
+            mime_type: file.type,
+            uploaded_by: user?.id || null,
+            uploaded_by_name: user?.name || 'Unknown'
+          })
+        })
+
+        if (r.ok) totalUploaded++
+        else totalErrors++
       } catch (e) {
         console.error('Upload error:', e)
         totalErrors++
@@ -79,7 +131,6 @@ export default function PhotosPage() {
       showToast(totalErrors + ' file' + (totalErrors !== 1 ? 's' : '') + ' failed to upload', 'error')
     }
 
-    // Reset file input
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -138,7 +189,6 @@ export default function PhotosPage() {
       document.body.removeChild(a)
       URL.revokeObjectURL(a.href)
     } catch (e) {
-      // Fallback: open in new tab
       window.open(photo.url, '_blank')
     }
   }
@@ -146,18 +196,12 @@ export default function PhotosPage() {
   const downloadSelected = async () => {
     const selected = photos.filter(p => selectedPhotos.has(p.id))
     if (selected.length === 0) return
-
-    if (selected.length === 1) {
-      downloadPhoto(selected[0])
-      return
-    }
+    if (selected.length === 1) { downloadPhoto(selected[0]); return }
 
     setDownloadingAll(true)
     try {
-      // Download each file individually (no server-side zip needed)
       for (const photo of selected) {
         await downloadPhoto(photo)
-        // Small delay between downloads so browser doesn't block them
         await new Promise(r => setTimeout(r, 300))
       }
       showToast(selected.length + ' photos downloaded')
@@ -192,14 +236,10 @@ export default function PhotosPage() {
   }
 
   const selectAll = () => {
-    if (selectedPhotos.size === photos.length) {
-      setSelectedPhotos(new Set())
-    } else {
-      setSelectedPhotos(new Set(photos.map(p => p.id)))
-    }
+    if (selectedPhotos.size === photos.length) setSelectedPhotos(new Set())
+    else setSelectedPhotos(new Set(photos.map(p => p.id)))
   }
 
-  // Drag and drop
   const handleDragOver = useCallback((e) => { e.preventDefault(); setDragOver(true) }, [])
   const handleDragLeave = useCallback((e) => { e.preventDefault(); setDragOver(false) }, [])
   const handleDrop = useCallback((e) => {
@@ -308,7 +348,7 @@ export default function PhotosPage() {
         </div>
       )}
 
-      {/* Empty state / Upload zone */}
+      {/* Empty state */}
       {photos.length === 0 && !uploading && (
         <label className="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center mb-6 border-2 border-dashed border-gray-300 hover:border-[#115997] transition-colors cursor-pointer block">
           <div className="w-16 h-16 bg-[#115997]/10 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -322,7 +362,7 @@ export default function PhotosPage() {
         </label>
       )}
 
-      {/* Download all button (admin) */}
+      {/* Download all button */}
       {photos.length > 0 && isAdmin && !selectMode && (
         <button onClick={downloadAll} disabled={downloadingAll}
           className="w-full sm:w-auto mb-4 px-4 py-2.5 text-sm font-medium bg-green-50 text-green-700 rounded-xl hover:bg-green-100 transition-colors flex items-center justify-center gap-2">
@@ -346,7 +386,6 @@ export default function PhotosPage() {
                 <img src={photo.url} alt={photo.original_name} className="w-full h-full object-cover" loading="lazy" />
               )}
 
-              {/* Video badge */}
               {isVideo(photo) && (
                 <div className="absolute bottom-1 left-1 bg-black/60 rounded px-1.5 py-0.5 flex items-center gap-1">
                   <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
@@ -354,7 +393,6 @@ export default function PhotosPage() {
                 </div>
               )}
 
-              {/* Select checkbox */}
               {selectMode && (
                 <div className={'absolute top-1.5 left-1.5 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ' +
                   (selectedPhotos.has(photo.id) ? 'bg-[#115997] border-[#115997]' : 'bg-white/80 border-white')}>
@@ -364,7 +402,6 @@ export default function PhotosPage() {
                 </div>
               )}
 
-              {/* Hover overlay (desktop only) */}
               {!selectMode && (
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors hidden sm:flex items-end justify-between p-2 opacity-0 group-hover:opacity-100">
                   <span className="text-white text-[10px] truncate max-w-[80%]">{photo.uploaded_by_name}</span>
@@ -377,7 +414,6 @@ export default function PhotosPage() {
             </div>
           ))}
 
-          {/* Upload more tile */}
           {!selectMode && (
             <label className="relative aspect-square rounded-lg overflow-hidden bg-gray-50 border-2 border-dashed border-gray-300 hover:border-[#115997] transition-colors cursor-pointer flex flex-col items-center justify-center gap-1">
               <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -393,14 +429,12 @@ export default function PhotosPage() {
       {previewPhoto && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-0 sm:p-4"
           onClick={() => setPreviewPhoto(null)}>
-          {/* Close button */}
           <button onClick={() => setPreviewPhoto(null)}
             className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white hover:bg-white/30"
             style={{ top: 'max(1rem, env(safe-area-inset-top))' }}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
 
-          {/* Image/Video */}
           <div className="max-w-4xl max-h-[85vh] w-full" onClick={(e) => e.stopPropagation()}>
             {isVideo(previewPhoto) ? (
               <video src={previewPhoto.url} controls autoPlay playsInline className="max-w-full max-h-[70vh] mx-auto rounded-lg" />
@@ -408,7 +442,6 @@ export default function PhotosPage() {
               <img src={previewPhoto.url} alt={previewPhoto.original_name} className="max-w-full max-h-[70vh] mx-auto rounded-lg object-contain" />
             )}
 
-            {/* Info bar */}
             <div className="bg-white/10 backdrop-blur-sm rounded-xl mt-3 p-3 mx-2 sm:mx-0 flex items-center justify-between">
               <div className="min-w-0 flex-1 mr-3">
                 <p className="text-white text-sm font-medium truncate">{previewPhoto.original_name}</p>

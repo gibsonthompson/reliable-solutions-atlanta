@@ -1,15 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Increase Vercel body size limit (default 4.5MB is too small for photo uploads)
-export const config = {
-  api: { bodyParser: { sizeLimit: '25mb' } }
-}
-
-// Next.js App Router equivalent
-export const maxDuration = 60
-export const dynamic = 'force-dynamic'
-
 let _supabase
 function getSupabase() {
   if (!_supabase) {
@@ -44,112 +35,33 @@ export async function GET(request) {
   }
 }
 
-// POST — upload one or more photos
+// POST — save photo metadata (file already uploaded direct to Supabase Storage from client)
 export async function POST(request) {
   try {
-    const formData = await request.formData()
-    const files = formData.getAll('photos')
-    const uploadedBy = formData.get('uploaded_by') || null
-    const uploadedByName = formData.get('uploaded_by_name') || 'Unknown'
+    const body = await request.json()
+    const { filename, original_name, url, file_size, mime_type, uploaded_by, uploaded_by_name } = body
 
-    if (!files || files.length === 0) {
-      return NextResponse.json({ error: 'No files provided' }, { status: 400 })
+    if (!filename || !url) {
+      return NextResponse.json({ error: 'Missing filename or url' }, { status: 400 })
     }
 
-    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
-    const ALLOWED_TYPES = [
-      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
-      'image/heic', 'image/heif', // iPhone photos
-      'video/mp4', 'video/quicktime', 'video/mov' // Allow short videos too
-    ]
+    const { data: record, error: dbError } = await getSupabase()
+      .from('rsa_photos')
+      .insert({
+        filename,
+        original_name: original_name || 'photo.jpg',
+        url,
+        file_size: file_size || 0,
+        mime_type: mime_type || 'image/jpeg',
+        uploaded_by: uploaded_by || null,
+        uploaded_by_name: uploaded_by_name || 'Unknown'
+      })
+      .select()
+      .single()
 
-    const results = []
-    const errors = []
+    if (dbError) throw dbError
 
-    for (const file of files) {
-      // Validate size
-      if (file.size > MAX_SIZE) {
-        errors.push({ name: file.name, error: 'File exceeds 10MB limit' })
-        continue
-      }
-
-      // Validate type (be lenient — iPhones sometimes send weird MIME types)
-      const isAllowed = ALLOWED_TYPES.includes(file.type) ||
-        file.type.startsWith('image/') ||
-        file.type.startsWith('video/')
-      if (!isAllowed) {
-        errors.push({ name: file.name, error: 'Unsupported file type: ' + file.type })
-        continue
-      }
-
-      // Generate unique filename
-      const timestamp = Date.now()
-      const rand = Math.random().toString(36).slice(2, 8)
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const filename = `${timestamp}-${rand}.${ext}`
-      const storagePath = `photos/${filename}`
-
-      // Read file buffer
-      const arrayBuffer = await file.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
-
-      // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await getSupabase().storage
-        .from('rsa-photos')
-        .upload(storagePath, buffer, {
-          contentType: file.type,
-          cacheControl: '31536000', // 1 year cache
-          upsert: false
-        })
-
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError)
-        errors.push({ name: file.name, error: uploadError.message })
-        continue
-      }
-
-      // Get public URL
-      const { data: urlData } = getSupabase().storage
-        .from('rsa-photos')
-        .getPublicUrl(storagePath)
-
-      const publicUrl = urlData?.publicUrl
-
-      if (!publicUrl) {
-        errors.push({ name: file.name, error: 'Failed to get public URL' })
-        continue
-      }
-
-      // Insert metadata record
-      const { data: record, error: dbError } = await getSupabase()
-        .from('rsa_photos')
-        .insert({
-          filename: storagePath,
-          original_name: file.name,
-          url: publicUrl,
-          file_size: file.size,
-          mime_type: file.type,
-          uploaded_by: uploadedBy,
-          uploaded_by_name: uploadedByName
-        })
-        .select()
-        .single()
-
-      if (dbError) {
-        console.error('DB insert error:', dbError)
-        errors.push({ name: file.name, error: dbError.message })
-        continue
-      }
-
-      results.push(record)
-    }
-
-    return NextResponse.json({
-      uploaded: results,
-      errors,
-      total_uploaded: results.length,
-      total_errors: errors.length
-    })
+    return NextResponse.json({ data: record, total_uploaded: 1, total_errors: 0 })
   } catch (err) {
     console.error('Photos POST error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
@@ -165,7 +77,6 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Missing photo ID' }, { status: 400 })
     }
 
-    // Get the record first (need storage path)
     const { data: photo, error: fetchError } = await getSupabase()
       .from('rsa_photos')
       .select('*')
@@ -183,7 +94,6 @@ export async function DELETE(request) {
 
     if (storageError) {
       console.error('Storage delete error:', storageError)
-      // Continue anyway — still remove the DB record
     }
 
     // Delete DB record
