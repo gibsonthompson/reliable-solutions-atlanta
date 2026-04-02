@@ -10,6 +10,42 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'how-basement-waterproofing-works',
+    title: 'How Does Basement Waterproofing Work? A Step-by-Step Guide for Atlanta Homeowners',
+    excerpt: 'Learn exactly what happens during a professional basement waterproofing installation. From the initial inspection to the finished system, here\'s the full process for Metro Atlanta homes.',
+    date: 'April 2, 2026',
+    readTime: '8 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'crawl-space-encapsulation-worth-it',
+    title: 'Is Crawl Space Encapsulation Worth the Cost? ROI for Atlanta Homeowners',
+    excerpt: 'Crawl space encapsulation costs $5,000 to $12,000 in Metro Atlanta. Learn whether the investment pays off through energy savings, avoided repairs, and increased home value.',
+    date: 'April 2, 2026',
+    readTime: '7 min read',
+    category: 'Crawl Space',
+    image: '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
+  },
+  {
+    slug: 'diy-vs-professional-waterproofing',
+    title: 'DIY vs Professional Basement Waterproofing: What Actually Works in Atlanta',
+    excerpt: 'Thinking about waterproofing your basement yourself? Learn which fixes you can handle, which require a pro, and where DIY attempts backfire in Metro Atlanta homes.',
+    date: 'April 2, 2026',
+    readTime: '7 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/exterior-waterproofing-membrane.png',
+  },
+  {
+    slug: 'atlanta-summer-heat-foundation-damage',
+    title: 'How Atlanta\'s Summer Heat Damages Your Foundation (And What to Do About It)',
+    excerpt: 'Atlanta\'s hot, dry summers cause clay soil to shrink dramatically, creating voids under your foundation. Learn how heat-related foundation damage happens and how to prevent it.',
+    date: 'April 2, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
     slug: 'water-in-basement-after-rain',
     title: 'Water in Basement After Rain: Causes, Fixes, and What to Do Right Now',
     excerpt: 'Water in your basement after rain? Learn the most common causes of basement water intrusion in Metro Atlanta, what to do immediately, and how to stop it permanently.',

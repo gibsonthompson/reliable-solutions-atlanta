@@ -471,6 +471,110 @@ export default function sitemap() {
     },
 
     // =============================================
+    // BLOG POSTS - Basement Waterproofing
+    // =============================================
+    {
+      url: `${baseUrl}/blog/water-in-basement-after-rain`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/how-basement-waterproofing-works`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/diy-vs-professional-waterproofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/basement-waterproofing-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/interior-vs-exterior-basement-waterproofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/how-to-choose-waterproofing-contractor-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/basement-waterproofing-vs-damp-proofing`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+
+    // =============================================
+    // BLOG POSTS - Foundation Repair
+    // =============================================
+    {
+      url: `${baseUrl}/blog/bowing-basement-walls-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/does-foundation-repair-increase-home-value`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/atlanta-summer-heat-foundation-damage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-repair-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-crack-types-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/signs-foundation-settling-vs-structural-damage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-maintenance-seasonal-checklist`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+
+    // =============================================
     // BLOG POSTS - Drainage
     // =============================================
     {
@@ -527,78 +631,16 @@ export default function sitemap() {
     },
 
     // =============================================
-    // BLOG POSTS - Foundation Repair
-    // =============================================
-    {
-      url: `${baseUrl}/blog/foundation-repair-cost-atlanta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/foundation-crack-types-atlanta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/signs-foundation-settling-vs-structural-damage`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/why-atlanta-homes-have-foundation-problems`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/foundation-maintenance-seasonal-checklist`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-
-    // =============================================
-    // BLOG POSTS - Basement Waterproofing
-    // =============================================
-    {
-      url: `${baseUrl}/blog/basement-waterproofing-cost-atlanta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/interior-vs-exterior-basement-waterproofing`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/how-to-choose-waterproofing-contractor-atlanta`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/signs-you-need-basement-waterproofing`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/blog/basement-waterproofing-vs-damp-proofing`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.7,
-    },
-
-    // =============================================
     // BLOG POSTS - Crawl Space
     // =============================================
     {
       url: `${baseUrl}/blog/crawl-space-repair-cost-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/crawl-space-encapsulation-worth-it`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,
