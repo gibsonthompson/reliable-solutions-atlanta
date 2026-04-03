@@ -30,6 +30,7 @@ function formatPhoneForSms(phone) {
 }
 
 function isSpam({ name, email, message }) {
+  // 1. Gibberish name detection
   if (name) {
     const transitions = (name.match(/[A-Z][a-z]|[a-z][A-Z]/g) || []).length
     if (transitions > 4) return 'gibberish_name'
@@ -37,6 +38,8 @@ function isSpam({ name, email, message }) {
     for (const word of words) { if (word.length > 3 && /[A-Z]{3,}/.test(word) && word !== word.toUpperCase()) return 'gibberish_name' }
     if (name.trim().split(/\s+/).length === 1 && name.trim().length > 12) return 'suspicious_name'
   }
+
+  // 2. Dotted/fragmented email detection
   if (email) {
     const localPart = email.split('@')[0] || ''
     const dotCount = (localPart.match(/\./g) || []).length
@@ -45,11 +48,52 @@ function isSpam({ name, email, message }) {
     const tinySegments = segments.filter(s => s.length <= 2).length
     if (tinySegments >= 3) return 'fragmented_email'
   }
+
+  // 3. Message keyword/phrase spam detection
   if (message) {
     const msgLower = message.toLowerCase()
-    const spamKeywords = ['seo', 'search engine optimization', 'backlink', 'link building', 'rank your website', 'first page of google', 'domain authority']
-    for (const keyword of spamKeywords) { if (msgLower.includes(keyword)) return 'spam_keyword_' + keyword.replace(/\s+/g, '_') }
+
+    // Exact keyword matches
+    const spamKeywords = [
+      // SEO spam
+      'seo', 'search engine optimization', 'backlink', 'link building',
+      'rank your website', 'first page of google', 'domain authority',
+      // Cold outreach / VA / agency pitches
+      'virtual assistant', 'cold calling', 'appointment setting',
+      'lead generation', 'social media management', 'bookkeeping',
+      'outsourc', 'offshore', 'filipino', 'philippines',
+      // Sales pitch patterns
+      'enhance your client', 'boost your client', 'grow your business',
+      'scale your business', 'increase your revenue', 'increase your sales',
+      'open to a quick', '15-minute', '15 minute', 'quick conversation',
+      'quick call', 'quick chat', 'brief call', 'brief conversation',
+      'schedule a call', 'hop on a call', 'jump on a call',
+      'i\'d love to show you', 'i\'d love to discuss', 'let me show you',
+      'love to connect', 'love to chat',
+      // Web dev / marketing spam
+      'web development services', 'web design services', 'digital marketing services',
+      'marketing agency', 'staffing solution', 'staffing service',
+      'content creation service', 'customer support service',
+      'we provide expert', 'we specialize in', 'we offer a wide range',
+      'we can help enhance', 'we can help grow', 'we can help boost',
+      // AI/tech spam
+      'ai chatbot', 'ai solution', 'automation service',
+      // Generic B2B spam
+      'b2b lead', 'qualified leads', 'warm leads',
+      'email campaign', 'email marketing', 'bulk email',
+      'pay per click', 'ppc management', 'google ads management',
+      'facebook ads management', 'roi guarantee',
+      // Spam closers
+      'interested in learning more', 'would you be open', 'are you open to',
+      'shall i send', 'can i send you', 'let me send you',
+      'unsubscribe', 'opt out', 'opt-out',
+    ]
+
+    for (const keyword of spamKeywords) {
+      if (msgLower.includes(keyword)) return 'spam_keyword'
+    }
   }
+
   return null
 }
 
