@@ -48,6 +48,7 @@ export default function ContactsPage() {
 
   const formatPhone = (phone) => { if (!phone) return ''; const c = phone.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return phone }
   const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  const formatDateTime = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
   const getStatusBadge = (status) => (statuses.find(s => s.value === status)?.bg || 'bg-gray-100 text-gray-700')
   const getStatusLabel = (status) => (statuses.find(s => s.value === status)?.label || status)
   const getStatusCount = (status) => status === 'all' ? submissions.length : submissions.filter(s => s.status === status).length
@@ -95,7 +96,7 @@ export default function ContactsPage() {
                       <td className="px-6 py-4"><span className={'inline-flex px-2.5 py-1 rounded-full text-xs font-medium ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span></td>
                       {user?.role === 'admin' && <td className="px-6 py-4 text-sm text-gray-500">{contact.assigned_user?.name || <span className="text-gray-300">Unassigned</span>}</td>}
                       <td className="px-6 py-4 text-sm text-gray-500">{contact.scheduled_date ? formatDate(contact.scheduled_date) : '—'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">{timeAgo(contact.created_at)}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500"><p>{formatDateTime(contact.created_at)}</p><p className="text-xs text-gray-400">{timeAgo(contact.created_at)}</p></td>
                       <td className="px-6 py-4"><Link href={'/admin/contacts/' + contact.id} className="text-[#115997] hover:text-[#273373] font-medium text-sm">View</Link></td>
                     </tr>
                   ))}
@@ -107,7 +108,7 @@ export default function ContactsPage() {
                 <Link key={contact.id} href={'/admin/contacts/' + contact.id} className={'block p-4 active:bg-gray-50 transition-colors ' + getUrgencyColor(contact)}>
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="min-w-0 flex-1"><p className="font-semibold text-gray-900 truncate">{contact.name}</p><p className="text-sm text-gray-500">{contact.service_type}</p></div>
-                    <div className="flex flex-col items-end ml-3"><span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span><p className="text-[10px] text-gray-400 mt-1">{timeAgo(contact.created_at)}</p></div>
+                    <div className="flex flex-col items-end ml-3"><span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span><p className="text-[10px] text-gray-400 mt-1">{formatDateTime(contact.created_at)}</p></div>
                   </div>
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
                     <span className="flex items-center gap-1"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>{formatPhone(contact.phone)}</span>
