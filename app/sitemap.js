@@ -492,6 +492,12 @@ export default function sitemap() {
       priority: 0.7,
     },
     {
+      url: `${baseUrl}/blog/basement-waterproofing-myths`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/blog/basement-waterproofing-cost-atlanta`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -539,6 +545,24 @@ export default function sitemap() {
     },
     {
       url: `${baseUrl}/blog/atlanta-summer-heat-foundation-damage`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-repair-financing-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/what-happens-during-foundation-inspection`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/helical-piers-vs-push-piers`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.7,

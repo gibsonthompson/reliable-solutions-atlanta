@@ -10,6 +10,42 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'helical-piers-vs-push-piers',
+    title: 'Helical Piers vs Push Piers: Which Foundation Fix Is Right for Your Atlanta Home?',
+    excerpt: 'Both helical piers and push piers stabilize settling foundations, but they work differently and cost differently. Learn which method fits your Metro Atlanta home and soil conditions.',
+    date: 'April 9, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'basement-waterproofing-myths',
+    title: '5 Basement Waterproofing Myths That Cost Atlanta Homeowners Thousands',
+    excerpt: 'Waterproof paint, flex seal, and "just fix the gutters" \u2014 these common myths about basement waterproofing lead to wasted money and worse damage. Here\'s the truth.',
+    date: 'April 8, 2026',
+    readTime: '6 min read',
+    category: 'Basement Waterproofing',
+    image: '/images/portfolio/basement-waterproofing-interior.png',
+  },
+  {
+    slug: 'what-happens-during-foundation-inspection',
+    title: 'What Happens During a Foundation Inspection? What Atlanta Homeowners Should Expect',
+    excerpt: 'Wondering what a foundation inspection involves? Learn exactly what a contractor checks, how long it takes, what the report looks like, and how to prepare.',
+    date: 'April 6, 2026',
+    readTime: '7 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-excavation-crew.png',
+  },
+  {
+    slug: 'foundation-repair-financing-atlanta',
+    title: 'Foundation Repair Financing: Options for Atlanta Homeowners',
+    excerpt: 'Foundation repair costs $4,500 to $25,000+ in Atlanta. Learn your financing options including zero-interest plans, home equity, and how to make repairs affordable.',
+    date: 'April 4, 2026',
+    readTime: '6 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
     slug: 'how-basement-waterproofing-works',
     title: 'How Does Basement Waterproofing Work? A Step-by-Step Guide for Atlanta Homeowners',
     excerpt: 'Learn exactly what happens during a professional basement waterproofing installation. From the initial inspection to the finished system, here\'s the full process for Metro Atlanta homes.',
