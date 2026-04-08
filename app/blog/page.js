@@ -16,7 +16,7 @@ const blogPosts = [
     date: 'April 9, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
-    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+    image: '/images/portfolio/foundation-excavation-crew.png',
   },
   {
     slug: 'basement-waterproofing-myths',
@@ -34,7 +34,7 @@ const blogPosts = [
     date: 'April 6, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
-    image: '/images/portfolio/foundation-excavation-crew.png',
+    image: '/images/waterproofing-truck-atlanta-job-site.png',
   },
   {
     slug: 'foundation-repair-financing-atlanta',
