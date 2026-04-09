@@ -31,6 +31,13 @@ function formatPhoneForSms(phone) {
   return null
 }
 
+function formatPhoneDisplay(phone) {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10) return `${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`
+  if (digits.length === 11 && digits[0] === '1') return `${digits.slice(1,4)}-${digits.slice(4,7)}-${digits.slice(7)}`
+  return phone
+}
+
 function formatDateForSms(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number)
   const date = new Date(y, m - 1, d)
@@ -55,7 +62,7 @@ export async function POST(request) {
     const leadPhone = formatPhoneForSms(data.phone)
 
     if (type === 'new_lead') {
-      const smsBody = ['New Lead - RSA', data.name, data.phone, data.service_type].filter(Boolean).join('\n')
+      const smsBody = ['New Lead - RSA', data.name, formatPhoneDisplay(data.phone), data.service_type].filter(Boolean).join('\n')
       await sendSms(process.env.RSA_NOTIFICATION_PHONE, smsBody)
     }
 
@@ -67,7 +74,7 @@ export async function POST(request) {
         await sendSms(leadPhone, `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! Your free estimate for ${data.service_type} is scheduled for ${dateFormatted}${timeStr}. If you need to reschedule, call or text 770-895-2039. - RSA Team`)
       }
 
-      await sendSms(process.env.RSA_NOTIFICATION_PHONE, `📅 Estimate Booked\n${data.name}\n${data.phone}\n${data.service_type}\n${dateFormatted}${timeStr}`)
+      await sendSms(process.env.RSA_NOTIFICATION_PHONE, `📅 Estimate Booked\n${data.name}\n${formatPhoneDisplay(data.phone)}\n${data.service_type}\n${dateFormatted}${timeStr}`)
     }
 
     if (type === 'skipped') {
