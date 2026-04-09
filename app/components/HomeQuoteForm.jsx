@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import BookingCalendar from './BookingCalendar'
-import { scheduleNotify } from './scheduleNotify'
+import { notify } from './notify'
 
 export default function HomeQuoteForm({ services }) {
   const [formData, setFormData] = useState({
@@ -38,8 +38,8 @@ export default function HomeQuoteForm({ services }) {
       setLeadId(id)
       setLeadName(formData.name)
 
-      // Internal notification SMS fires 60s from now
-      scheduleNotify(id, 'new_lead')
+      // Fire and forget — server sleeps 60s then sends internal SMS
+      notify(id, 'new_lead')
 
       setStatus('booking')
       setFormData({ name: '', email: '', phone: '', service_type: '' })
@@ -88,60 +88,26 @@ export default function HomeQuoteForm({ services }) {
       )}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-        <input 
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all"
-          placeholder="Your name"
-          required
-        />
+        <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all" placeholder="Your name" required />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-        <input 
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all"
-          placeholder="your@email.com"
-          required
-        />
+        <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all" placeholder="your@email.com" required />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-        <input 
-          type="tel"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all"
-          placeholder="(770) 000-0000"
-          required
-        />
+        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all" placeholder="(770) 000-0000" required />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">What services do you need?</label>
-        <select 
-          name="service_type"
-          value={formData.service_type}
-          onChange={handleChange}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all bg-white"
-          required
-        >
+        <select name="service_type" value={formData.service_type} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all bg-white" required>
           <option value="">Select a service...</option>
           {services.map((service) => (
             <option key={service.href} value={service.name}>{service.name}</option>
           ))}
         </select>
       </div>
-      <button 
-        type="submit"
-        disabled={status === 'submitting'}
-        className="w-full py-4 rounded-lg font-semibold text-white bg-[#115997] hover:bg-[#273373] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
-      >
+      <button type="submit" disabled={status === 'submitting'} className="w-full py-4 rounded-lg font-semibold text-white bg-[#115997] hover:bg-[#273373] transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50">
         {status === 'submitting' ? 'Submitting...' : 'Submit'}
         {status !== 'submitting' && (
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

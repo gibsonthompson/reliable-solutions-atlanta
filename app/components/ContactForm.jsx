@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import BookingCalendar from './BookingCalendar'
-import { scheduleNotify } from './scheduleNotify'
+import { notify } from './notify'
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -50,8 +50,8 @@ export default function ContactForm() {
       setLeadId(id)
       setLeadName(formData.name)
 
-      // Internal notification SMS fires 60s from now
-      scheduleNotify(id, 'new_lead')
+      // Fire and forget — server sleeps 60s then sends internal SMS
+      notify(id, 'new_lead')
 
       setStatus('booking')
       setFormData({ name: '', email: '', phone: '', service_type: '', message: '' })
@@ -100,53 +100,22 @@ export default function ContactForm() {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="name" className="block text-white mb-1">Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800"
-            required
-          />
+          <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800" required />
         </div>
         <div>
           <label htmlFor="phone" className="block text-white mb-1">Phone</label>
-          <input
-            type="tel"
-            id="phone"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800"
-            required
-          />
+          <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800" required />
         </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="email" className="block text-white mb-1">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800"
-            required
-          />
+          <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800" required />
         </div>
         <div>
           <label htmlFor="service_type" className="block text-white mb-1">Service type</label>
-          <select
-            id="service_type"
-            name="service_type"
-            value={formData.service_type}
-            onChange={handleChange}
-            className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800"
-            required
-          >
+          <select id="service_type" name="service_type" value={formData.service_type} onChange={handleChange} className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800" required>
             <option value="">Select a service</option>
             {serviceOptions.map((service, index) => (
               <option key={index} value={service}>{service}</option>
@@ -157,22 +126,11 @@ export default function ContactForm() {
 
       <div>
         <label htmlFor="message" className="block text-white mb-1">Message</label>
-        <textarea
-          id="message"
-          name="message"
-          rows={5}
-          value={formData.message}
-          onChange={handleChange}
-          className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800 resize-none"
-        />
+        <textarea id="message" name="message" rows={5} value={formData.message} onChange={handleChange} className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800 resize-none" />
       </div>
 
       <div className="text-center pt-4">
-        <button
-          type="submit"
-          disabled={status === 'submitting'}
-          className="inline-flex items-center gap-2 px-8 py-4 bg-[#115997] text-white rounded-lg font-semibold hover:bg-[#273373] transition-all duration-200 text-lg disabled:opacity-50"
-        >
+        <button type="submit" disabled={status === 'submitting'} className="inline-flex items-center gap-2 px-8 py-4 bg-[#115997] text-white rounded-lg font-semibold hover:bg-[#273373] transition-all duration-200 text-lg disabled:opacity-50">
           {status === 'submitting' ? 'Submitting...' : 'Submit Request'}
           {status !== 'submitting' && (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

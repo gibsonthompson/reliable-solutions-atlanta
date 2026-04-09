@@ -14,7 +14,6 @@ function isSpam({ name, email, message }) {
     for (const word of words) { if (word.length > 3 && /[A-Z]{3,}/.test(word) && word !== word.toUpperCase()) return 'gibberish_name' }
     if (name.trim().split(/\s+/).length === 1 && name.trim().length > 12) return 'suspicious_name'
   }
-
   if (email) {
     const localPart = email.split('@')[0] || ''
     const dotCount = (localPart.match(/\./g) || []).length
@@ -23,7 +22,6 @@ function isSpam({ name, email, message }) {
     const tinySegments = segments.filter(s => s.length <= 2).length
     if (tinySegments >= 3) return 'fragmented_email'
   }
-
   if (message) {
     const msgLower = message.toLowerCase()
     const spamKeywords = [

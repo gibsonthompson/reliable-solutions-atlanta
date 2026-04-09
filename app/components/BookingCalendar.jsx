@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { scheduleNotify } from './scheduleNotify'
+import { notify } from './notify'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -93,18 +93,12 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
           status: 'estimate_sent',
         }),
       })
-      // Schedule SMS 60s from now
-      scheduleNotify(leadId, 'booked')
+      // Fire and forget — server sleeps 60s then sends
+      notify(leadId, 'booked')
       setStatus('done')
     } catch {
       setStatus('idle')
     }
-  }
-
-  const handleSkip = () => {
-    // Schedule generic customer SMS 60s from now
-    scheduleNotify(leadId, 'skipped')
-    onComplete?.()
   }
 
   const dark = variant === 'dark'
@@ -257,7 +251,7 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
           )}
         </button>
         <button
-          onClick={handleSkip}
+          onClick={() => { notify(leadId, 'skipped'); onComplete?.() }}
           className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${dark ? 'text-white/60 hover:text-white/80' : 'text-gray-400 hover:text-gray-600'}`}
         >
           Skip — I&apos;ll schedule later
