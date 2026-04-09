@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import BookingCalendar from './BookingCalendar'
+import { scheduleNotify } from './scheduleNotify'
 
 export default function HomeQuoteForm({ services }) {
   const [formData, setFormData] = useState({
@@ -33,8 +34,13 @@ export default function HomeQuoteForm({ services }) {
       if (!response.ok) throw new Error('Failed to submit')
 
       const result = await response.json()
-      setLeadId(result.data?.id || null)
+      const id = result.data?.id || null
+      setLeadId(id)
       setLeadName(formData.name)
+
+      // Internal notification SMS fires 60s from now
+      scheduleNotify(id, 'new_lead')
+
       setStatus('booking')
       setFormData({ name: '', email: '', phone: '', service_type: '' })
     } catch (error) {

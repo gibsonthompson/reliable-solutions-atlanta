@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { scheduleNotify } from './scheduleNotify'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
@@ -20,7 +21,7 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
   const [selectedTime, setSelectedTime] = useState('')
-  const [status, setStatus] = useState('idle') // idle | saving | done
+  const [status, setStatus] = useState('idle')
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -32,19 +33,16 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
     const first = new Date(y, m, 1)
     const last = new Date(y, m + 1, 0)
     const days = []
-    // pad start
     for (let i = 0; i < first.getDay(); i++) {
       const d = new Date(y, m, -first.getDay() + i + 1)
       days.push({ date: d, disabled: true, outside: true })
     }
-    // month days
     for (let d = 1; d <= last.getDate(); d++) {
       const date = new Date(y, m, d)
       const isPast = date < today
       const isSunday = date.getDay() === 0
       days.push({ date, disabled: isPast || isSunday, outside: false })
     }
-    // pad end
     const rem = 42 - days.length
     for (let i = 1; i <= rem; i++) {
       days.push({ date: new Date(y, m + 1, i), disabled: true, outside: true })
@@ -93,16 +91,23 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
           scheduled_date: dateStr,
           scheduled_time: selectedTime,
           status: 'estimate_sent',
-          booked_by_customer: true,
         }),
       })
+      // Schedule SMS 60s from now
+      scheduleNotify(leadId, 'booked')
       setStatus('done')
     } catch {
       setStatus('idle')
     }
   }
 
-  const dark = variant === 'dark' // contact page (dark bg)
+  const handleSkip = () => {
+    // Schedule generic customer SMS 60s from now
+    scheduleNotify(leadId, 'skipped')
+    onComplete?.()
+  }
+
+  const dark = variant === 'dark'
 
   if (status === 'done') {
     return (
@@ -135,7 +140,6 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
 
   return (
     <div className={`rounded-xl overflow-hidden ${dark ? 'bg-white/10 backdrop-blur-sm' : 'bg-white border border-gray-100 shadow-md'}`}>
-      {/* Header */}
       <div className={`px-5 py-4 ${dark ? 'border-b border-white/10' : 'border-b border-gray-100'}`}>
         <div className="flex items-center gap-2 mb-1">
           <div className={`w-2 h-2 rounded-full ${dark ? 'bg-[#84d2f2]' : 'bg-[#115997]'}`} />
@@ -149,9 +153,7 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
         </p>
       </div>
 
-      {/* Calendar */}
       <div className="px-5 py-4">
-        {/* Month nav */}
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => navigate(-1)}
@@ -171,14 +173,12 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
           </button>
         </div>
 
-        {/* Day headers */}
         <div className="grid grid-cols-7 mb-1">
           {DAYS.map((d) => (
             <div key={d} className={`text-center text-[10px] font-semibold uppercase py-1 ${dark ? 'text-white/40' : 'text-gray-400'}`}>{d}</div>
           ))}
         </div>
 
-        {/* Day grid */}
         <div className="grid grid-cols-7 gap-[2px]">
           {days.map((day, i) => {
             const sel = isSelected(day.date)
@@ -209,7 +209,6 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
         </div>
       </div>
 
-      {/* Time slots */}
       {selectedDate && (
         <div className={`px-5 py-4 ${dark ? 'border-t border-white/10' : 'border-t border-gray-100'}`}>
           <p className={`text-xs font-semibold uppercase tracking-wider mb-3 ${dark ? 'text-white/50' : 'text-gray-400'}`}>
@@ -237,7 +236,6 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
         </div>
       )}
 
-      {/* Actions */}
       <div className={`px-5 py-4 flex flex-col gap-2 ${dark ? 'border-t border-white/10' : 'border-t border-gray-100'}`}>
         <button
           onClick={handleBook}
@@ -259,12 +257,7 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
           )}
         </button>
         <button
-          onClick={async () => {
-            if (leadId) {
-              try { await fetch('/api/contact/skip-booking', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: leadId }) }) } catch {}
-            }
-            onComplete?.()
-          }}
+          onClick={handleSkip}
           className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${dark ? 'text-white/60 hover:text-white/80' : 'text-gray-400 hover:text-gray-600'}`}
         >
           Skip — I&apos;ll schedule later
