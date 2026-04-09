@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import BookingCalendar from './BookingCalendar'
 
 export default function HomeQuoteForm({ services }) {
   const [formData, setFormData] = useState({
@@ -10,6 +11,8 @@ export default function HomeQuoteForm({ services }) {
     service_type: '',
   })
   const [status, setStatus] = useState('idle')
+  const [leadId, setLeadId] = useState(null)
+  const [leadName, setLeadName] = useState('')
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -29,30 +32,44 @@ export default function HomeQuoteForm({ services }) {
 
       if (!response.ok) throw new Error('Failed to submit')
 
-      setStatus('success')
+      const result = await response.json()
+      setLeadId(result.data?.id || null)
+      setLeadName(formData.name)
+      setStatus('booking')
       setFormData({ name: '', email: '', phone: '', service_type: '' })
     } catch (error) {
       setStatus('error')
     }
   }
 
-  if (status === 'success') {
-    return (
-      <div className="text-center py-8">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+  if (status === 'booking' || status === 'complete') {
+    if (status === 'complete') {
+      return (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-[#273373] mb-2">Thank You!</h3>
+          <p className="text-gray-600 mb-4">We&apos;ll contact you shortly.</p>
+          <button
+            onClick={() => { setStatus('idle'); setLeadId(null) }}
+            className="text-[#115997] font-semibold hover:underline"
+          >
+            Submit another request
+          </button>
         </div>
-        <h3 className="text-xl font-bold text-[#273373] mb-2">Thank You!</h3>
-        <p className="text-gray-600 mb-4">We&apos;ll contact you shortly.</p>
-        <button
-          onClick={() => setStatus('idle')}
-          className="text-[#115997] font-semibold hover:underline"
-        >
-          Submit another request
-        </button>
-      </div>
+      )
+    }
+
+    return (
+      <BookingCalendar
+        leadId={leadId}
+        leadName={leadName}
+        variant="light"
+        onComplete={() => setStatus('complete')}
+      />
     )
   }
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import BookingCalendar from './BookingCalendar'
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ export default function ContactForm() {
     message: '',
   })
   const [status, setStatus] = useState('idle')
+  const [leadId, setLeadId] = useState(null)
+  const [leadName, setLeadName] = useState('')
 
   const serviceOptions = [
     'Basement Waterproofing',
@@ -41,28 +44,42 @@ export default function ContactForm() {
 
       if (!response.ok) throw new Error('Failed to submit')
 
-      setStatus('success')
+      const result = await response.json()
+      setLeadId(result.data?.id || null)
+      setLeadName(formData.name)
+      setStatus('booking')
       setFormData({ name: '', email: '', phone: '', service_type: '', message: '' })
     } catch (error) {
       setStatus('error')
     }
   }
 
-  if (status === 'success') {
+  if (status === 'booking' || status === 'complete') {
+    if (status === 'complete') {
+      return (
+        <div className="bg-green-500/20 backdrop-blur-sm rounded-xl p-8 text-center">
+          <svg className="w-16 h-16 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-2xl font-bold text-white mb-2">Thank You!</h3>
+          <p className="text-white/90 mb-4">We&apos;ve received your request and will contact you shortly.</p>
+          <button
+            onClick={() => { setStatus('idle'); setLeadId(null) }}
+            className="px-6 py-2 bg-white text-[#273373] rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+          >
+            Submit Another Request
+          </button>
+        </div>
+      )
+    }
+
     return (
-      <div className="bg-green-500/20 backdrop-blur-sm rounded-xl p-8 text-center">
-        <svg className="w-16 h-16 text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h3 className="text-2xl font-bold text-white mb-2">Thank You!</h3>
-        <p className="text-white/90 mb-4">We&apos;ve received your request and will contact you shortly.</p>
-        <button
-          onClick={() => setStatus('idle')}
-          className="px-6 py-2 bg-white text-[#273373] rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-        >
-          Submit Another Request
-        </button>
-      </div>
+      <BookingCalendar
+        leadId={leadId}
+        leadName={leadName}
+        variant="dark"
+        onComplete={() => setStatus('complete')}
+      />
     )
   }
 

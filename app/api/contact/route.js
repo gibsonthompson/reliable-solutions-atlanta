@@ -29,6 +29,12 @@ function formatPhoneForSms(phone) {
   return null
 }
 
+function formatDateForSms(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+}
+
 function isSpam({ name, email, message }) {
   // 1. Gibberish name detection
   if (name) {
@@ -53,16 +59,12 @@ function isSpam({ name, email, message }) {
   if (message) {
     const msgLower = message.toLowerCase()
 
-    // Exact keyword matches
     const spamKeywords = [
-      // SEO spam
       'seo', 'search engine optimization', 'backlink', 'link building',
       'rank your website', 'first page of google', 'domain authority',
-      // Cold outreach / VA / agency pitches
       'virtual assistant', 'cold calling', 'appointment setting',
       'lead generation', 'social media management', 'bookkeeping',
       'outsourc', 'offshore', 'filipino', 'philippines',
-      // Sales pitch patterns
       'enhance your client', 'boost your client', 'grow your business',
       'scale your business', 'increase your revenue', 'increase your sales',
       'open to a quick', '15-minute', '15 minute', 'quick conversation',
@@ -70,20 +72,16 @@ function isSpam({ name, email, message }) {
       'schedule a call', 'hop on a call', 'jump on a call',
       'i\'d love to show you', 'i\'d love to discuss', 'let me show you',
       'love to connect', 'love to chat',
-      // Web dev / marketing spam
       'web development services', 'web design services', 'digital marketing services',
       'marketing agency', 'staffing solution', 'staffing service',
       'content creation service', 'customer support service',
       'we provide expert', 'we specialize in', 'we offer a wide range',
       'we can help enhance', 'we can help grow', 'we can help boost',
-      // AI/tech spam
       'ai chatbot', 'ai solution', 'automation service',
-      // Generic B2B spam
       'b2b lead', 'qualified leads', 'warm leads',
       'email campaign', 'email marketing', 'bulk email',
       'pay per click', 'ppc management', 'google ads management',
       'facebook ads management', 'roi guarantee',
-      // Spam closers
       'interested in learning more', 'would you be open', 'are you open to',
       'shall i send', 'can i send you', 'let me send you',
       'unsubscribe', 'opt out', 'opt-out',
@@ -113,13 +111,12 @@ export async function POST(request) {
     if (error) { console.error('Supabase error:', error); return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 }) }
 
     if (!isManualEntry) {
+      // Internal notification — fires immediately so you know about the lead
       const smsBody = ['New Lead - RSA', name, phone, service_type, message ? message : null].filter(Boolean).join('\n')
       await sendSms(process.env.RSA_NOTIFICATION_PHONE, smsBody)
-      const leadPhone = formatPhoneForSms(phone)
-      if (leadPhone) {
-        const firstName = name.split(' ')[0]
-        await sendSms(leadPhone, `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! We received your request for ${service_type}. Our team will be calling you shortly to schedule your free inspection. If you need us sooner, call or text 770-895-2039. - RSA Team`)
-      }
+
+      // Customer SMS is NOT sent here anymore — it fires on PATCH when they pick a date,
+      // or via the /api/contact/skip-booking endpoint if they skip the calendar
     }
     return NextResponse.json({ success: true, data })
   } catch (error) { console.error('API error:', error); return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
@@ -145,7 +142,7 @@ export async function GET(request) {
 export async function PATCH(request) {
   try {
     const body = await request.json()
-    const { id, status, notes, next_follow_up, scheduled_date, scheduled_time, quoted_amount, address, close_reason, assigned_to } = body
+    const { id, status, notes, next_follow_up, scheduled_date, scheduled_time, quoted_amount, address, close_reason, assigned_to, booked_by_customer } = body
     if (!id) return NextResponse.json({ error: 'Missing submission ID' }, { status: 400 })
 
     const updateData = {}
@@ -162,6 +159,22 @@ export async function PATCH(request) {
     const { data, error } = await supabase.from('contact_submissions').update(updateData).eq('id', id).select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)').single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+    // Customer booked a date from the website calendar (not admin)
+    if (booked_by_customer && scheduled_date && data) {
+      const firstName = data.name?.split(' ')[0] || ''
+      const leadPhone = formatPhoneForSms(data.phone)
+      const dateFormatted = formatDateForSms(scheduled_date)
+      const timeStr = scheduled_time ? ` at ${scheduled_time}` : ''
+
+      // Customer confirmation SMS — single text with the date included
+      if (leadPhone) {
+        await sendSms(leadPhone, `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! Your free estimate for ${data.service_type} is scheduled for ${dateFormatted}${timeStr}. If you need to reschedule, call or text 770-895-2039. - RSA Team`)
+      }
+
+      // Internal notification — you know they picked a date
+      await sendSms(process.env.RSA_NOTIFICATION_PHONE, `📅 Estimate Booked\n${data.name}\n${data.phone}\n${data.service_type}\n${dateFormatted}${timeStr}`)
+    }
+
     return NextResponse.json({ success: true, data })
-  } catch (error) { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
+  } catch (error) { console.error('API error:', error); return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
 }
