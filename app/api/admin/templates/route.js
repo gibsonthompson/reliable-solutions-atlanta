@@ -29,10 +29,15 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { name, subject, body: templateBody, category, is_default } = body
+    const { name, subject, body: templateBody, category, is_default, type } = body
+    const templateType = type || 'email'
 
-    if (!name || !subject || !templateBody) {
-      return NextResponse.json({ error: 'Name, subject, and body are required' }, { status: 400 })
+    if (!name || !templateBody) {
+      return NextResponse.json({ error: 'Name and body are required' }, { status: 400 })
+    }
+
+    if (templateType === 'email' && !subject) {
+      return NextResponse.json({ error: 'Subject is required for email templates' }, { status: 400 })
     }
 
     // If setting as default, unset existing defaults
@@ -45,7 +50,14 @@ export async function POST(request) {
 
     const { data, error } = await supabase
       .from('rsa_email_templates')
-      .insert([{ name, subject, body: templateBody, category: category || 'general', is_default: is_default || false }])
+      .insert([{
+        name,
+        subject: subject || null,
+        body: templateBody,
+        category: category || 'general',
+        is_default: is_default || false,
+        type: templateType,
+      }])
       .select()
       .single()
 
@@ -63,7 +75,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const body = await request.json()
-    const { id, name, subject, body: templateBody, category, is_default } = body
+    const { id, name, subject, body: templateBody, category, is_default, type } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Template ID required' }, { status: 400 })
@@ -80,10 +92,11 @@ export async function PUT(request) {
 
     const updateData = {}
     if (name !== undefined) updateData.name = name
-    if (subject !== undefined) updateData.subject = subject
+    if (subject !== undefined) updateData.subject = subject || null
     if (templateBody !== undefined) updateData.body = templateBody
     if (category !== undefined) updateData.category = category
     if (is_default !== undefined) updateData.is_default = is_default
+    if (type !== undefined) updateData.type = type
     updateData.updated_at = new Date().toISOString()
 
     const { data, error } = await supabase
