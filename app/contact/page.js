@@ -44,10 +44,10 @@ export default function ContactPage() {
       <section className="py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
-            {/* Map */}
+            {/* Map - pb= format from Google Maps Share > Embed (no API key needed) */}
             <div className="h-[450px] rounded-xl overflow-hidden shadow-lg">
               <iframe
-                src="https://www.google.com/maps?q=Lawrenceville,+GA+30043&z=11&output=embed"
+                src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d106009.7!2d-84.006166!3d33.996318!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sus!4v1713024000000!5m2!1sen!2sus"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
