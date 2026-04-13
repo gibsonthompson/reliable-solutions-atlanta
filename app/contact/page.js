@@ -47,7 +47,7 @@ export default function ContactPage() {
             {/* Map */}
             <div className="h-[450px] rounded-xl overflow-hidden shadow-lg">
               <iframe
-                src="https://maps.google.com/maps?q=Lawrenceville,+GA+30043&t=&z=11&ie=UTF8&iwloc=&output=embed"
+                src="https://www.google.com/maps?q=Lawrenceville,+GA+30043&z=11&output=embed"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
