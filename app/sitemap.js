@@ -532,6 +532,30 @@ export default function sitemap() {
     // BLOG POSTS - Foundation Repair
     // =============================================
     {
+      url: `${baseUrl}/blog/signs-your-home-needs-foundation-repair`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-repair-methods-guide`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/foundation-problems-buying-home-atlanta`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/can-you-live-in-house-during-foundation-repair`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/blog/bowing-basement-walls-atlanta`,
       lastModified: new Date(),
       changeFrequency: 'monthly',

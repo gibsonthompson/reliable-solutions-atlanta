@@ -10,6 +10,42 @@ export const metadata = {
 
 const blogPosts = [
   {
+    slug: 'can-you-live-in-house-during-foundation-repair',
+    title: 'Can You Stay in Your House During Foundation Repair?',
+    excerpt: 'Yes \u2014 in most cases you can stay home during foundation repair. Learn what to expect, how long it takes, and the few situations where temporary relocation makes sense.',
+    date: 'April 21, 2026',
+    readTime: '5 min read',
+    category: 'Foundation Repair',
+    image: '/images/waterproofing-truck-atlanta-job-site.png',
+  },
+  {
+    slug: 'foundation-problems-buying-home-atlanta',
+    title: 'Foundation Problems When Buying a Home in Atlanta: What You Need to Know',
+    excerpt: 'Buying a home in Metro Atlanta? Learn how to spot foundation issues, what they cost to fix, when to walk away, and how to negotiate repairs.',
+    date: 'April 18, 2026',
+    readTime: '8 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+  },
+  {
+    slug: 'foundation-repair-methods-guide',
+    title: 'Foundation Repair Methods Explained: A Complete Guide for Atlanta Homeowners',
+    excerpt: 'Push piers, helical piers, carbon fiber, wall anchors \u2014 confused by the options? This guide explains every method, when each is used, and what it costs.',
+    date: 'April 15, 2026',
+    readTime: '9 min read',
+    category: 'Foundation Repair',
+    image: '/images/portfolio/foundation-excavation-crew.png',
+  },
+  {
+    slug: 'signs-your-home-needs-foundation-repair',
+    title: "10 Signs Your Home Needs Foundation Repair (Don't Ignore #4)",
+    excerpt: 'Cracks, sticking doors, and sloping floors could mean foundation trouble. Learn the 10 warning signs that your Atlanta home needs professional foundation repair.',
+    date: 'April 12, 2026',
+    readTime: '8 min read',
+    category: 'Foundation Repair',
+    image: '/images/foundation-repair-atlanta.png',
+  },
+  {
     slug: 'helical-piers-vs-push-piers',
     title: 'Helical Piers vs Push Piers: Which Foundation Fix Is Right for Your Atlanta Home?',
     excerpt: 'Both helical piers and push piers stabilize settling foundations, but they work differently and cost differently. Learn which method fits your Metro Atlanta home and soil conditions.',
@@ -21,7 +57,7 @@ const blogPosts = [
   {
     slug: 'basement-waterproofing-myths',
     title: '5 Basement Waterproofing Myths That Cost Atlanta Homeowners Thousands',
-    excerpt: 'Waterproof paint, flex seal, and "just fix the gutters" \u2014 these common myths about basement waterproofing lead to wasted money and worse damage. Here\'s the truth.',
+    excerpt: "Waterproof paint, flex seal, and \"just fix the gutters\" \u2014 these common myths about basement waterproofing lead to wasted money and worse damage. Here's the truth.",
     date: 'April 8, 2026',
     readTime: '6 min read',
     category: 'Basement Waterproofing',
@@ -48,7 +84,7 @@ const blogPosts = [
   {
     slug: 'how-basement-waterproofing-works',
     title: 'How Does Basement Waterproofing Work? A Step-by-Step Guide for Atlanta Homeowners',
-    excerpt: 'Learn exactly what happens during a professional basement waterproofing installation. From the initial inspection to the finished system, here\'s the full process for Metro Atlanta homes.',
+    excerpt: "Learn exactly what happens during a professional basement waterproofing installation. From the initial inspection to the finished system, here's the full process for Metro Atlanta homes.",
     date: 'April 2, 2026',
     readTime: '8 min read',
     category: 'Basement Waterproofing',
@@ -66,7 +102,7 @@ const blogPosts = [
   {
     slug: 'diy-vs-professional-waterproofing',
     title: 'DIY vs Professional Basement Waterproofing: What Actually Works in Atlanta',
-    excerpt: 'Thinking about waterproofing your basement yourself? Learn which fixes you can handle, which require a pro, and where DIY attempts backfire in Metro Atlanta homes.',
+    excerpt: "Thinking about waterproofing your basement yourself? Learn which fixes you can handle, which require a pro, and where DIY attempts backfire in Metro Atlanta homes.",
     date: 'April 2, 2026',
     readTime: '7 min read',
     category: 'Basement Waterproofing',
@@ -74,8 +110,8 @@ const blogPosts = [
   },
   {
     slug: 'atlanta-summer-heat-foundation-damage',
-    title: 'How Atlanta\'s Summer Heat Damages Your Foundation (And What to Do About It)',
-    excerpt: 'Atlanta\'s hot, dry summers cause clay soil to shrink dramatically, creating voids under your foundation. Learn how heat-related foundation damage happens and how to prevent it.',
+    title: "How Atlanta's Summer Heat Damages Your Foundation (And What to Do About It)",
+    excerpt: "Atlanta's hot, dry summers cause clay soil to shrink dramatically, creating voids under your foundation. Learn how heat-related foundation damage happens and how to prevent it.",
     date: 'April 2, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
@@ -93,7 +129,7 @@ const blogPosts = [
   {
     slug: 'bowing-basement-walls-atlanta',
     title: 'Bowing Basement Walls: Causes, Repair Options, and Costs for Atlanta Homes',
-    excerpt: 'Is your basement wall bowing, leaning, or cracking horizontally? Learn what causes bowing walls in Metro Atlanta, how they\'re repaired, and what it costs before the problem gets worse.',
+    excerpt: "Is your basement wall bowing, leaning, or cracking horizontally? Learn what causes bowing walls in Metro Atlanta, how they're repaired, and what it costs before the problem gets worse.",
     date: 'March 15, 2026',
     readTime: '8 min read',
     category: 'Foundation Repair',
@@ -102,7 +138,7 @@ const blogPosts = [
   {
     slug: 'does-foundation-repair-increase-home-value',
     title: 'Does Foundation Repair Increase Home Value? What Atlanta Homeowners Need to Know',
-    excerpt: 'Wondering if foundation repair is worth the investment? Learn how foundation problems affect your home\'s value, what repairs cost vs. what they save, and how to protect your biggest asset.',
+    excerpt: "Wondering if foundation repair is worth the investment? Learn how foundation problems affect your home's value, what repairs cost vs. what they save, and how to protect your biggest asset.",
     date: 'March 15, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
@@ -111,7 +147,7 @@ const blogPosts = [
   {
     slug: 'french-drain-cost-atlanta',
     title: 'How Much Does French Drain Installation Cost in Atlanta?',
-    excerpt: 'Realistic French drain installation pricing for Metro Atlanta. Compare interior vs. exterior costs, learn what affects your price, and understand when a French drain alone isn\'t enough.',
+    excerpt: "Realistic French drain installation pricing for Metro Atlanta. Compare interior vs. exterior costs, learn what affects your price, and understand when a French drain alone isn't enough.",
     date: 'March 3, 2026',
     readTime: '8 min read',
     category: 'Drainage',
@@ -119,8 +155,8 @@ const blogPosts = [
   },
   {
     slug: 'yard-drainage-problems-foundation-damage',
-    title: '5 Signs Your Yard Has a Drainage Problem (And Why It\'s Threatening Your Foundation)',
-    excerpt: 'Standing water, soggy soil, and erosion aren\'t just yard problems\u2014they\'re foundation threats. Learn the warning signs of poor yard drainage and how to fix them before serious damage occurs.',
+    title: "5 Signs Your Yard Has a Drainage Problem (And Why It's Threatening Your Foundation)",
+    excerpt: "Standing water, soggy soil, and erosion aren't just yard problems\u2014they're foundation threats. Learn the warning signs of poor yard drainage and how to fix them before serious damage occurs.",
     date: 'March 3, 2026',
     readTime: '7 min read',
     category: 'Drainage',
@@ -129,7 +165,7 @@ const blogPosts = [
   {
     slug: 'retaining-wall-repair-cost-atlanta',
     title: 'Retaining Wall Repair: Signs, Costs, and Solutions for Atlanta Homeowners',
-    excerpt: 'Leaning, cracking, or bulging retaining wall? Learn the warning signs of failure, realistic repair costs for Metro Atlanta, and when repair vs. rebuild is the right call.',
+    excerpt: "Leaning, cracking, or bulging retaining wall? Learn the warning signs of failure, realistic repair costs for Metro Atlanta, and when repair vs. rebuild is the right call.",
     date: 'March 3, 2026',
     readTime: '8 min read',
     category: 'Concrete Repair',
@@ -138,7 +174,7 @@ const blogPosts = [
   {
     slug: 'concrete-repair-cost-atlanta',
     title: 'How Much Does Concrete Repair Cost in Atlanta?',
-    excerpt: 'Realistic concrete repair pricing for Metro Atlanta. Compare costs for leveling, crack repair, replacement, and masonry work\u2014plus what drives costs up or down.',
+    excerpt: "Realistic concrete repair pricing for Metro Atlanta. Compare costs for leveling, crack repair, replacement, and masonry work\u2014plus what drives costs up or down.",
     date: 'February 18, 2026',
     readTime: '8 min read',
     category: 'Concrete Repair',
@@ -156,7 +192,7 @@ const blogPosts = [
   {
     slug: 'signs-concrete-needs-repair',
     title: '6 Signs Your Concrete Needs Repair Before It Gets Worse',
-    excerpt: 'Cracked driveway? Uneven sidewalk? Learn the warning signs that your concrete needs professional repair\u2014and why waiting costs more in Metro Atlanta.',
+    excerpt: "Cracked driveway? Uneven sidewalk? Learn the warning signs that your concrete needs professional repair\u2014and why waiting costs more in Metro Atlanta.",
     date: 'February 15, 2026',
     readTime: '6 min read',
     category: 'Concrete Repair',
@@ -192,7 +228,7 @@ const blogPosts = [
   {
     slug: 'how-to-choose-waterproofing-contractor-atlanta',
     title: 'How to Choose a Waterproofing Contractor in Atlanta (Without Getting Scammed)',
-    excerpt: 'Not all waterproofing contractors are created equal. Learn the red flags, right questions, and what to look for when hiring in Metro Atlanta.',
+    excerpt: "Not all waterproofing contractors are created equal. Learn the red flags, right questions, and what to look for when hiring in Metro Atlanta.",
     date: 'February 8, 2026',
     readTime: '7 min read',
     category: 'Basement Waterproofing',
@@ -201,7 +237,7 @@ const blogPosts = [
   {
     slug: 'foundation-crack-types-atlanta',
     title: 'Types of Foundation Cracks and What They Mean for Your Atlanta Home',
-    excerpt: 'Not all foundation cracks are created equal. Learn which cracks are cosmetic, which signal structural problems, and when to call a professional.',
+    excerpt: "Not all foundation cracks are created equal. Learn which cracks are cosmetic, which signal structural problems, and when to call a professional.",
     date: 'February 6, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
@@ -228,7 +264,7 @@ const blogPosts = [
   {
     slug: 'signs-foundation-settling-vs-structural-damage',
     title: 'Foundation Settling vs. Structural Damage: How to Tell the Difference',
-    excerpt: 'Every house settles, but not every crack means your foundation is failing. Learn when settling is normal and when it signals a serious problem.',
+    excerpt: "Every house settles, but not every crack means your foundation is failing. Learn when settling is normal and when it signals a serious problem.",
     date: 'January 31, 2026',
     readTime: '7 min read',
     category: 'Foundation Repair',
@@ -281,7 +317,7 @@ const blogPosts = [
   },
   {
     slug: 'basement-waterproofing-vs-damp-proofing',
-    title: 'Waterproofing vs. Damp-Proofing: Why the Difference Matters for Your Basement',
+    title: "Waterproofing vs. Damp-Proofing: Why the Difference Matters for Your Basement",
     excerpt: "Many Atlanta homes were built with damp-proofing, not waterproofing. Learn the critical difference and why damp-proofing fails in Georgia's climate.",
     date: 'January 20, 2026',
     readTime: '6 min read',
@@ -321,43 +357,24 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header activePage="blog" />
-
-      {/* Hero Section */}
       <section className="pt-10 pb-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#273373] font-display mb-4">
-              Expert Tips & Advice
-            </h1>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#273373] font-display mb-4">Expert Tips & Advice</h1>
             <div className="w-64 h-1.5 bg-gradient-to-r from-[#115997] to-[#84d2f2] mx-auto rounded-full mb-6"></div>
-            <p className="text-gray-700 text-lg max-w-2xl mx-auto">
-              Helpful resources for Atlanta homeowners dealing with water damage, foundation issues, and crawl space problems.
-            </p>
+            <p className="text-gray-700 text-lg max-w-2xl mx-auto">Helpful resources for Atlanta homeowners dealing with water damage, foundation issues, and crawl space problems.</p>
           </div>
         </div>
       </section>
-
-      {/* Blog Posts Grid */}
       <section className="py-12 md:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogPosts.map((post) => (
-              <Link 
-                key={post.slug} 
-                href={`/blog/${post.slug}`}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group"
-              >
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group">
                 <div className="relative h-48">
-                  <Image
-                    src={post.image}
-                    alt={post.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <span className="absolute bottom-4 left-4 text-white text-sm font-medium px-4 py-1.5 bg-[#115997]/90 rounded-full">
-                    {post.category}
-                  </span>
+                  <span className="absolute bottom-4 left-4 text-white text-sm font-medium px-4 py-1.5 bg-[#115997]/90 rounded-full">{post.category}</span>
                 </div>
                 <div className="p-6">
                   <div className="flex items-center text-sm text-gray-500 mb-3">
@@ -365,17 +382,11 @@ export default function BlogPage() {
                     <span className="mx-2">&bull;</span>
                     <span>{post.readTime}</span>
                   </div>
-                  <h2 className="text-xl font-bold text-[#273373] mb-3 group-hover:text-[#115997] transition-colors">
-                    {post.title}
-                  </h2>
-                  <p className="text-gray-600 mb-4">
-                    {post.excerpt}
-                  </p>
+                  <h2 className="text-xl font-bold text-[#273373] mb-3 group-hover:text-[#115997] transition-colors">{post.title}</h2>
+                  <p className="text-gray-600 mb-4">{post.excerpt}</p>
                   <span className="inline-flex items-center gap-2 text-[#115997] font-semibold group-hover:gap-3 transition-all">
                     Read More
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                   </span>
                 </div>
               </Link>
@@ -383,66 +394,38 @@ export default function BlogPage() {
           </div>
         </div>
       </section>
-
-      {/* Quick & Reliable CTA */}
       <section className="py-12 bg-[#115997]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-white font-display italic">
-                Have a Water Problem?
-              </h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-white font-display italic">Have a Water Problem?</h2>
               <p className="text-white/80 mt-1">Contact us for a free inspection and estimate</p>
             </div>
-            <a 
-              href="tel:770-895-2039"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-[#84d2f2] text-[#273373] rounded-lg font-semibold hover:bg-white transition-all duration-200"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
+            <a href="tel:770-895-2039" className="inline-flex items-center gap-3 px-8 py-4 bg-[#84d2f2] text-[#273373] rounded-lg font-semibold hover:bg-white transition-all duration-200">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
               Call us 770-895-2039
             </a>
           </div>
         </div>
       </section>
-
-      {/* Contact Info Bar */}
       <section className="py-8 bg-[#1a1a1a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8">
             <div className="flex items-center gap-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <div>
-                <h4 className="text-white font-semibold">Location</h4>
-                <p className="text-gray-400">Atlanta, GA</p>
-              </div>
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <div><h4 className="text-white font-semibold">Location</h4><p className="text-gray-400">Atlanta, GA</p></div>
             </div>
             <div className="flex items-center gap-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <div>
-                <h4 className="text-white font-semibold">Email</h4>
-                <a href="mailto:rsolrepair@gmail.com" className="text-gray-400 hover:text-[#84d2f2]">rsolrepair@gmail.com</a>
-              </div>
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+              <div><h4 className="text-white font-semibold">Email</h4><a href="mailto:rsolrepair@gmail.com" className="text-gray-400 hover:text-[#84d2f2]">rsolrepair@gmail.com</a></div>
             </div>
             <div className="flex items-center gap-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-              <div>
-                <h4 className="text-white font-semibold">Call or Text</h4>
-                <a href="tel:770-895-2039" className="text-gray-400 hover:text-[#84d2f2]">770-895-2039</a>
-              </div>
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              <div><h4 className="text-white font-semibold">Call or Text</h4><a href="tel:770-895-2039" className="text-gray-400 hover:text-[#84d2f2]">770-895-2039</a></div>
             </div>
           </div>
         </div>
       </section>
-
       <Footer />
     </div>
   )
