@@ -16,14 +16,14 @@ export async function GET() {
       .order('created_at', { ascending: true })
 
     if (error) {
-      // Table might not exist yet — return empty
-      console.error('[Categories GET] Supabase error:', error)
-      return NextResponse.json({ categories: [] })
+      console.error('[Categories GET]', error)
+      return NextResponse.json({ error: error.message, hint: error.hint }, { status: 500 })
     }
 
     return NextResponse.json({ categories: data })
   } catch (error) {
-    return NextResponse.json({ categories: [] })
+    console.error('[Categories GET] Server error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
@@ -59,14 +59,14 @@ export async function POST(request) {
       .single()
 
     if (error) {
-      console.error('[Categories POST] Supabase error:', error)
+      console.error('[Categories POST]', error)
       return NextResponse.json({ error: error.message, hint: error.hint }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, category: data })
   } catch (error) {
     console.error('[Categories POST] Server error:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
 
@@ -103,13 +103,13 @@ export async function DELETE(request) {
       .eq('key', key)
 
     if (error) {
-      console.error('[Categories DELETE] Supabase error:', error)
+      console.error('[Categories DELETE]', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[Categories DELETE] Server error:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

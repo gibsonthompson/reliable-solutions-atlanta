@@ -16,7 +16,7 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('[Templates GET] Supabase error:', error)
+      console.error('[Templates GET]', error)
       return NextResponse.json({ error: error.message, code: error.code, details: error.details }, { status: 500 })
     }
 
@@ -31,7 +31,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { name, subject, body: templateBody, category, is_default, type } = body
+    const { name, subject, body: templateBody, category, pipeline_stage, is_default, type } = body
     const templateType = type || 'email'
 
     if (!name || !templateBody) {
@@ -42,7 +42,6 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Subject is required for email templates' }, { status: 400 })
     }
 
-    // If setting as default, unset existing defaults for this type
     if (is_default) {
       await supabase
         .from('rsa_email_templates')
@@ -56,6 +55,7 @@ export async function POST(request) {
       subject: templateType === 'email' ? subject : null,
       body: templateBody,
       category: category || 'general',
+      pipeline_stage: pipeline_stage || null,
       is_default: is_default || false,
       type: templateType,
     }
@@ -69,13 +69,8 @@ export async function POST(request) {
       .single()
 
     if (error) {
-      console.error('[Templates POST] Supabase error:', error)
-      return NextResponse.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      }, { status: 500 })
+      console.error('[Templates POST]', error)
+      return NextResponse.json({ error: error.message, code: error.code, details: error.details, hint: error.hint }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, template: data })
@@ -89,13 +84,12 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     const body = await request.json()
-    const { id, name, subject, body: templateBody, category, is_default, type } = body
+    const { id, name, subject, body: templateBody, category, pipeline_stage, is_default, type } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Template ID required' }, { status: 400 })
     }
 
-    // If setting as default, unset existing defaults for this type
     if (is_default && type) {
       await supabase
         .from('rsa_email_templates')
@@ -110,6 +104,7 @@ export async function PUT(request) {
     if (subject !== undefined) updateData.subject = subject || null
     if (templateBody !== undefined) updateData.body = templateBody
     if (category !== undefined) updateData.category = category
+    if (pipeline_stage !== undefined) updateData.pipeline_stage = pipeline_stage || null
     if (is_default !== undefined) updateData.is_default = is_default
     if (type !== undefined) updateData.type = type
     updateData.updated_at = new Date().toISOString()
@@ -124,13 +119,8 @@ export async function PUT(request) {
       .single()
 
     if (error) {
-      console.error('[Templates PUT] Supabase error:', error)
-      return NextResponse.json({
-        error: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      }, { status: 500 })
+      console.error('[Templates PUT]', error)
+      return NextResponse.json({ error: error.message, code: error.code, details: error.details, hint: error.hint }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, template: data })
@@ -156,7 +146,7 @@ export async function DELETE(request) {
       .eq('id', id)
 
     if (error) {
-      console.error('[Templates DELETE] Supabase error:', error)
+      console.error('[Templates DELETE]', error)
       return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
     }
 

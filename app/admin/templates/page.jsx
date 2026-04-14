@@ -2,32 +2,43 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-const DEFAULT_CATEGORIES = [
-  { key: 'new_lead', label: 'New Lead', desc: 'First contact with a new lead', is_default: true },
-  { key: 'contacted', label: 'Contacted', desc: 'After speaking with the lead', is_default: true },
-  { key: 'estimate_sent', label: 'Estimate Sent', desc: 'Inspection done, estimate delivered', is_default: true },
-  { key: 'booked', label: 'Booked', desc: 'Job is scheduled and confirmed', is_default: true },
-  { key: 'done', label: 'Done', desc: 'Job complete, follow-up and reviews', is_default: true },
-  { key: 'lost', label: 'Lost', desc: 'Lead didn\'t move forward', is_default: true },
-  { key: 'partner', label: 'Partner Outreach', desc: 'Outreach to partners and referral sources', is_default: true },
-  { key: 'general', label: 'General', desc: 'Other templates', is_default: true },
+const PIPELINE_STAGES = [
+  { key: 'initial_outreach', label: 'Initial Outreach' },
+  { key: 'follow_up', label: 'Follow-up' },
+  { key: 'estimate', label: 'Estimate' },
+  { key: 'booked', label: 'Booked' },
+  { key: 'post_job', label: 'Post-Job' },
+  { key: 'win_back', label: 'Win Back' },
+]
+
+const FALLBACK_CATEGORIES = [
+  { key: 'homeowner', label: 'Homeowner', desc: 'Direct outreach to homeowners', is_default: true },
+  { key: 'realtor', label: 'Realtor', desc: 'Real estate agent outreach and follow-up', is_default: true },
+  { key: 'plumber', label: 'Plumber', desc: 'Plumber referral partner outreach', is_default: true },
+  { key: 'contractor', label: 'Contractor', desc: 'General contractor partner outreach', is_default: true },
+  { key: 'insurance', label: 'Insurance', desc: 'Insurance adjuster/agent outreach', is_default: true },
+  { key: 'government', label: 'Government Agency', desc: 'Government and municipal outreach', is_default: true },
+  { key: 'property_mgr', label: 'Property Manager', desc: 'Property management company outreach', is_default: true },
+  { key: 'general', label: 'General', desc: 'Templates that work for any audience', is_default: true },
 ]
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState([])
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES)
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES)
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState(null) // null | 'new' | template id
+  const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState(null) // { type: 'success' | 'error', msg: string }
+  const [toast, setToast] = useState(null)
   const [typeFilter, setTypeFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [showHelp, setShowHelp] = useState(false)
   const [showCategoryMgr, setShowCategoryMgr] = useState(false)
   const [newCatName, setNewCatName] = useState('')
   const [newCatDesc, setNewCatDesc] = useState('')
   const [expandedCard, setExpandedCard] = useState(null)
-  const [formData, setFormData] = useState({ name: '', subject: '', body: '', category: 'new_lead', is_default: false, type: 'sms' })
+  const [formData, setFormData] = useState({
+    name: '', subject: '', body: '', category: 'homeowner',
+    pipeline_stage: '', is_default: false, type: 'sms'
+  })
   const editRef = useRef(null)
 
   const showToast = (type, msg) => { setToast({ type, msg }); setTimeout(() => setToast(null), 4000) }
@@ -47,19 +58,17 @@ export default function TemplatesPage() {
   const fetchCategories = async () => {
     try {
       const r = await fetch('/api/admin/templates/categories')
-      if (r.ok) {
-        const d = await r.json()
-        if (d.categories?.length) {
-          // Merge DB categories with defaults, DB takes precedence
-          const dbKeys = new Set(d.categories.map(c => c.key))
-          const merged = [
-            ...d.categories.map(c => ({ ...c })),
-            ...DEFAULT_CATEGORIES.filter(c => !dbKeys.has(c.key))
-          ]
-          setCategories(merged)
-        }
+      const d = await r.json()
+      if (!r.ok) { showToast('error', `Categories: ${d.error || r.status}`); return }
+      if (d.categories?.length) {
+        setCategories(d.categories.map(c => ({
+          key: c.key, label: c.label, desc: c.desc, is_default: c.is_default
+        })))
       }
-    } catch (e) { /* categories endpoint may not exist yet, use defaults */ }
+    } catch (e) {
+      // Endpoint doesn't exist yet — use fallback defaults
+      console.warn('Categories endpoint not available, using defaults')
+    }
   }
 
   const handleEdit = (template) => {
@@ -69,6 +78,7 @@ export default function TemplatesPage() {
       subject: template.subject || '',
       body: template.body,
       category: template.category || 'general',
+      pipeline_stage: template.pipeline_stage || '',
       is_default: template.is_default || false,
       type: template.type || 'email'
     })
@@ -77,7 +87,7 @@ export default function TemplatesPage() {
 
   const handleNew = () => {
     setEditing('new')
-    setFormData({ name: '', subject: '', body: '', category: 'new_lead', is_default: false, type: 'sms' })
+    setFormData({ name: '', subject: '', body: '', category: 'homeowner', pipeline_stage: 'initial_outreach', is_default: false, type: 'sms' })
     setTimeout(() => editRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
   }
 
@@ -130,28 +140,26 @@ export default function TemplatesPage() {
     if (!newCatName.trim()) return
     const key = newCatName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
     if (categories.some(c => c.key === key)) { showToast('error', 'Category already exists'); return }
+    const label = newCatName.trim()
+    const desc = newCatDesc.trim() || `Templates for ${label}`
 
     try {
       const r = await fetch('/api/admin/templates/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key, label: newCatName.trim(), desc: newCatDesc.trim() || `Templates for ${newCatName.trim()}` })
+        body: JSON.stringify({ key, label, desc })
       })
-      if (r.ok) {
-        setCategories(prev => [...prev, { key, label: newCatName.trim(), desc: newCatDesc.trim() || `Templates for ${newCatName.trim()}`, is_default: false }])
-        setNewCatName('')
-        setNewCatDesc('')
-        showToast('success', 'Category added')
-      } else {
-        const d = await r.json()
+      const d = await r.json()
+      if (!r.ok) {
         showToast('error', d.error || 'Failed to add category')
+        return
       }
-    } catch (e) {
-      // If endpoint doesn't exist yet, just add locally
-      setCategories(prev => [...prev, { key, label: newCatName.trim(), desc: newCatDesc.trim() || `Templates for ${newCatName.trim()}`, is_default: false }])
+      setCategories(prev => [...prev, { key, label, desc, is_default: false }])
       setNewCatName('')
       setNewCatDesc('')
-      showToast('success', 'Category added locally')
+      showToast('success', `"${label}" category added`)
+    } catch (e) {
+      showToast('error', `Error: ${e.message}`)
     }
   }
 
@@ -162,35 +170,38 @@ export default function TemplatesPage() {
     if (usedCount > 0 && !confirm(`${usedCount} template(s) use this category. They'll move to "General". Continue?`)) return
 
     try {
-      await fetch('/api/admin/templates/categories', {
+      const r = await fetch('/api/admin/templates/categories', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key })
       })
-    } catch (e) { /* proceed locally */ }
+      if (!r.ok) {
+        const d = await r.json()
+        showToast('error', d.error || 'Failed to delete')
+        return
+      }
+    } catch (e) {
+      showToast('error', `Error: ${e.message}`)
+      return
+    }
 
     setCategories(prev => prev.filter(c => c.key !== key))
     if (categoryFilter === key) setCategoryFilter('all')
-    // Move orphaned templates to general
-    if (usedCount > 0) {
-      templates.filter(t => t.category === key).forEach(t => {
-        fetch('/api/admin/templates', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: t.id, category: 'general' })
-        })
-      })
-      fetchTemplates()
-    }
     showToast('success', 'Category removed')
+    fetchTemplates()
   }
 
-  // Filter + group
+  // Filter + group by audience category
   const filtered = typeFilter === 'all' ? templates : templates.filter(t => (t.type || 'email') === typeFilter)
+
   const grouped = categories.map(cat => {
     const items = filtered
       .filter(t => (t.category || 'general') === cat.key)
       .sort((a, b) => {
+        // Sort by pipeline stage, then DM-first, then alpha
+        const aStage = PIPELINE_STAGES.findIndex(s => s.key === a.pipeline_stage)
+        const bStage = PIPELINE_STAGES.findIndex(s => s.key === b.pipeline_stage)
+        if (aStage !== bStage) return (aStage === -1 ? 99 : aStage) - (bStage === -1 ? 99 : bStage)
         const aT = a.type || 'email', bT = b.type || 'email'
         if (aT === 'sms' && bT !== 'sms') return -1
         if (aT !== 'sms' && bT === 'sms') return 1
@@ -198,6 +209,8 @@ export default function TemplatesPage() {
       })
     return { ...cat, items }
   }).filter(g => g.items.length > 0).filter(g => categoryFilter === 'all' || g.key === categoryFilter)
+
+  const stageLabel = (key) => PIPELINE_STAGES.find(s => s.key === key)?.label || null
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[50vh]">
@@ -232,9 +245,6 @@ export default function TemplatesPage() {
           <button onClick={() => setShowCategoryMgr(true)} className="p-2 text-gray-400 hover:text-[#273373] hover:bg-gray-100 rounded-lg transition-colors" title="Manage categories">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" /></svg>
           </button>
-          <button onClick={() => setShowHelp(true)} className="p-2 text-gray-400 hover:text-[#273373] hover:bg-gray-100 rounded-lg transition-colors" title="Help">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          </button>
           {!editing && (
             <button onClick={handleNew} className="flex items-center gap-1.5 px-3 py-2 bg-[#115997] text-white text-sm font-medium rounded-lg hover:bg-[#273373] transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -244,38 +254,36 @@ export default function TemplatesPage() {
         </div>
       </div>
 
-      {/* Filters row */}
+      {/* Filters */}
       {!editing && (
         <div className="flex items-center gap-2 mb-3 flex-wrap">
-          {/* Type pills */}
           <div className="flex bg-gray-100 rounded-lg p-0.5">
             {[{ v: 'all', l: 'All' }, { v: 'sms', l: 'DM' }, { v: 'email', l: 'Email' }].map(f => (
               <button key={f.v} onClick={() => setTypeFilter(f.v)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                   typeFilter === f.v ? 'bg-white text-[#115997] shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                }`}>
-                {f.l}
-              </button>
+                }`}>{f.l}</button>
             ))}
           </div>
           <div className="w-px h-5 bg-gray-200" />
-          {/* Category pills */}
           <div className="flex gap-1 overflow-x-auto pb-0.5 scrollbar-hide">
             <button onClick={() => setCategoryFilter('all')}
               className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 categoryFilter === 'all' ? 'bg-[#273373] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}>All</button>
-            {categories.filter(c => templates.some(t => (t.category || 'general') === c.key)).map(c => (
-              <button key={c.key} onClick={() => setCategoryFilter(c.key)}
-                className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                  categoryFilter === c.key ? 'bg-[#273373] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}>
-                {c.label}
-                <span className={`ml-1 ${categoryFilter === c.key ? 'text-white/50' : 'text-gray-400'}`}>
-                  {filtered.filter(t => (t.category || 'general') === c.key).length}
-                </span>
-              </button>
-            ))}
+            {categories.map(c => {
+              const count = filtered.filter(t => (t.category || 'general') === c.key).length
+              if (count === 0) return null
+              return (
+                <button key={c.key} onClick={() => setCategoryFilter(c.key)}
+                  className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+                    categoryFilter === c.key ? 'bg-[#273373] text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}>
+                  {c.label}
+                  <span className={`ml-1 ${categoryFilter === c.key ? 'text-white/50' : 'text-gray-400'}`}>{count}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
@@ -290,7 +298,7 @@ export default function TemplatesPage() {
             </button>
           </div>
 
-          {/* Type toggle + Category in one row */}
+          {/* Row 1: Type + Name */}
           <div className="flex items-end gap-3 mb-3">
             <div>
               <label className="block text-[10px] uppercase tracking-wider text-gray-400 mb-1">Type</label>
@@ -307,11 +315,23 @@ export default function TemplatesPage() {
                 placeholder="Template name" style={{ fontSize: '16px' }}
                 className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997]/30 focus:border-[#115997] outline-none" />
             </div>
-            <div className="w-40">
-              <label className="block text-[10px] uppercase tracking-wider text-gray-400 mb-1">Stage</label>
+          </div>
+
+          {/* Row 2: Audience + Stage */}
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-gray-400 mb-1">Audience *</label>
               <select value={formData.category} onChange={(e) => setFormData(p => ({ ...p, category: e.target.value }))}
                 className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997]/30 focus:border-[#115997] outline-none">
                 {categories.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] uppercase tracking-wider text-gray-400 mb-1">Stage <span className="text-gray-300">(optional)</span></label>
+              <select value={formData.pipeline_stage} onChange={(e) => setFormData(p => ({ ...p, pipeline_stage: e.target.value }))}
+                className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997]/30 focus:border-[#115997] outline-none">
+                <option value="">No stage</option>
+                {PIPELINE_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
               </select>
             </div>
           </div>
@@ -352,7 +372,7 @@ export default function TemplatesPage() {
         </div>
       )}
 
-      {/* Grid of templates */}
+      {/* Grid of templates grouped by audience */}
       {grouped.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm p-8 text-center">
           <p className="text-gray-400 text-sm">No templates found</p>
@@ -365,10 +385,12 @@ export default function TemplatesPage() {
               <div className="flex items-baseline gap-2 mb-2">
                 <h3 className="text-xs font-bold text-[#273373] uppercase tracking-wider">{group.label}</h3>
                 <span className="text-[10px] text-gray-300">{group.items.length}</span>
+                {group.desc && <span className="text-[10px] text-gray-300 hidden sm:inline">· {group.desc}</span>}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                 {group.items.map((t) => {
                   const isExpanded = expandedCard === t.id
+                  const stage = stageLabel(t.pipeline_stage)
                   return (
                     <div key={t.id}
                       className={`bg-white rounded-lg border transition-all cursor-pointer group ${
@@ -376,12 +398,14 @@ export default function TemplatesPage() {
                       }`}
                       onClick={() => setExpandedCard(isExpanded ? null : t.id)}>
                       <div className="p-3">
-                        {/* Card header */}
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="flex items-center gap-1.5 min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                             <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-semibold tracking-wider ${
                               (t.type || 'email') === 'sms' ? 'bg-green-50 text-green-600' : 'bg-purple-50 text-purple-600'
                             }`}>{(t.type || 'email') === 'sms' ? 'DM' : 'EMAIL'}</span>
+                            {stage && (
+                              <span className="inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-500">{stage}</span>
+                            )}
                             <p className="font-semibold text-gray-800 text-xs truncate">{t.name}</p>
                           </div>
                           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
@@ -394,9 +418,7 @@ export default function TemplatesPage() {
                             </button>
                           </div>
                         </div>
-                        {/* Subject line for email */}
                         {t.subject && (t.type || 'email') === 'email' && <p className="text-[10px] text-gray-400 truncate mb-0.5">{t.subject}</p>}
-                        {/* Body preview */}
                         {isExpanded ? (
                           <p className="text-xs text-gray-500 leading-relaxed mt-2 whitespace-pre-wrap">{t.body}</p>
                         ) : (
@@ -419,18 +441,20 @@ export default function TemplatesPage() {
             <div className="p-4 border-b border-gray-100">
               <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-[#273373]">Manage Categories</h3>
+                <div>
+                  <h3 className="text-sm font-bold text-[#273373]">Audience Categories</h3>
+                  <p className="text-[10px] text-gray-400">Who are you reaching out to?</p>
+                </div>
                 <button onClick={() => setShowCategoryMgr(false)} className="text-gray-400 hover:text-gray-600">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
               </div>
             </div>
 
-            {/* Add new */}
             <div className="p-4 border-b border-gray-100 bg-gray-50/50">
               <div className="flex gap-2">
                 <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)}
-                  placeholder="Category name (e.g. Plumber)" style={{ fontSize: '16px' }}
+                  placeholder="e.g. Inspector, HOA, Attorney" style={{ fontSize: '16px' }}
                   className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#115997]/30 focus:border-[#115997]"
                   onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()} />
                 <button onClick={handleAddCategory} disabled={!newCatName.trim()}
@@ -441,7 +465,6 @@ export default function TemplatesPage() {
                 className="w-full mt-2 px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#115997]/30 focus:border-[#115997]" />
             </div>
 
-            {/* Category list */}
             <div className="divide-y divide-gray-100">
               {categories.map((c) => {
                 const count = templates.filter(t => (t.category || 'general') === c.key).length
@@ -449,13 +472,15 @@ export default function TemplatesPage() {
                   <div key={c.key} className="px-4 py-3 flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-800">{c.label}</p>
-                      <p className="text-[10px] text-gray-400">{c.desc} · {count} template{count !== 1 ? 's' : ''}</p>
+                      <p className="text-[10px] text-gray-400">{count} template{count !== 1 ? 's' : ''}</p>
                     </div>
-                    {!c.is_default && (
+                    {!c.is_default ? (
                       <button onClick={() => handleDeleteCategory(c.key)}
                         className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded transition-colors">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
+                    ) : (
+                      <span className="text-[9px] text-gray-300 uppercase tracking-wider">Default</span>
                     )}
                   </div>
                 )
@@ -464,31 +489,6 @@ export default function TemplatesPage() {
 
             <div className="p-4 border-t border-gray-100">
               <button onClick={() => setShowCategoryMgr(false)} className="w-full py-2.5 bg-[#115997] text-white rounded-xl text-sm font-semibold hover:bg-[#273373] transition-colors">Done</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Help Modal */}
-      {showHelp && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-5 border-b border-gray-100">
-              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#273373]">Templates Help</h3>
-                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
-              </div>
-            </div>
-            <div className="p-5 space-y-4">
-              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">What are templates?</h4><p className="text-xs text-gray-600 leading-relaxed">Pre-written messages you can quickly send to leads. Pick a template, it fills in the customer{"'"}s name and service type, and you send.</p></div>
-              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">DM vs Email</h4><p className="text-xs text-gray-600 leading-relaxed">DM = short direct messages. Email = subject line + longer body. Filter at the top.</p></div>
-              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Categories</h4><p className="text-xs text-gray-600 leading-relaxed">Organized by pipeline stage. Tap the tag icon to add custom categories (Realtor, Plumber, etc). Custom categories can be deleted; defaults can{"'"}t.</p></div>
-              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Variables</h4><p className="text-xs text-gray-600 leading-relaxed">Use {"{"}<span>first_name</span>{"}"}, {"{"}<span>name</span>{"}"}, or {"{"}<span>service_type</span>{"}"} — they auto-fill when sending.</p></div>
-              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Sending</h4><p className="text-xs text-gray-600 leading-relaxed">Go to any contact, tap DM or Email, pick a template. Message gets pre-filled and copied to clipboard.</p></div>
-            </div>
-            <div className="p-5 border-t border-gray-100">
-              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
             </div>
           </div>
         </div>
