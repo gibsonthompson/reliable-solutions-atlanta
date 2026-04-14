@@ -16,12 +16,14 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('[Templates GET] Supabase error:', error)
+      return NextResponse.json({ error: error.message, code: error.code, details: error.details }, { status: 500 })
     }
 
     return NextResponse.json({ templates: data })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[Templates GET] Server error:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -40,34 +42,46 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Subject is required for email templates' }, { status: 400 })
     }
 
-    // If setting as default, unset existing defaults
+    // If setting as default, unset existing defaults for this type
     if (is_default) {
       await supabase
         .from('rsa_email_templates')
         .update({ is_default: false })
         .eq('is_default', true)
+        .eq('type', templateType)
     }
+
+    const insertPayload = {
+      name,
+      subject: templateType === 'email' ? subject : null,
+      body: templateBody,
+      category: category || 'general',
+      is_default: is_default || false,
+      type: templateType,
+    }
+
+    console.log('[Templates POST] Inserting:', JSON.stringify(insertPayload))
 
     const { data, error } = await supabase
       .from('rsa_email_templates')
-      .insert([{
-        name,
-        subject: subject || null,
-        body: templateBody,
-        category: category || 'general',
-        is_default: is_default || false,
-        type: templateType,
-      }])
+      .insert([insertPayload])
       .select()
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('[Templates POST] Supabase error:', error)
+      return NextResponse.json({
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, template: data })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[Templates POST] Server error:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -81,12 +95,13 @@ export async function PUT(request) {
       return NextResponse.json({ error: 'Template ID required' }, { status: 400 })
     }
 
-    // If setting as default, unset existing defaults
-    if (is_default) {
+    // If setting as default, unset existing defaults for this type
+    if (is_default && type) {
       await supabase
         .from('rsa_email_templates')
         .update({ is_default: false })
         .eq('is_default', true)
+        .eq('type', type)
         .neq('id', id)
     }
 
@@ -99,6 +114,8 @@ export async function PUT(request) {
     if (type !== undefined) updateData.type = type
     updateData.updated_at = new Date().toISOString()
 
+    console.log('[Templates PUT] Updating id:', id, 'with:', JSON.stringify(updateData))
+
     const { data, error } = await supabase
       .from('rsa_email_templates')
       .update(updateData)
@@ -107,12 +124,19 @@ export async function PUT(request) {
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('[Templates PUT] Supabase error:', error)
+      return NextResponse.json({
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, template: data })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[Templates PUT] Server error:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -132,11 +156,13 @@ export async function DELETE(request) {
       .eq('id', id)
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+      console.error('[Templates DELETE] Supabase error:', error)
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('[Templates DELETE] Server error:', error)
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
