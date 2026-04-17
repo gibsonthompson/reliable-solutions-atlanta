@@ -2,222 +2,292 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useAdminAuth } from './layout'
 
-const STATUS_LABELS = { new: 'New', contacted: 'Contacted', estimate_sent: 'Estimate Sent', booked: 'Booked', done: 'Done', lost: 'Lost' }
-const STATUS_COLORS = { new: 'bg-blue-100 text-blue-700', contacted: 'bg-yellow-100 text-yellow-700', estimate_sent: 'bg-indigo-100 text-indigo-700', booked: 'bg-emerald-100 text-emerald-700', done: 'bg-green-100 text-green-700', lost: 'bg-red-100 text-red-700' }
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-export default function AdminDashboard() {
-  const { user, hasPermission } = useAdminAuth()
-  const isAdmin = user?.role === 'admin'
-  const [submissions, setSubmissions] = useState([])
+function CalendarWidget() {
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
-  const [showHelp, setShowHelp] = useState(false)
 
-  useEffect(() => { if (user) fetchData() }, [user])
+  const today = new Date()
+  const year = currentDate.getFullYear()
+  const month = currentDate.getMonth()
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-  const fetchData = async () => {
+  useEffect(() => {
+    fetchJobs()
+  }, [])
+
+  const fetchJobs = async () => {
     try {
-      const params = user.role === 'member' ? `?user_id=${user.id}&user_role=member` : ''
-      const r = await fetch('/api/contact' + params); const res = await r.json()
-      if (res.data) setSubmissions(res.data)
-    } catch (e) { console.error('Failed to fetch:', e) }
+      const r = await fetch('/api/admin/jobs')
+      const d = await r.json()
+      if (r.ok && d.jobs) setJobs(d.jobs)
+    } catch (e) {}
     finally { setLoading(false) }
   }
 
-  const todayStr = new Date().toISOString().split('T')[0]
-  const now = new Date()
-  const weekAgo = new Date(now.getTime() - 7 * 864e5)
-  const todayEvents = submissions.filter(s => s.scheduled_date === todayStr)
-  const newLeads = submissions.filter(s => s.status === 'new')
-  const activeJobs = submissions.filter(s => s.status === 'booked')
-  const doneThisWeek = submissions.filter(s => s.status === 'done' && new Date(s.updated_at) >= weekAgo)
-  const newThisWeek = submissions.filter(s => new Date(s.created_at) >= weekAgo)
+  const prev = () => setCurrentDate(new Date(year, month - 1, 1))
+  const next = () => setCurrentDate(new Date(year, month + 1, 1))
+  const goToday = () => { setCurrentDate(new Date()); setSelectedDate(null) }
 
-  // Needs attention: overdue follow-ups, stale new leads, old estimates
-  const needsAttention = submissions.filter(s => {
-    if (['done', 'lost'].includes(s.status)) return false
-    // Overdue follow-up
-    if (s.next_follow_up) { const f = new Date(s.next_follow_up); f.setHours(0,0,0,0); const t = new Date(); t.setHours(0,0,0,0); if (f <= t) return true }
-    // New lead older than 1 hour
-    if (s.status === 'new' && (Date.now() - new Date(s.created_at)) / 36e5 > 1) return true
-    // Estimate sent 3+ days ago, no response
-    if (s.status === 'estimate_sent' && (Date.now() - new Date(s.updated_at)) / 864e5 > 3) return true
-    return false
-  }).sort((a, b) => {
-    // Sort by urgency: new leads first, then overdue follow-ups, then stale estimates
-    const aScore = a.status === 'new' ? 0 : a.next_follow_up ? 1 : 2
-    const bScore = b.status === 'new' ? 0 : b.next_follow_up ? 1 : 2
-    return aScore - bScore
-  })
-
-  // Next lead to call (highest priority new lead)
-  const nextLead = newLeads.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0]
-
-  const formatPhone = (phone) => { if (!phone) return ''; const c = phone.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return phone }
-  const formatDateShort = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  const timeAgo = (d) => { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; return Math.floor(s/86400) + 'd ago' }
-  const getAttentionReason = (s) => {
-    if (s.status === 'new') { const h = Math.floor((Date.now() - new Date(s.created_at)) / 36e5); return { text: 'New lead — ' + h + 'h old, needs a call', color: h > 24 ? 'text-red-600' : 'text-amber-600' } }
-    if (s.next_follow_up) return { text: 'Follow-up overdue since ' + formatDateShort(s.next_follow_up), color: 'text-amber-600' }
-    if (s.status === 'estimate_sent') { const d = Math.floor((Date.now() - new Date(s.updated_at)) / 864e5); return { text: 'Estimate sent ' + d + 'd ago — no response', color: 'text-indigo-600' } }
-    return { text: '', color: '' }
+  const getJobsForDate = (day) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    return jobs.filter(j => j.scheduled_date?.startsWith(dateStr) || j.created_at?.startsWith(dateStr))
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
+  const isToday = (day) => today.getDate() === day && today.getMonth() === month && today.getFullYear() === year
+  const isSelected = (day) => selectedDate === day
+
+  const cells = []
+  for (let i = 0; i < firstDay; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+
+  const selectedJobs = selectedDate ? getJobsForDate(selectedDate) : []
+  const formattedSelected = selectedDate ? `${MONTHS[month]} ${selectedDate}, ${year}` : null
 
   return (
-    <div className="px-4 py-4 sm:py-8">
-      {/* Welcome */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Header */}
+      <div className="px-5 py-4 flex items-center justify-between border-b border-gray-100">
         <div>
-          <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Welcome back, {user?.name?.split(' ')[0]}</h2>
-          <p className="text-gray-500 text-xs sm:text-sm">{now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          <h3 className="text-sm font-bold text-gray-900">{MONTHS[month]} {year}</h3>
+          <button onClick={goToday} className="text-[10px] text-[#115997] font-medium hover:underline">Today</button>
         </div>
-        <button onClick={() => setShowHelp(true)} className="px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-1.5">
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          Help
-        </button>
+        <div className="flex items-center gap-1">
+          <button onClick={prev} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button onClick={next} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        {hasPermission('calendar') && (
-          <Link href="/admin/calendar" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-            </div>
-            <span className="text-xs font-medium text-gray-700 text-center">Calendar</span>
-          </Link>
-        )}
-        {hasPermission('contacts') && (
-          <Link href="/admin/contacts" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center relative">
-              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              {newLeads.length > 0 && <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"><span className="text-white text-[8px] font-bold">{newLeads.length}</span></div>}
-            </div>
-            <span className="text-xs font-medium text-gray-700 text-center">Contacts</span>
-          </Link>
-        )}
-        {hasPermission('pipeline') ? (
-          <Link href="/admin/pipeline" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-[#115997]/10 flex items-center justify-center">
-              <svg className="w-5 h-5 text-[#115997]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" /></svg>
-            </div>
-            <span className="text-xs font-medium text-gray-700 text-center">Pipeline</span>
-          </Link>
-        ) : (
-          <Link href="/admin/contacts" className="bg-white rounded-xl p-4 shadow-sm flex flex-col items-center gap-2 active:bg-gray-50 transition-colors">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
-            </div>
-            <span className="text-xs font-medium text-gray-700 text-center">Requests</span>
-          </Link>
-        )}
+      {/* Days header */}
+      <div className="grid grid-cols-7 px-4 pt-3">
+        {DAYS.map(d => (
+          <div key={d} className="text-center text-[10px] font-semibold text-gray-400 uppercase tracking-wider pb-2">{d}</div>
+        ))}
       </div>
 
-      {/* Weekly Stats */}
-      <div className="grid grid-cols-4 gap-2 mb-6">
-        <div className="bg-white rounded-xl p-3 shadow-sm text-center"><p className="text-lg sm:text-xl font-bold text-blue-600">{newThisWeek.length}</p><p className="text-[10px] text-gray-500">New This Week</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm text-center"><p className="text-lg sm:text-xl font-bold text-emerald-600">{activeJobs.length}</p><p className="text-[10px] text-gray-500">Active Jobs</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm text-center"><p className="text-lg sm:text-xl font-bold text-green-600">{doneThisWeek.length}</p><p className="text-[10px] text-gray-500">Done This Week</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm text-center"><p className="text-lg sm:text-xl font-bold text-amber-600">{needsAttention.length}</p><p className="text-[10px] text-gray-500">Need Attention</p></div>
+      {/* Calendar grid */}
+      <div className="grid grid-cols-7 px-4 pb-3">
+        {cells.map((day, i) => {
+          if (day === null) return <div key={`e-${i}`} />
+          const dayJobs = getJobsForDate(day)
+          const hasJobs = dayJobs.length > 0
+          return (
+            <button key={day} onClick={() => setSelectedDate(isSelected(day) ? null : day)}
+              className={`relative h-10 flex flex-col items-center justify-center rounded-lg text-sm transition-all ${
+                isSelected(day)
+                  ? 'bg-[#115997] text-white font-semibold'
+                  : isToday(day)
+                    ? 'bg-[#115997]/10 text-[#115997] font-semibold'
+                    : 'text-gray-700 hover:bg-gray-50'
+              }`}>
+              {day}
+              {hasJobs && (
+                <div className={`absolute bottom-1 w-1 h-1 rounded-full ${isSelected(day) ? 'bg-white' : 'bg-[#115997]'}`} />
+              )}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Today's Jobs */}
-      {todayEvents.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
-          <div className="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-2"><svg className="w-4 h-4 text-[#115997]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg><h3 className="text-sm sm:text-base font-semibold text-gray-800">Today's Jobs</h3><span className="text-gray-400 text-sm">({todayEvents.length})</span></div>
-            <Link href="/admin/calendar" className="text-xs text-[#115997] font-medium">Full calendar</Link>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {todayEvents.map((item) => (
-              <Link key={item.id} href={'/admin/contacts/' + item.id} className="flex items-center justify-between p-4 sm:px-6 hover:bg-gray-50 active:bg-gray-50">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5"><p className="font-semibold text-gray-900 text-sm truncate">{item.name}</p><span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + (STATUS_COLORS[item.status] || 'bg-gray-100 text-gray-700')}>{STATUS_LABELS[item.status] || item.status}</span></div>
-                  <p className="text-xs text-gray-500">{item.scheduled_time && item.scheduled_time + ' · '}{item.service_type}</p>
-                  {item.address && <p className="text-xs text-gray-400 mt-0.5">{item.address}</p>}
+      {/* Selected date detail */}
+      {selectedDate && (
+        <div className="border-t border-gray-100 px-5 py-3">
+          <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-2">{formattedSelected}</p>
+          {selectedJobs.length === 0 ? (
+            <p className="text-xs text-gray-400">No jobs scheduled</p>
+          ) : (
+            <div className="space-y-2">
+              {selectedJobs.map((j, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#115997] flex-shrink-0" />
+                  <span className="text-gray-700 font-medium truncate">{j.customer_name || j.name || 'Job'}</span>
+                  <span className="text-gray-400 truncate">{j.service_type || ''}</span>
                 </div>
-                <svg className="w-4 h-4 text-gray-400 ml-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Needs Attention */}
-      {needsAttention.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
-          <div className="px-4 sm:px-6 py-3 border-b border-gray-100 flex items-center gap-2"><div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" /><h3 className="text-sm sm:text-base font-semibold text-gray-800">Needs Attention</h3><span className="text-gray-400 text-sm">({needsAttention.length})</span></div>
-          <div className="divide-y divide-gray-100">
-            {needsAttention.slice(0, 8).map((item) => { const reason = getAttentionReason(item); return (
-              <Link key={item.id} href={'/admin/contacts/' + item.id} className="flex items-center justify-between p-4 sm:px-6 hover:bg-gray-50 active:bg-gray-50">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5"><p className="font-semibold text-gray-900 text-sm truncate">{item.name}</p><span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + (STATUS_COLORS[item.status] || 'bg-gray-100 text-gray-700')}>{STATUS_LABELS[item.status]}</span></div>
-                  <p className={'text-xs ' + reason.color}>{reason.text}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{item.service_type} · {formatPhone(item.phone)}</p>
-                </div>
-                <svg className="w-4 h-4 text-gray-400 ml-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </Link>
-            ) })}
-          </div>
-          {needsAttention.length > 8 && <Link href="/admin/contacts" className="block text-center text-xs text-[#115997] font-medium py-3 border-t border-gray-100 hover:bg-gray-50">View all {needsAttention.length}</Link>}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {todayEvents.length === 0 && needsAttention.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-8 sm:p-12 text-center mb-6">
-          <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-          </div>
-          <p className="font-semibold text-gray-800 mb-1">All clear</p>
-          <p className="text-sm text-gray-500">No events today and nothing needs attention. Nice work.</p>
-        </div>
-      )}
-
-      {/* Help Modal */}
-      {showHelp && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
-          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-5 border-b border-gray-100">
-              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#273373]">Dashboard Help</h3>
-                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
+              ))}
             </div>
-            <div className="p-5 space-y-5">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Quick Actions</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">The buttons at the top are shortcuts to the most-used pages. Tap Calendar to add or view events, Contacts to see all your leads, or Pipeline to see the board view.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">This Week</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Shows a snapshot of activity for the current week: how many new leads came in, active jobs, completed jobs, and how many leads need attention.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Today{"'"}s Jobs</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Any lead with a scheduled date set to today shows up here. Tap one to open their full contact page where you can call, text, or update their status.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Needs Attention</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">This section flags leads that need action. It includes new leads that have been sitting for over an hour without being called, overdue follow-ups, and estimates that were sent more than 3 days ago with no response. If everything is handled, you will see an "All clear" message instead.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">What happens automatically</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">When a new lead fills out the form on the website, they get a confirmation text and you get notified by text. Everything else on this dashboard updates in real time based on the data in your contacts.</p>
-              </div>
-            </div>
-            <div className="p-5 border-t border-gray-100">
-              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
-            </div>
-          </div>
+          )}
         </div>
       )}
+    </div>
+  )
+}
+
+function StatCard({ label, value, icon, href, color = '#115997' }) {
+  const Card = href ? Link : 'div'
+  return (
+    <Card {...(href ? { href } : {})} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow group">
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}10` }}>
+          <span style={{ color }}>{icon}</span>
+        </div>
+        {href && (
+          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        )}
+      </div>
+      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+    </Card>
+  )
+}
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState({ requests: 0, leads: 0, jobs: 0, templates: 0 })
+  const [recentContacts, setRecentContacts] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchStats()
+  }, [])
+
+  const fetchStats = async () => {
+    try {
+      const [contactsR, prospectsR, jobsR, templatesR] = await Promise.all([
+        fetch('/api/admin/contacts').then(r => r.json()).catch(() => ({})),
+        fetch('/api/admin/prospects').then(r => r.json()).catch(() => ({})),
+        fetch('/api/admin/jobs').then(r => r.json()).catch(() => ({})),
+        fetch('/api/admin/templates').then(r => r.json()).catch(() => ({})),
+      ])
+
+      setStats({
+        requests: contactsR.contacts?.length || contactsR.total || 0,
+        leads: prospectsR.prospects?.length || prospectsR.total || 0,
+        jobs: jobsR.jobs?.length || jobsR.total || 0,
+        templates: templatesR.templates?.length || 0,
+      })
+
+      // Get recent contacts for activity feed
+      const contacts = contactsR.contacts || []
+      setRecentContacts(contacts.slice(0, 5))
+    } catch (e) {}
+    finally { setLoading(false) }
+  }
+
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return ''
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    return `${days}d ago`
+  }
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[50vh]">
+      <div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+
+  return (
+    <div className="px-4 sm:px-6 py-6 sm:py-8">
+      {/* Page header */}
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-sm text-gray-400 mt-0.5">Reliable Solutions Atlanta</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <StatCard label="Requests" value={stats.requests} href="/admin/contacts"
+          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>}
+          color="#115997" />
+        <StatCard label="Leads" value={stats.leads} href="/admin/prospects"
+          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>}
+          color="#059669" />
+        <StatCard label="Jobs" value={stats.jobs} href="/admin/jobs"
+          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}
+          color="#D97706" />
+        <StatCard label="Templates" value={stats.templates} href="/admin/templates"
+          icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>}
+          color="#7C3AED" />
+      </div>
+
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Calendar */}
+        <div className="lg:col-span-1 order-2 lg:order-1">
+          <CalendarWidget />
+        </div>
+
+        {/* Recent Activity */}
+        <div className="lg:col-span-2 order-1 lg:order-2">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900">Recent Requests</h3>
+              <Link href="/admin/contacts" className="text-[10px] text-[#115997] font-semibold uppercase tracking-wider hover:underline">View All</Link>
+            </div>
+            {recentContacts.length === 0 ? (
+              <div className="px-5 py-8 text-center">
+                <p className="text-sm text-gray-400">No recent requests</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {recentContacts.map((c, i) => (
+                  <Link key={c.id || i} href={`/admin/contacts/${c.id || ''}`}
+                    className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
+                    <div className="w-9 h-9 rounded-full bg-[#115997]/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#115997] font-semibold text-xs">
+                        {(c.name || c.customer_name || '?').charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">{c.name || c.customer_name || 'Unknown'}</p>
+                      <p className="text-xs text-gray-400 truncate">{c.service_type || c.message || c.email || 'No details'}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-[10px] text-gray-400">{timeAgo(c.created_at)}</p>
+                      {c.status && (
+                        <span className={`inline-flex px-1.5 py-0.5 rounded text-[9px] font-medium mt-0.5 ${
+                          c.status === 'new' ? 'bg-blue-50 text-blue-600' :
+                          c.status === 'contacted' ? 'bg-yellow-50 text-yellow-600' :
+                          c.status === 'booked' ? 'bg-green-50 text-green-600' :
+                          'bg-gray-50 text-gray-500'
+                        }`}>{c.status}</span>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Quick actions */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+            <Link href="/admin/outreach" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow group text-center">
+              <div className="w-10 h-10 rounded-xl bg-[#115997]/10 flex items-center justify-center mx-auto mb-2">
+                <svg className="w-5 h-5 text-[#115997]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              </div>
+              <p className="text-xs font-semibold text-gray-700">Outreach</p>
+              <p className="text-[10px] text-gray-400">Send DMs</p>
+            </Link>
+            <Link href="/admin/prospects" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow group text-center">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
+                <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+              </div>
+              <p className="text-xs font-semibold text-gray-700">Add Lead</p>
+              <p className="text-[10px] text-gray-400">New prospect</p>
+            </Link>
+            <Link href="/admin/pipeline" className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow group text-center hidden sm:block">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center mx-auto mb-2">
+                <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
+              </div>
+              <p className="text-xs font-semibold text-gray-700">Pipeline</p>
+              <p className="text-[10px] text-gray-400">View deals</p>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
