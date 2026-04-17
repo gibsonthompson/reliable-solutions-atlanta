@@ -200,7 +200,8 @@ export default function DashboardPage() {
         {isAdmin && (
           <button onClick={() => openAddModal(selectedDate)} className="flex items-center gap-1.5 px-3 py-2 bg-[#115997] text-white text-sm font-medium rounded-lg hover:bg-[#273373] transition-colors">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            Add Event
+            <span className="hidden sm:inline">Add Event</span>
+            <span className="sm:hidden">Add</span>
           </button>
         )}
       </div>
@@ -261,7 +262,7 @@ export default function DashboardPage() {
                     onClick={() => {
                       if (cell.current) setSelectedDate(new Date(year, month, cell.day))
                     }}
-                    className={`relative border-b border-r border-gray-50 min-h-[80px] sm:min-h-[90px] p-1.5 sm:p-2 text-left transition-colors ${
+                    className={`relative border-b border-r border-gray-50 min-h-[56px] sm:min-h-[90px] p-1 sm:p-2 text-left transition-colors ${
                       !cell.current ? 'bg-gray-50/50' : ''
                     } ${selected ? 'bg-[#115997]/5 ring-1 ring-inset ring-[#115997]/20' : 'hover:bg-gray-50'}`}>
                     <span className={`inline-flex items-center justify-center text-xs sm:text-sm font-medium rounded-full w-7 h-7 ${

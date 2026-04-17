@@ -172,7 +172,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, hasPermission }}>
-      <div className="min-h-screen bg-[#F3F4F6] flex" style={{ zoom: 0.9 }}>
+      <div className="min-h-screen bg-[#F3F4F6] flex desktop-zoom">
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 w-[240px]">
           <SidebarContent />
@@ -213,6 +213,11 @@ export default function AdminLayout({ children }) {
           </div>
         </main>
       </div>
+      <style jsx global>{`
+        @media (min-width: 1024px) {
+          .desktop-zoom { zoom: 0.9; }
+        }
+      `}</style>
     </AuthContext.Provider>
   )
 }
