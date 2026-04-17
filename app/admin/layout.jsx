@@ -13,7 +13,6 @@ export default function AdminLayout({ children }) {
   const [user, setUser] = useState(null)
   const [checking, setChecking] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
 
   const [username, setUsername] = useState('')
@@ -41,14 +40,6 @@ export default function AdminLayout({ children }) {
   }, [])
 
   useEffect(() => { setSidebarOpen(false) }, [pathname])
-
-  useEffect(() => {
-    try { if (localStorage.getItem('rsa_sidebar_collapsed') === 'true') setCollapsed(true) } catch (e) {}
-  }, [])
-
-  const toggleCollapsed = () => {
-    setCollapsed(p => { localStorage.setItem('rsa_sidebar_collapsed', String(!p)); return !p })
-  }
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -135,72 +126,45 @@ export default function AdminLayout({ children }) {
 
   const SidebarContent = ({ mobile = false }) => (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className={`flex items-center ${collapsed && !mobile ? 'justify-center px-3' : 'px-5'} py-5 flex-shrink-0`}>
-        {collapsed && !mobile ? (
-          <div className="w-8 h-8 rounded-lg bg-[#115997] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">R</span>
-          </div>
-        ) : (
-          <Image src="/images/logo.png" alt="Reliable Solutions Atlanta" width={160} height={50} className="h-9 w-auto" />
-        )}
+      <div className="flex items-center px-5 py-5 flex-shrink-0">
+        <Image src="/images/logo.png" alt="Reliable Solutions Atlanta" width={160} height={50} className="h-9 w-auto" />
       </div>
-
-      {/* Nav */}
-      <nav className={`flex-1 overflow-y-auto ${collapsed && !mobile ? 'px-2' : 'px-3'} py-2 space-y-0.5`}>
+      <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-0.5">
         {navItems.map((item) => {
           const active = isActive(item.href)
           return (
             <Link key={item.href} href={item.href}
-              className={`flex items-center ${collapsed && !mobile ? 'justify-center' : ''} gap-3 ${collapsed && !mobile ? 'px-0 py-3' : 'px-3 py-2.5'} rounded-xl text-sm font-medium transition-all duration-150 group relative ${
-                active
-                  ? 'bg-[#115997]/[0.08] text-[#115997]'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
-              title={collapsed && !mobile ? item.label : undefined}>
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group ${
+                active ? 'bg-[#115997]/[0.08] text-[#115997]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              }`}>
               <span className={`flex-shrink-0 ${active ? 'text-[#115997]' : 'text-gray-400 group-hover:text-gray-500'} transition-colors`}>
                 {item.icon}
               </span>
-              {(!collapsed || mobile) && <span>{item.label}</span>}
-              {collapsed && !mobile && (
-                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">
-                  {item.label}
-                </div>
-              )}
+              <span>{item.label}</span>
             </Link>
           )
         })}
       </nav>
-
-      {/* Bottom */}
-      <div className={`flex-shrink-0 border-t border-gray-100 ${collapsed && !mobile ? 'px-2' : 'px-3'} py-3 space-y-1`}
+      <div className="flex-shrink-0 border-t border-gray-100 px-3 py-3 space-y-1"
         style={{ paddingBottom: mobile ? 'max(0.75rem, env(safe-area-inset-bottom))' : undefined }}>
         <Link href="/" target="_blank"
-          className={`flex items-center ${collapsed && !mobile ? 'justify-center' : ''} gap-3 ${collapsed && !mobile ? 'px-0 py-2' : 'px-3 py-2'} rounded-xl text-sm text-gray-400 hover:text-[#115997] hover:bg-gray-50 transition-all`}
-          title={collapsed && !mobile ? 'View Website' : undefined}>
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-400 hover:text-[#115997] hover:bg-gray-50 transition-all">
           <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-          {(!collapsed || mobile) && <span>View Website</span>}
+          <span>View Website</span>
         </Link>
-
-        {/* User */}
-        <div className={`flex items-center ${collapsed && !mobile ? 'justify-center' : ''} gap-3 ${collapsed && !mobile ? 'px-0 py-2' : 'px-3 py-2'}`}>
+        <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 rounded-full bg-[#115997] flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-xs">{user?.name?.charAt(0)?.toUpperCase()}</span>
           </div>
-          {(!collapsed || mobile) && (
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-gray-800 truncate">{user?.name}</p>
-              <p className="text-[10px] text-gray-400 capitalize">{user?.role}</p>
-            </div>
-          )}
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-gray-800 truncate">{user?.name}</p>
+            <p className="text-[10px] text-gray-400 capitalize">{user?.role}</p>
+          </div>
         </div>
-
-        {/* Sign Out */}
         <button onClick={handleLogout}
-          className={`flex items-center ${collapsed && !mobile ? 'justify-center' : ''} gap-3 ${collapsed && !mobile ? 'px-0 py-2' : 'px-3 py-2'} rounded-xl text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all w-full`}
-          title={collapsed && !mobile ? 'Sign Out' : undefined}>
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all w-full">
           <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-          {(!collapsed || mobile) && <span>Sign Out</span>}
+          <span>Sign Out</span>
         </button>
       </div>
     </div>
@@ -208,14 +172,10 @@ export default function AdminLayout({ children }) {
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, hasPermission }}>
-      <div className="min-h-screen bg-[#F3F4F6] flex">
+      <div className="min-h-screen bg-[#F3F4F6] flex" style={{ zoom: 0.9 }}>
         {/* Desktop Sidebar */}
-        <aside className={`hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 transition-all duration-200 ${collapsed ? 'w-[68px]' : 'w-[240px]'}`}>
+        <aside className="hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200 w-[240px]">
           <SidebarContent />
-          <button onClick={toggleCollapsed}
-            className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-all z-40 shadow-sm">
-            <svg className={`w-3 h-3 transition-transform ${collapsed ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          </button>
         </aside>
 
         {/* Mobile Header */}
@@ -247,7 +207,7 @@ export default function AdminLayout({ children }) {
         )}
 
         {/* Main Content */}
-        <main className={`flex-1 transition-all duration-200 ${collapsed ? 'lg:ml-[68px]' : 'lg:ml-[240px]'} mt-[56px] lg:mt-0 min-h-screen`}>
+        <main className="flex-1 lg:ml-[240px] mt-[56px] lg:mt-0 min-h-screen">
           <div className="max-w-[1400px] mx-auto">
             {children}
           </div>
