@@ -75,13 +75,61 @@ export async function getGeneratedPostsForIndex() {
       .eq('status', 'published')
       .order('publish_date', { ascending: false })
 
-    const CATEGORY_IMAGES = {
-      'foundation-repair': '/images/foundation-repair-atlanta.png',
-      'basement-waterproofing': '/images/portfolio/basement-waterproofing-interior.png',
-      'crawl-space': '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
-      'drainage': '/images/portfolio/french-drain-pipe-installation.png',
-      'concrete-repair': '/images/portfolio/concrete-pad-finishing.png',
-      'water-damage': '/images/portfolio/exterior-waterproofing-membrane.png',
+    const CATEGORY_IMAGE_POOLS = {
+      'foundation-repair': [
+        '/images/foundation-repair-atlanta.png',
+        '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+        '/images/portfolio/foundation-excavation-crew.png',
+        '/images/waterproofing-truck-atlanta-job-site.png',
+      ],
+      'basement-waterproofing': [
+        '/images/portfolio/basement-waterproofing-interior.png',
+        '/images/portfolio/exterior-waterproofing-membrane.png',
+        '/images/waterproofing-truck-atlanta-job-site.png',
+      ],
+      'crawl-space': [
+        '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
+        '/images/portfolio/crawl-space-mold-remediation.png',
+        '/images/portfolio/basement-waterproofing-interior.png',
+      ],
+      'drainage': [
+        '/images/portfolio/french-drain-pipe-installation.png',
+        '/images/portfolio/drainage-gravel-install-brick-home.png',
+        '/images/portfolio/exterior-waterproofing-membrane.png',
+      ],
+      'concrete-repair': [
+        '/images/portfolio/concrete-pad-finishing.png',
+        '/images/portfolio/foundation-excavation-crew.png',
+        '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+      ],
+      'water-damage': [
+        '/images/portfolio/exterior-waterproofing-membrane.png',
+        '/images/portfolio/basement-waterproofing-interior.png',
+        '/images/waterproofing-truck-atlanta-job-site.png',
+      ],
+    }
+
+    const ALL_IMAGES = [
+      '/images/foundation-repair-atlanta.png',
+      '/images/portfolio/foundation-repair-crew-working-atlanta.png',
+      '/images/portfolio/foundation-excavation-crew.png',
+      '/images/portfolio/basement-waterproofing-interior.png',
+      '/images/portfolio/exterior-waterproofing-membrane.png',
+      '/images/portfolio/crawl-space-encapsulation-vapor-barrier.png',
+      '/images/portfolio/french-drain-pipe-installation.png',
+      '/images/portfolio/concrete-pad-finishing.png',
+      '/images/waterproofing-truck-atlanta-job-site.png',
+    ]
+
+    // Pick a deterministic image based on slug hash so same post always gets same image
+    function pickImage(slug, category) {
+      const pool = CATEGORY_IMAGE_POOLS[category] || ALL_IMAGES
+      let hash = 0
+      for (let i = 0; i < slug.length; i++) {
+        hash = ((hash << 5) - hash) + slug.charCodeAt(i)
+        hash |= 0
+      }
+      return pool[Math.abs(hash) % pool.length]
     }
 
     return (posts || []).map(p => ({
@@ -93,7 +141,7 @@ export async function getGeneratedPostsForIndex() {
         ? new Date(p.publish_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
         : 'April 2026',
       readTime: p.read_time || `${Math.ceil((p.word_count || 2000) / 200)} min read`,
-      image: CATEGORY_IMAGES[p.category] || '/images/waterproofing-truck-atlanta-job-site.png',
+      image: pickImage(p.slug, p.category),
       generated: true,
     }))
   } catch {
