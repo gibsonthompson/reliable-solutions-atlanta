@@ -1,0 +1,226 @@
+/* generated-post.css — RSA blog-farm generated posts
+   Design system: #273373 (navy), #115997 (blue), #84d2f2 (light blue)
+   Matches existing RSA blog post styling */
+
+.generated-article .article-content {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: #374151;
+}
+
+.generated-article .article-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #273373;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+@media (min-width: 768px) {
+  .generated-article .article-content h2 {
+    font-size: 1.875rem;
+  }
+}
+
+.generated-article .article-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #273373;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.generated-article .article-content p {
+  margin-bottom: 1.5rem;
+  color: #374151;
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.generated-article .article-content a {
+  color: #115997;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.generated-article .article-content a:hover {
+  color: #273373;
+}
+
+.generated-article .article-content ul,
+.generated-article .article-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.generated-article .article-content li {
+  margin-bottom: 0.5rem;
+  color: #374151;
+  line-height: 1.75;
+}
+
+.generated-article .article-content strong {
+  color: #273373;
+  font-weight: 700;
+}
+
+.generated-article .article-content blockquote {
+  border-left: 4px solid #115997;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  background: #f9fafb;
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: #374151;
+  font-style: normal;
+}
+
+/* Quick Answer Box */
+.generated-article .article-content .quick-answer-box,
+.generated-article .article-content .quick-answer {
+  background: #f9fafb;
+  border-left: 4px solid #115997;
+  border-radius: 0 0.75rem 0.75rem 0;
+  padding: 1.5rem;
+  margin: 2rem 0;
+}
+
+.generated-article .article-content .quick-answer-box h3,
+.generated-article .article-content .quick-answer h3 {
+  color: #273373;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.generated-article .article-content .quick-answer-box li,
+.generated-article .article-content .quick-answer li {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+/* Stat highlights */
+.generated-article .article-content .stat-highlight {
+  display: inline-block;
+  background: linear-gradient(135deg, #273373 0%, #115997 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  width: 100%;
+  text-align: center;
+}
+
+/* CTA boxes */
+.generated-article .article-content .cta-box {
+  background: #f9fafb;
+  border: 2px solid #115997;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.generated-article .article-content .cta-box h3,
+.generated-article .article-content .cta-box strong {
+  color: #273373;
+  font-size: 1.25rem;
+}
+
+.generated-article .article-content .cta-box a {
+  display: inline-block;
+  background: #115997;
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  transition: background 0.2s;
+}
+
+.generated-article .article-content .cta-box a:hover {
+  background: #273373;
+  color: white;
+}
+
+/* Callout boxes */
+.generated-article .article-content .callout {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Comparison tables */
+.generated-article .article-content .table-wrap {
+  overflow-x: auto;
+  margin: 2rem 0;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.generated-article .article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.generated-article .article-content thead {
+  background: #273373;
+  color: white;
+}
+
+.generated-article .article-content th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.generated-article .article-content td {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.generated-article .article-content tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* FAQ section */
+.generated-article .article-content .faq-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.generated-article .article-content .faq-section h2 {
+  color: #273373;
+}
+
+.generated-article .article-content .faq-item {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.generated-article .article-content .faq-item:last-child {
+  border-bottom: none;
+}
+
+.generated-article .article-content .faq-question {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #273373;
+  margin-bottom: 0.5rem;
+}
+
+.generated-article .article-content .faq-answer {
+  color: #374151;
+  line-height: 1.75;
+}
