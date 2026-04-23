@@ -2,6 +2,9 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import Link from 'next/link'
 import Image from 'next/image'
+import { getGeneratedPostsForIndex } from './[slug]/generated-post'
+
+export const revalidate = 3600
 
 export const metadata = {
   title: 'Blog',
@@ -353,7 +356,15 @@ const blogPosts = [
   },
 ]
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  // Fetch generated posts from blog-farm and merge with static posts
+  let allPosts = [...blogPosts]
+  try {
+    const generatedPosts = await getGeneratedPostsForIndex()
+    allPosts = [...blogPosts, ...generatedPosts]
+    allPosts.sort((a, b) => new Date(b.date) - new Date(a.date))
+  } catch { /* Supabase not configured yet */ }
+
   return (
     <div className="min-h-screen bg-white">
       <Header activePage="blog" />
@@ -369,7 +380,7 @@ export default function BlogPage() {
       <section className="py-12 md:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.map((post) => (
+            {allPosts.map((post) => (
               <Link key={post.slug} href={`/blog/${post.slug}`} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group">
                 <div className="relative h-48">
                   <Image src={post.image} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
