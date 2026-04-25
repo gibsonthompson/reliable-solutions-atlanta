@@ -9,10 +9,18 @@ const PERMISSION_LABELS = [
   { key: 'prospects', label: 'Leads', desc: 'View and manage prospect leads' },
   { key: 'pipeline', label: 'Pipeline', desc: 'View and move cards on the pipeline board' },
   { key: 'calendar', label: 'Calendar', desc: 'View scheduled events on the calendar' },
+  { key: 'jobs', label: 'Jobs', desc: 'View and manage jobs' },
+  { key: 'timesheets', label: 'Timesheets', desc: 'View and manage crew timesheets' },
   { key: 'templates', label: 'Templates', desc: 'View and manage email/SMS templates' },
+  { key: 'photos', label: 'Photos', desc: 'Upload and view job photos' },
   { key: 'sms', label: 'Send SMS', desc: 'Send text messages from contact pages' },
   { key: 'email', label: 'Send Email', desc: 'Compose and send emails from contact pages' },
   { key: 'delete_contacts', label: 'Delete Contacts', desc: 'Permanently delete contacts' },
+]
+
+const CREW_COLORS = [
+  '#115997', '#2692cc', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#06b6d4',
 ]
 
 export default function UsersPage() {
@@ -25,8 +33,10 @@ export default function UsersPage() {
   const [error, setError] = useState('')
   const [showHelp, setShowHelp] = useState(false)
   const [formData, setFormData] = useState({
-    username: '', name: '', phone: '', password: '', role: 'member',
-    permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, templates: false, sms: false, email: false, delete_contacts: false }
+    username: '', name: '', phone: '', email: '', password: '', role: 'member',
+    pay_rate: '', pay_type: 'hourly', hire_date: '', color: '#115997',
+    emergency_contact_name: '', emergency_contact_phone: '',
+    permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, jobs: false, timesheets: false, templates: false, photos: false, sms: false, email: false, delete_contacts: false }
   })
 
   useEffect(() => { fetchUsers() }, [])
@@ -35,8 +45,24 @@ export default function UsersPage() {
     catch (e) {} finally { setLoading(false) }
   }
 
-  const handleNew = () => { setEditing('new'); setError(''); setFormData({ username: '', name: '', phone: '', password: '', role: 'member', permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, templates: false, sms: false, email: false, delete_contacts: false } }) }
-  const handleEdit = (u) => { setEditing(u.id); setError(''); setFormData({ username: u.username, name: u.name, phone: u.phone || '', password: '', role: u.role, permissions: u.permissions || {} }) }
+  const handleNew = () => {
+    setEditing('new'); setError('')
+    setFormData({
+      username: '', name: '', phone: '', email: '', password: '', role: 'member',
+      pay_rate: '', pay_type: 'hourly', hire_date: '', color: CREW_COLORS[Math.floor(Math.random() * CREW_COLORS.length)],
+      emergency_contact_name: '', emergency_contact_phone: '',
+      permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, jobs: false, timesheets: false, templates: false, photos: false, sms: false, email: false, delete_contacts: false }
+    })
+  }
+  const handleEdit = (u) => {
+    setEditing(u.id); setError('')
+    setFormData({
+      username: u.username, name: u.name, phone: u.phone || '', email: u.email || '', password: '', role: u.role,
+      pay_rate: u.pay_rate || '', pay_type: u.pay_type || 'hourly', hire_date: u.hire_date || '', color: u.color || '#115997',
+      emergency_contact_name: u.emergency_contact_name || '', emergency_contact_phone: u.emergency_contact_phone || '',
+      permissions: u.permissions || {}
+    })
+  }
   const handleCancel = () => { setEditing(null); setError('') }
 
   const handleSave = async () => {
@@ -46,9 +72,20 @@ export default function UsersPage() {
     setSaving(true); setError('')
     try {
       const isNew = editing === 'new'
-      const payload = isNew
-        ? { username: formData.username, name: formData.name, phone: formData.phone, password: formData.password, role: formData.role, permissions: formData.permissions }
-        : { id: editing, name: formData.name, phone: formData.phone, role: formData.role, permissions: formData.permissions, ...(formData.password ? { password: formData.password } : {}) }
+      const payload = {
+        name: formData.name, phone: formData.phone, email: formData.email || null, role: formData.role, permissions: formData.permissions,
+        pay_rate: formData.pay_rate ? parseFloat(formData.pay_rate) : null,
+        pay_type: formData.pay_type, hire_date: formData.hire_date || null, color: formData.color,
+        emergency_contact_name: formData.emergency_contact_name || null,
+        emergency_contact_phone: formData.emergency_contact_phone || null,
+      }
+      if (isNew) {
+        payload.username = formData.username
+        payload.password = formData.password
+      } else {
+        payload.id = editing
+        if (formData.password) payload.password = formData.password
+      }
       const r = await fetch('/api/admin/users', { method: isNew ? 'POST' : 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await r.json()
       if (!r.ok) { setError(data.error || 'Failed to save'); return }
@@ -103,6 +140,7 @@ export default function UsersPage() {
           <h3 className="font-semibold text-[#273373] mb-4">{editing === 'new' ? 'Add User' : 'Edit User'}</h3>
           {error && <div className="mb-4 rounded-lg p-3 text-sm bg-red-50 border border-red-200 text-red-700">{error}</div>}
           <div className="space-y-4">
+            {/* Account Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-gray-500 mb-1.5">Username *{editing !== 'new' && ' (cannot change)'}</label>
@@ -123,24 +161,78 @@ export default function UsersPage() {
                   placeholder="(770) 000-0000" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
               </div>
               <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Email</label>
+                <input type="email" value={formData.email} onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))}
+                  placeholder="email@example.com" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
                 <label className="block text-xs text-gray-500 mb-1.5">{editing === 'new' ? 'Password *' : 'Reset Password (leave blank to keep)'}</label>
                 <input type="text" value={formData.password} onChange={(e) => setFormData(p => ({ ...p, password: e.target.value }))}
                   placeholder={editing === 'new' ? 'Simple is fine' : 'Leave blank to keep current'} style={{ fontSize: '16px' }}
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
                 {editing === 'new' && <p className="text-[11px] text-gray-400 mt-1">Password is visible so you can share it with them. Min 4 characters.</p>}
               </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Role</label>
+                <div className="flex bg-gray-100 rounded-lg p-0.5 w-fit">
+                  <button onClick={() => setFormData(p => ({ ...p, role: 'admin' }))} className={'px-4 py-2.5 text-sm font-medium rounded-md transition-colors ' + (formData.role === 'admin' ? 'bg-white text-[#115997] shadow-sm' : 'text-gray-500')}>Admin</button>
+                  <button onClick={() => setFormData(p => ({ ...p, role: 'member' }))} className={'px-4 py-2.5 text-sm font-medium rounded-md transition-colors ' + (formData.role === 'member' ? 'bg-white text-[#115997] shadow-sm' : 'text-gray-500')}>Member</button>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Role</label>
-              <div className="flex bg-gray-100 rounded-lg p-0.5 w-fit">
-                <button onClick={() => setFormData(p => ({ ...p, role: 'admin' }))} className={'px-4 py-2.5 text-sm font-medium rounded-md transition-colors ' + (formData.role === 'admin' ? 'bg-white text-[#115997] shadow-sm' : 'text-gray-500')}>Admin</button>
-                <button onClick={() => setFormData(p => ({ ...p, role: 'member' }))} className={'px-4 py-2.5 text-sm font-medium rounded-md transition-colors ' + (formData.role === 'member' ? 'bg-white text-[#115997] shadow-sm' : 'text-gray-500')}>Member</button>
+
+            {/* Crew Details */}
+            <div className="pt-3 border-t border-gray-100">
+              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Crew Details</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">Pay Rate ($/hr)</label>
+                  <input type="number" step="0.01" value={formData.pay_rate} onChange={(e) => setFormData(p => ({ ...p, pay_rate: e.target.value }))}
+                    placeholder="0.00" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">Pay Type</label>
+                  <select value={formData.pay_type} onChange={(e) => setFormData(p => ({ ...p, pay_type: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">
+                    <option value="hourly">Hourly</option>
+                    <option value="salary">Salary</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">Hire Date</label>
+                  <input type="date" value={formData.hire_date} onChange={(e) => setFormData(p => ({ ...p, hire_date: e.target.value }))}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">Emergency Contact Name</label>
+                  <input type="text" value={formData.emergency_contact_name} onChange={(e) => setFormData(p => ({ ...p, emergency_contact_name: e.target.value }))}
+                    placeholder="Contact name" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1.5">Emergency Contact Phone</label>
+                  <input type="tel" value={formData.emergency_contact_phone} onChange={(e) => setFormData(p => ({ ...p, emergency_contact_phone: e.target.value }))}
+                    placeholder="(770) 000-0000" style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label className="block text-xs text-gray-500 mb-1.5">Calendar Color</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {CREW_COLORS.map(c => (
+                    <button key={c} onClick={() => setFormData(p => ({ ...p, color: c }))}
+                      className={'w-8 h-8 rounded-full border-2 transition-all ' + (formData.color === c ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105')}
+                      style={{ backgroundColor: c }} />
+                  ))}
+                </div>
               </div>
             </div>
 
             {formData.role === 'member' && (
-              <div>
-                <label className="block text-xs text-gray-500 mb-3">What can this user access?</label>
+              <div className="pt-3 border-t border-gray-100">
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Permissions</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {PERMISSION_LABELS.map((p) => (
                     <button key={p.key} onClick={() => togglePerm(p.key)}
@@ -186,7 +278,7 @@ export default function UsersPage() {
               <div key={u.id} className={'p-4 sm:px-6 transition-colors ' + (u.is_active ? 'hover:bg-gray-50' : 'bg-gray-50/50')}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ' + (u.is_active ? 'bg-[#115997]' : 'bg-gray-300')}>
+                    <div className={'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0'} style={{ backgroundColor: u.is_active ? (u.color || '#115997') : '#d1d5db' }}>
                       <span className="text-white font-bold text-sm">{u.name?.charAt(0)?.toUpperCase()}</span>
                     </div>
                     <div className="min-w-0">
@@ -197,7 +289,11 @@ export default function UsersPage() {
                         {!u.is_active && <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-600">Disabled</span>}
                         {u.id === currentUser?.id && <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-100 text-blue-600">You</span>}
                       </div>
-                      <p className="text-[11px] text-gray-400 mt-0.5">Last login: {formatDate(u.last_login)}</p>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <p className="text-[11px] text-gray-400">Last login: {formatDate(u.last_login)}</p>
+                        {u.pay_rate && <p className="text-[11px] text-gray-400">${u.pay_rate}/hr</p>}
+                        {u.hire_date && <p className="text-[11px] text-gray-400">Hired {new Date(u.hire_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p>}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -246,6 +342,10 @@ export default function UsersPage() {
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Admins vs Members</h4>
                 <p className="text-sm text-gray-600 leading-relaxed">Admins have full access to everything including this page. Members only see contacts assigned to them and only have access to the pages you enable in their permissions.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Crew Details</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Set each crew member{"'"}s hourly pay rate to automatically calculate labor costs on timesheets. The calendar color determines how they appear on the schedule. Emergency contacts are visible to admins only.</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Permissions</h4>

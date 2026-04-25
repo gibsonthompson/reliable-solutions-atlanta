@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAdminAuth } from '../layout'
 
 const PAYMENT_METHODS = ['ACH', 'Check', 'Cash', 'Zelle', 'Reliable', 'Other']
@@ -9,23 +9,77 @@ export default function JobsPage() {
   const { user } = useAdminAuth()
   const isAdmin = user?.role === 'admin'
   const [jobs, setJobs] = useState([])
+  const [allUsers, setAllUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [showHelp, setShowHelp] = useState(false)
-  const [formData, setFormData] = useState({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '' })
+  const [expandedJob, setExpandedJob] = useState(null)
+  const [crewData, setCrewData] = useState({}) // { jobId: [{ id, user_id, role, user_name, user_color }] }
+  const [crewLoading, setCrewLoading] = useState(null)
+  const [addingCrew, setAddingCrew] = useState(null) // jobId
+  const [newCrewUserId, setNewCrewUserId] = useState('')
+  const [newCrewRole, setNewCrewRole] = useState('crew')
+  const [formData, setFormData] = useState({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '', status: 'active' })
 
-  useEffect(() => { fetchJobs() }, [])
+  useEffect(() => { fetchJobs(); fetchUsers() }, [])
+
   const fetchJobs = async () => {
     try { const r = await fetch('/api/admin/jobs'); const d = await r.json(); if (d.jobs) setJobs(d.jobs) }
     catch (e) {} finally { setLoading(false) }
   }
 
-  const handleNew = () => { setEditing('new'); setFormData({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '' }) }
+  const fetchUsers = async () => {
+    try { const r = await fetch('/api/admin/users'); const d = await r.json(); if (d.users) setAllUsers(d.users.filter(u => u.is_active)) }
+    catch (e) {}
+  }
+
+  const fetchCrew = useCallback(async (jobId) => {
+    setCrewLoading(jobId)
+    try {
+      const r = await fetch(`/api/admin/job-crew?job_id=${jobId}`)
+      const d = await r.json()
+      setCrewData(prev => ({ ...prev, [jobId]: d.crew || [] }))
+    } catch (e) {}
+    finally { setCrewLoading(null) }
+  }, [])
+
+  const handleExpandJob = (jobId) => {
+    if (expandedJob === jobId) { setExpandedJob(null); return }
+    setExpandedJob(jobId)
+    if (!crewData[jobId]) fetchCrew(jobId)
+  }
+
+  const handleAssignCrew = async (jobId) => {
+    if (!newCrewUserId) return
+    try {
+      await fetch('/api/admin/job-crew', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: jobId, user_id: newCrewUserId, role: newCrewRole, assigned_by: user?.id })
+      })
+      setAddingCrew(null); setNewCrewUserId(''); setNewCrewRole('crew')
+      fetchCrew(jobId)
+      setSuccessMsg('Crew assigned'); setTimeout(() => setSuccessMsg(''), 2000)
+    } catch (e) {}
+  }
+
+  const handleRemoveCrew = async (jobId, assignmentId) => {
+    if (!confirm('Remove this crew member from the job?')) return
+    try {
+      await fetch('/api/admin/job-crew', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: assignmentId })
+      })
+      fetchCrew(jobId)
+      setSuccessMsg('Crew removed'); setTimeout(() => setSuccessMsg(''), 2000)
+    } catch (e) {}
+  }
+
+  const handleNew = () => { setEditing('new'); setFormData({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '', status: 'active' }) }
   const handleEdit = (j) => {
     setEditing(j.id)
-    setFormData({ address: j.address || '', date_start: j.date_start || '', date_end: j.date_end || '', client: j.client || '', labor: j.labor || '', material: j.material || '', gas: j.gas || '', misc: j.misc || '', revenue: j.revenue || '', payment_method: j.payment_method || 'ACH', taxes: j.taxes || '', notes: j.notes || '' })
+    setFormData({ address: j.address || '', date_start: j.date_start || '', date_end: j.date_end || '', client: j.client || '', labor: j.labor || '', material: j.material || '', gas: j.gas || '', misc: j.misc || '', revenue: j.revenue || '', payment_method: j.payment_method || 'ACH', taxes: j.taxes || '', notes: j.notes || '', status: j.status || 'active' })
   }
   const handleCancel = () => setEditing(null)
 
@@ -54,11 +108,89 @@ export default function JobsPage() {
   const fmtDate = (d) => { if (!d) return ''; const dt = new Date(d + 'T00:00:00'); return (dt.getMonth() + 1) + '/' + dt.getDate() + '/' + String(dt.getFullYear()).slice(2) }
   const dateRange = (j) => { if (!j.date_start) return ''; return fmtDate(j.date_start) + (j.date_end ? '-' + fmtDate(j.date_end) : '') }
 
-  // Totals
   const totals = jobs.reduce((acc, j) => ({
     labor: acc.labor + n(j.labor), material: acc.material + n(j.material), gas: acc.gas + n(j.gas), misc: acc.misc + n(j.misc),
     totalExpense: acc.totalExpense + totalExpense(j), revenue: acc.revenue + n(j.revenue), profit: acc.profit + profit(j), taxes: acc.taxes + n(j.taxes)
   }), { labor: 0, material: 0, gas: 0, misc: 0, totalExpense: 0, revenue: 0, profit: 0, taxes: 0 })
+
+  const getAvailableUsers = (jobId) => {
+    const assigned = (crewData[jobId] || []).map(c => c.user_id)
+    return allUsers.filter(u => !assigned.includes(u.id))
+  }
+
+  // Crew panel component
+  const CrewPanel = ({ jobId }) => {
+    const crew = crewData[jobId] || []
+    const isLoading = crewLoading === jobId
+
+    return (
+      <div className="px-4 py-3 bg-gray-50/80 border-t border-gray-100">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assigned Crew</h4>
+          {isAdmin && addingCrew !== jobId && (
+            <button onClick={() => { setAddingCrew(jobId); setNewCrewUserId(''); setNewCrewRole('crew') }}
+              className="text-[11px] text-[#115997] font-medium hover:underline flex items-center gap-1">
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Add
+            </button>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-3"><div className="w-5 h-5 border-2 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
+        ) : crew.length === 0 && addingCrew !== jobId ? (
+          <p className="text-xs text-gray-400 py-1">No crew assigned</p>
+        ) : (
+          <div className="space-y-1.5">
+            {crew.map(c => (
+              <div key={c.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.user_color || '#115997' }}>
+                    <span className="text-white font-bold text-[9px]">{c.user_name?.charAt(0)?.toUpperCase()}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">{c.user_name}</span>
+                  <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
+                    c.role === 'lead' ? 'bg-purple-100 text-purple-700' :
+                    c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' :
+                    'bg-gray-100 text-gray-500'
+                  }`}>{c.role}</span>
+                </div>
+                {isAdmin && (
+                  <button onClick={() => handleRemoveCrew(jobId, c.id)} className="p-1 text-gray-300 hover:text-red-500 rounded hover:bg-red-50">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add crew form */}
+        {addingCrew === jobId && (
+          <div className="flex items-center gap-2 mt-2 bg-white rounded-lg p-2 border border-[#115997]/20">
+            <select value={newCrewUserId} onChange={(e) => setNewCrewUserId(e.target.value)}
+              className="flex-1 px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-[#115997] outline-none min-w-0">
+              <option value="">Select person</option>
+              {getAvailableUsers(jobId).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+            <select value={newCrewRole} onChange={(e) => setNewCrewRole(e.target.value)}
+              className="px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-[#115997] outline-none w-24">
+              <option value="crew">Crew</option>
+              <option value="lead">Lead</option>
+              <option value="subcontractor">Sub</option>
+            </select>
+            <button onClick={() => handleAssignCrew(jobId)} disabled={!newCrewUserId}
+              className="p-1.5 text-white bg-[#115997] rounded hover:bg-[#273373] disabled:opacity-40">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            </button>
+            <button onClick={() => setAddingCrew(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
 
@@ -98,11 +230,21 @@ export default function JobsPage() {
                 <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={formData.date_end} onChange={(e) => setFormData(p => ({ ...p, date_end: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               <div><label className="block text-xs text-gray-500 mb-1">Labor $</label><input type="number" step="0.01" value={formData.labor} onChange={(e) => setFormData(p => ({ ...p, labor: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Material $</label><input type="number" step="0.01" value={formData.material} onChange={(e) => setFormData(p => ({ ...p, material: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Gas $</label><input type="number" step="0.01" value={formData.gas} onChange={(e) => setFormData(p => ({ ...p, gas: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Misc $</label><input type="number" step="0.01" value={formData.misc} onChange={(e) => setFormData(p => ({ ...p, misc: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Status</label>
+                <select value={formData.status} onChange={(e) => setFormData(p => ({ ...p, status: e.target.value }))}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                  <option value="on_hold">On Hold</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div><label className="block text-xs text-gray-500 mb-1">Revenue $</label><input type="number" step="0.01" value={formData.revenue} onChange={(e) => setFormData(p => ({ ...p, revenue: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
@@ -110,7 +252,6 @@ export default function JobsPage() {
               <div><label className="block text-xs text-gray-500 mb-1">Taxes $</label><input type="number" step="0.01" value={formData.taxes} onChange={(e) => setFormData(p => ({ ...p, taxes: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Notes</label><input type="text" value={formData.notes} onChange={(e) => setFormData(p => ({ ...p, notes: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
             </div>
-            {/* Live calculated preview */}
             <div className="flex items-center gap-4 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
               <span>Total Expense: <span className="font-semibold text-gray-800">${(n(formData.labor) + n(formData.material) + n(formData.gas) + n(formData.misc)).toFixed(2)}</span></span>
               <span>Profit: <span className={'font-semibold ' + ((n(formData.revenue) - n(formData.labor) - n(formData.material) - n(formData.gas) - n(formData.misc)) >= 0 ? 'text-green-600' : 'text-red-600')}>${(n(formData.revenue) - n(formData.labor) - n(formData.material) - n(formData.gas) - n(formData.misc)).toFixed(2)}</span></span>
@@ -133,6 +274,7 @@ export default function JobsPage() {
                 <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Address</th>
                 <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Date</th>
                 <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Client</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Crew</th>
                 <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Labor</th>
                 <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Material</th>
                 <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Gas</th>
@@ -149,12 +291,36 @@ export default function JobsPage() {
               {jobs.map((j, i) => {
                 const te = totalExpense(j)
                 const pr = profit(j)
-                return (
-                  <tr key={j.id} className="hover:bg-gray-50 transition-colors">
+                const isExpanded = expandedJob === j.id
+                return [
+                  <tr key={j.id} className={'hover:bg-gray-50 transition-colors cursor-pointer ' + (isExpanded ? 'bg-blue-50/30' : '')} onClick={() => handleExpandJob(j.id)}>
                     <td className="px-3 py-2 text-gray-400">{i + 1}</td>
-                    <td className="px-3 py-2 font-medium text-gray-900 max-w-[180px] truncate">{j.address}</td>
+                    <td className="px-3 py-2 font-medium text-gray-900 max-w-[180px] truncate">
+                      {j.address}
+                      {j.status && j.status !== 'active' && (
+                        <span className={`ml-1.5 text-[9px] font-medium px-1 py-0.5 rounded ${
+                          j.status === 'completed' ? 'bg-green-100 text-green-700' :
+                          j.status === 'on_hold' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>{j.status.replace('_', ' ')}</span>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{dateRange(j)}</td>
                     <td className="px-3 py-2 text-gray-600 max-w-[120px] truncate">{j.client}</td>
+                    <td className="px-3 py-2">
+                      {crewData[j.id] ? (
+                        <div className="flex -space-x-1.5">
+                          {crewData[j.id].slice(0, 4).map(c => (
+                            <div key={c.id} className="w-5 h-5 rounded-full border border-white flex items-center justify-center" style={{ backgroundColor: c.user_color || '#115997' }} title={c.user_name}>
+                              <span className="text-white text-[7px] font-bold">{c.user_name?.charAt(0)}</span>
+                            </div>
+                          ))}
+                          {crewData[j.id].length > 4 && <span className="text-[9px] text-gray-400 ml-1">+{crewData[j.id].length - 4}</span>}
+                        </div>
+                      ) : (
+                        <span className="text-gray-300 text-[10px]">—</span>
+                      )}
+                    </td>
                     <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.labor)}</td>
                     <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.material)}</td>
                     <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.gas)}</td>
@@ -165,21 +331,28 @@ export default function JobsPage() {
                     <td className="px-3 py-2"><span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span></td>
                     <td className="px-3 py-2 text-right text-gray-600 tabular-nums">{fmt(j.taxes)}</td>
                     {isAdmin && (
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-0.5">
                           <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
                           <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </div>
                       </td>
                     )}
-                  </tr>
-                )
+                  </tr>,
+                  isExpanded && (
+                    <tr key={j.id + '-crew'}>
+                      <td colSpan={isAdmin ? 15 : 14} className="p-0">
+                        <CrewPanel jobId={j.id} />
+                      </td>
+                    </tr>
+                  )
+                ]
               })}
             </tbody>
             {jobs.length > 0 && (
               <tfoot>
                 <tr className="bg-gray-50 border-t-2 border-gray-300 font-semibold text-xs">
-                  <td className="px-3 py-2.5" colSpan={4}>TOTALS ({jobs.length} jobs)</td>
+                  <td className="px-3 py-2.5" colSpan={5}>TOTALS ({jobs.length} jobs)</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.labor)}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.material)}</td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.gas)}</td>
@@ -207,34 +380,50 @@ export default function JobsPage() {
         ) : jobs.map((j, i) => {
           const te = totalExpense(j)
           const pr = profit(j)
+          const isExpanded = expandedJob === j.id
           return (
-            <div key={j.id} className="bg-white rounded-xl shadow-sm p-4">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">{j.address}</p>
-                  <p className="text-xs text-gray-500">{dateRange(j)}{j.client ? ' · ' + j.client : ''}</p>
-                </div>
-                {isAdmin && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                    <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+            <div key={j.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-4" onClick={() => handleExpandJob(j.id)}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{j.address}</p>
+                      {j.status && j.status !== 'active' && (
+                        <span className={`text-[9px] font-medium px-1 py-0.5 rounded flex-shrink-0 ${
+                          j.status === 'completed' ? 'bg-green-100 text-green-700' :
+                          j.status === 'on_hold' ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>{j.status.replace('_', ' ')}</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500">{dateRange(j)}{j.client ? ' · ' + j.client : ''}</p>
                   </div>
-                )}
-              </div>
-              <div className="grid grid-cols-4 gap-2 text-xs mb-2">
-                <div><span className="text-gray-400 block">Labor</span><span className="font-medium">${fmt(j.labor)}</span></div>
-                <div><span className="text-gray-400 block">Material</span><span className="font-medium">${fmt(j.material)}</span></div>
-                <div><span className="text-gray-400 block">Gas</span><span className="font-medium">${fmt(j.gas)}</span></div>
-                <div><span className="text-gray-400 block">Misc</span><span className="font-medium">${fmt(j.misc)}</span></div>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                <div className="flex items-center gap-3 text-xs">
-                  <span className="text-gray-500">Exp: <span className="font-semibold text-gray-800">${fmt(te)}</span></span>
-                  <span className="text-gray-500">Rev: <span className="font-semibold text-green-700">${fmt(j.revenue)}</span></span>
-                  <span className={'font-semibold ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>P: ${fmt(pr)}</span>
+                  {isAdmin && (
+                    <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                      <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                    </div>
+                  )}
                 </div>
-                <span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span>
+                <div className="grid grid-cols-4 gap-2 text-xs mb-2">
+                  <div><span className="text-gray-400 block">Labor</span><span className="font-medium">${fmt(j.labor)}</span></div>
+                  <div><span className="text-gray-400 block">Material</span><span className="font-medium">${fmt(j.material)}</span></div>
+                  <div><span className="text-gray-400 block">Gas</span><span className="font-medium">${fmt(j.gas)}</span></div>
+                  <div><span className="text-gray-400 block">Misc</span><span className="font-medium">${fmt(j.misc)}</span></div>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="text-gray-500">Exp: <span className="font-semibold text-gray-800">${fmt(te)}</span></span>
+                    <span className="text-gray-500">Rev: <span className="font-semibold text-green-700">${fmt(j.revenue)}</span></span>
+                    <span className={'font-semibold ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>P: ${fmt(pr)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span>
+                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </div>
+                </div>
               </div>
+              {isExpanded && <CrewPanel jobId={j.id} />}
             </div>
           )
         })}
@@ -253,8 +442,12 @@ export default function JobsPage() {
             </div>
             <div className="p-5 space-y-5">
               <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">What is this page?</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">This is your job expense tracker. Every completed job gets logged here with the address, dates, costs, revenue, and payment info. It replaces the Excel spreadsheet.</p>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Crew assignment</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Click any job row (desktop) or card (mobile) to expand it and see assigned crew. Use the Add button to assign crew members with a role (Lead, Crew, or Subcontractor). Assigned jobs will appear on the crew member{"'"}s schedule in their time clock app.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Job status</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Jobs can be Active, Completed, On Hold, or Cancelled. Set the status when editing a job. Completed and cancelled jobs stay in your records for financial tracking.</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Calculated fields</h4>
@@ -267,10 +460,6 @@ export default function JobsPage() {
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Payment methods</h4>
                 <p className="text-sm text-gray-600 leading-relaxed">Track how you were paid for each job: ACH, Check, Cash, Zelle, or Reliable. This helps with bookkeeping and tax prep.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Summary totals</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">The cards at the top and the totals row at the bottom of the table show your running totals across all jobs for revenue, expenses, profit, and taxes.</p>
               </div>
             </div>
             <div className="p-5 border-t border-gray-100">

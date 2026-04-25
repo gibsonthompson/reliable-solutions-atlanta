@@ -14,7 +14,7 @@ export async function POST(request) {
 
     const { data: user, error } = await supabase
       .from('rsa_users')
-      .select('id, username, name, phone, password_hash, role, permissions, is_active')
+      .select('id, username, name, phone, email, password_hash, role, permissions, is_active, pay_rate, pay_type, hire_date, color, emergency_contact_name, emergency_contact_phone')
       .eq('username', username.toLowerCase().trim())
       .single()
 
@@ -30,7 +30,8 @@ export async function POST(request) {
     if (safeUser.role === 'admin') {
       safeUser.permissions = {
         dashboard: true, contacts: true, prospects: true, pipeline: true,
-        calendar: true, templates: true, users: true, sms: true, email: true, delete_contacts: true
+        calendar: true, jobs: true, timesheets: true, templates: true,
+        photos: true, users: true, sms: true, email: true, delete_contacts: true, crew: true
       }
     }
 
