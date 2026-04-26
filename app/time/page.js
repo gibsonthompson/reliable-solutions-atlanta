@@ -5,18 +5,16 @@ import { useTimeAuth } from './layout'
 
 export default function TimeClockPage() {
   const { user } = useTimeAuth()
-  const [clockStatus, setClockStatus] = useState(null) // null = loading, { clocked_in, entry, elapsed }
+  const [clockStatus, setClockStatus] = useState(null)
   const [todayEntries, setTodayEntries] = useState([])
   const [loading, setLoading] = useState(true)
   const [clocking, setClocking] = useState(false)
   const [elapsed, setElapsed] = useState(0)
-  const [gpsStatus, setGpsStatus] = useState('idle') // idle, getting, got, failed
   const [currentTime, setCurrentTime] = useState(new Date())
   const [todayTotal, setTodayTotal] = useState(0)
   const timerRef = useRef(null)
   const clockRef = useRef(null)
 
-  // Live clock
   useEffect(() => {
     clockRef.current = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(clockRef.current)
@@ -44,7 +42,6 @@ export default function TimeClockPage() {
       const r = await fetch(`/api/time/entries?user_id=${user.id}&date=${today}`)
       const data = await r.json()
       setTodayEntries(data.entries || [])
-      // Calculate total
       const total = (data.entries || []).reduce((sum, e) => sum + (e.duration_minutes || 0), 0)
       setTodayTotal(total)
     } catch (e) {}
@@ -58,7 +55,6 @@ export default function TimeClockPage() {
     init()
   }, [fetchStatus, fetchTodayEntries])
 
-  // Elapsed timer
   useEffect(() => {
     if (clockStatus?.clocked_in) {
       timerRef.current = setInterval(() => setElapsed(p => p + 1), 1000)
@@ -68,28 +64,11 @@ export default function TimeClockPage() {
     return () => clearInterval(timerRef.current)
   }, [clockStatus?.clocked_in])
 
-  const getGPS = () => {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) { resolve(null); return }
-      setGpsStatus('getting')
-      navigator.geolocation.getCurrentPosition(
-        (pos) => { setGpsStatus('got'); resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }) },
-        () => { setGpsStatus('failed'); resolve(null) },
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-      )
-    })
-  }
-
   const handleClock = async () => {
     setClocking(true)
     try {
-      const gps = await getGPS()
       const action = clockStatus?.clocked_in ? 'clock_out' : 'clock_in'
       const body = { user_id: user.id, action }
-      if (gps) {
-        if (action === 'clock_in') { body.clock_in_lat = gps.lat; body.clock_in_lng = gps.lng }
-        else { body.clock_out_lat = gps.lat; body.clock_out_lng = gps.lng }
-      }
       if (clockStatus?.entry?.id) body.entry_id = clockStatus.entry.id
 
       const r = await fetch('/api/time/clock', {
@@ -100,7 +79,7 @@ export default function TimeClockPage() {
         await fetchTodayEntries()
       }
     } catch (e) { console.error('Clock error:', e) }
-    finally { setClocking(false); setGpsStatus('idle') }
+    finally { setClocking(false) }
   }
 
   const formatElapsed = (secs) => {
@@ -154,7 +133,6 @@ export default function TimeClockPage() {
               : 'bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-200'
           } ${clocking ? 'opacity-70 scale-95' : ''}`}
         >
-          {/* Pulse ring when clocked in */}
           {isClockedIn && !clocking && (
             <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-red-400" style={{ animationDuration: '2s' }} />
           )}
@@ -174,22 +152,6 @@ export default function TimeClockPage() {
           )}
         </button>
 
-        {/* GPS indicator */}
-        <div className="flex items-center gap-1.5 mt-3">
-          <div className={`w-2 h-2 rounded-full ${
-            gpsStatus === 'got' ? 'bg-green-400' :
-            gpsStatus === 'getting' ? 'bg-amber-400 animate-pulse' :
-            gpsStatus === 'failed' ? 'bg-red-400' : 'bg-gray-300'
-          }`} />
-          <span className="text-[11px] text-gray-400">
-            {gpsStatus === 'getting' ? 'Getting location...' :
-             gpsStatus === 'got' ? 'Location captured' :
-             gpsStatus === 'failed' ? 'Location unavailable' :
-             'GPS ready'}
-          </span>
-        </div>
-
-        {/* Status text */}
         {isClockedIn && clockStatus?.entry && (
           <div className="mt-3 text-center">
             <p className="text-xs text-gray-500">
@@ -243,14 +205,12 @@ export default function TimeClockPage() {
           </div>
         ) : (
           <div className="divide-y divide-gray-50">
-            {/* Active entry at top */}
             {isClockedIn && clockStatus?.entry && (
               <div className="px-4 py-3 bg-emerald-50/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-sm font-semibold text-emerald-700">Active</span>
-                    <span className="text-xs text-emerald-500 capitalize">{clockStatus.entry.entry_type}</span>
                   </div>
                   <span className="text-sm font-bold text-emerald-700 tabular-nums">{formatElapsed(elapsed)}</span>
                 </div>
@@ -259,7 +219,6 @@ export default function TimeClockPage() {
                 </p>
               </div>
             )}
-            {/* Completed entries */}
             {todayEntries.filter(e => e.clock_out).map((entry) => (
               <div key={entry.id} className="px-4 py-3">
                 <div className="flex items-center justify-between">

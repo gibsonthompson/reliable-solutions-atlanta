@@ -186,6 +186,13 @@ export default function TimesheetsPage() {
     } catch (e) {}
   }
 
+  const handleExport = () => {
+    const r = getDateRange()
+    let url = `/api/admin/timesheets/export?start=${r.start}&end=${r.end}`
+    if (filterUser) url += `&user_id=${filterUser}`
+    window.open(url, '_blank')
+  }
+
   const range = getDateRange()
   const totalMins = entries.reduce((s, e) => s + (e.duration_minutes || 0), 0)
   const totalCost = entries.reduce((s, e) => s + parseFloat(e.labor_cost || 0), 0)
@@ -205,10 +212,16 @@ export default function TimesheetsPage() {
           <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Timesheets</h2>
           <p className="text-gray-500 text-xs sm:text-sm">{Object.keys(groupedByUser).length} crew · {formatHours(totalMins)} total{totalCost > 0 ? ` · $${totalCost.toFixed(0)} labor` : ''}</p>
         </div>
-        <button onClick={handleNewEntry} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373]">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Add Entry
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            Export CSV
+          </button>
+          <button onClick={handleNewEntry} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373]">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Add Entry
+          </button>
+        </div>
       </div>
 
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
