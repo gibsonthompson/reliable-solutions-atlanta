@@ -23,10 +23,11 @@ export default function JobsPage() {
   const [newCrewUserId, setNewCrewUserId] = useState('')
   const [newCrewRole, setNewCrewRole] = useState('crew')
   const [crewCounts, setCrewCounts] = useState({}) // { jobId: count }
+  const [jobCosts, setJobCosts] = useState({}) // { jobId: { labor_hours, labor_cost, expense_total, total_cost } }
 
   const [formData, setFormData] = useState({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '', status: 'active' })
 
-  useEffect(() => { fetchJobs(); fetchUsers() }, [])
+  useEffect(() => { fetchJobs(); fetchUsers(); fetchJobCosts() }, [])
 
   const fetchJobs = async () => {
     try { const r = await fetch('/api/admin/jobs'); const d = await r.json(); if (d.jobs) setJobs(d.jobs) }
@@ -35,6 +36,11 @@ export default function JobsPage() {
 
   const fetchUsers = async () => {
     try { const r = await fetch('/api/admin/users'); const d = await r.json(); if (d.users) setAllUsers(d.users.filter(u => u.is_active)) }
+    catch (e) {}
+  }
+
+  const fetchJobCosts = async () => {
+    try { const r = await fetch('/api/admin/job-costing'); const d = await r.json(); if (d.costs) setJobCosts(d.costs) }
     catch (e) {}
   }
 
@@ -139,6 +145,11 @@ export default function JobsPage() {
     totalExpense: acc.totalExpense + totalExpense(j), revenue: acc.revenue + n(j.revenue), profit: acc.profit + profit(j), taxes: acc.taxes + n(j.taxes)
   }), { labor: 0, material: 0, gas: 0, misc: 0, totalExpense: 0, revenue: 0, profit: 0, taxes: 0 })
 
+  const trackedLaborTotal = Object.values(jobCosts).reduce((s, c) => s + (c.labor_cost || 0), 0)
+  const trackedHoursTotal = Object.values(jobCosts).reduce((s, c) => s + (c.labor_hours || 0), 0)
+  const trackedExpenseTotal = Object.values(jobCosts).reduce((s, c) => s + (c.expense_total || 0), 0)
+  const getJobCost = (jobId) => jobCosts[jobId] || null
+
   // Render crew avatars for a job
   const CrewAvatars = ({ jobId }) => {
     const crew = crewCounts[jobId] || []
@@ -175,10 +186,11 @@ export default function JobsPage() {
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Revenue</p><p className="text-lg font-bold text-green-600">{fmtMoney(totals.revenue)}</p></div>
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Expenses</p><p className="text-lg font-bold text-red-500">{fmtMoney(totals.totalExpense)}</p></div>
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Profit</p><p className={'text-lg font-bold ' + (totals.profit >= 0 ? 'text-emerald-600' : 'text-red-600')}>{totals.profit < 0 ? '-' : ''}{fmtMoney(totals.profit)}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Tracked Labor</p><p className="text-lg font-bold text-[#115997]">{trackedHoursTotal.toFixed(1)}h</p><p className="text-[10px] text-gray-400">${trackedLaborTotal.toFixed(0)} cost</p></div>
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Taxes</p><p className="text-lg font-bold text-amber-600">{fmtMoney(totals.taxes)}</p></div>
       </div>
 
@@ -238,6 +250,7 @@ export default function JobsPage() {
                 <th className="text-right px-3 py-2.5 font-semibold text-[#273373] whitespace-nowrap">Expense</th>
                 <th className="text-right px-3 py-2.5 font-semibold text-green-700 whitespace-nowrap">Revenue</th>
                 <th className="text-right px-3 py-2.5 font-semibold text-emerald-700 whitespace-nowrap">Profit</th>
+                <th className="text-right px-3 py-2.5 font-semibold text-[#115997] whitespace-nowrap" title="Tracked labor + logged expenses">Tracked</th>
                 <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Payment</th>
                 <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Taxes</th>
                 {isAdmin && <th className="px-3 py-2.5 w-20"></th>}
@@ -277,6 +290,14 @@ export default function JobsPage() {
                     <td className="px-3 py-2 text-right font-medium text-gray-900 tabular-nums">{fmt(te)}</td>
                     <td className="px-3 py-2 text-right font-medium text-green-700 tabular-nums">{fmt(j.revenue)}</td>
                     <td className={'px-3 py-2 text-right font-semibold tabular-nums ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>{fmt(pr)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      {getJobCost(j.id) ? (
+                        <div>
+                          <span className="font-medium text-[#115997]">${fmt(getJobCost(j.id).total_cost)}</span>
+                          <p className="text-[9px] text-gray-400">{getJobCost(j.id).labor_hours}h labor</p>
+                        </div>
+                      ) : <span className="text-gray-300 text-[10px]">—</span>}
+                    </td>
                     <td className="px-3 py-2"><span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span></td>
                     <td className="px-3 py-2 text-right text-gray-600 tabular-nums">{fmt(j.taxes)}</td>
                     {isAdmin && (
@@ -305,6 +326,7 @@ export default function JobsPage() {
                   <td className="px-3 py-2.5 text-right text-gray-900 tabular-nums">{fmt(totals.totalExpense)}</td>
                   <td className="px-3 py-2.5 text-right text-green-700 tabular-nums">{fmt(totals.revenue)}</td>
                   <td className={'px-3 py-2.5 text-right tabular-nums ' + (totals.profit >= 0 ? 'text-emerald-600' : 'text-red-600')}>{fmt(totals.profit)}</td>
+                  <td className="px-3 py-2.5 text-right text-[#115997] tabular-nums">${fmt(trackedLaborTotal + trackedExpenseTotal)}</td>
                   <td className="px-3 py-2.5"></td>
                   <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.taxes)}</td>
                   {isAdmin && <td></td>}
@@ -373,6 +395,13 @@ export default function JobsPage() {
                 </div>
                 <span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span>
               </div>
+              {getJobCost(j.id) && (
+                <div className="flex items-center gap-3 text-xs mt-1.5 pt-1.5 border-t border-dashed border-gray-100">
+                  <span className="text-[10px] text-gray-400 uppercase font-semibold">Tracked:</span>
+                  <span className="text-[#115997] font-semibold">{getJobCost(j.id).labor_hours}h labor · ${fmt(getJobCost(j.id).labor_cost)}</span>
+                  {getJobCost(j.id).expense_total > 0 && <span className="text-gray-500">+ ${fmt(getJobCost(j.id).expense_total)} expenses</span>}
+                </div>
+              )}
             </div>
           )
         })}
