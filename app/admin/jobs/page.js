@@ -15,12 +15,15 @@ export default function JobsPage() {
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [showHelp, setShowHelp] = useState(false)
-  const [expandedJob, setExpandedJob] = useState(null)
-  const [crewData, setCrewData] = useState({}) // { jobId: [{ id, user_id, role, user_name, user_color }] }
-  const [crewLoading, setCrewLoading] = useState(null)
-  const [addingCrew, setAddingCrew] = useState(null) // jobId
+
+  // Crew modal state
+  const [crewModalJob, setCrewModalJob] = useState(null) // full job object
+  const [crewList, setCrewList] = useState([])
+  const [crewLoading, setCrewLoading] = useState(false)
   const [newCrewUserId, setNewCrewUserId] = useState('')
   const [newCrewRole, setNewCrewRole] = useState('crew')
+  const [crewCounts, setCrewCounts] = useState({}) // { jobId: count }
+
   const [formData, setFormData] = useState({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '', status: 'active' })
 
   useEffect(() => { fetchJobs(); fetchUsers() }, [])
@@ -35,45 +38,68 @@ export default function JobsPage() {
     catch (e) {}
   }
 
-  const fetchCrew = useCallback(async (jobId) => {
-    setCrewLoading(jobId)
-    try {
-      const r = await fetch(`/api/admin/job-crew?job_id=${jobId}`)
-      const d = await r.json()
-      setCrewData(prev => ({ ...prev, [jobId]: d.crew || [] }))
-    } catch (e) {}
-    finally { setCrewLoading(null) }
-  }, [])
+  // Fetch crew counts for all jobs on load
+  useEffect(() => {
+    const fetchAllCrewCounts = async () => {
+      const counts = {}
+      for (const job of jobs) {
+        try {
+          const r = await fetch(`/api/admin/job-crew?job_id=${job.id}`)
+          const d = await r.json()
+          counts[job.id] = d.crew || []
+        } catch (e) { counts[job.id] = [] }
+      }
+      setCrewCounts(counts)
+    }
+    if (jobs.length > 0) fetchAllCrewCounts()
+  }, [jobs])
 
-  const handleExpandJob = (jobId) => {
-    if (expandedJob === jobId) { setExpandedJob(null); return }
-    setExpandedJob(jobId)
-    if (!crewData[jobId]) fetchCrew(jobId)
+  const openCrewModal = async (job) => {
+    setCrewModalJob(job)
+    setCrewLoading(true)
+    setNewCrewUserId('')
+    setNewCrewRole('crew')
+    try {
+      const r = await fetch(`/api/admin/job-crew?job_id=${job.id}`)
+      const d = await r.json()
+      setCrewList(d.crew || [])
+    } catch (e) { setCrewList([]) }
+    finally { setCrewLoading(false) }
   }
 
-  const handleAssignCrew = async (jobId) => {
-    if (!newCrewUserId) return
+  const handleAssignCrew = async () => {
+    if (!newCrewUserId || !crewModalJob) return
     try {
       await fetch('/api/admin/job-crew', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_id: jobId, user_id: newCrewUserId, role: newCrewRole, assigned_by: user?.id })
+        body: JSON.stringify({ job_id: crewModalJob.id, user_id: newCrewUserId, role: newCrewRole, assigned_by: user?.id })
       })
-      setAddingCrew(null); setNewCrewUserId(''); setNewCrewRole('crew')
-      fetchCrew(jobId)
-      setSuccessMsg('Crew assigned'); setTimeout(() => setSuccessMsg(''), 2000)
+      setNewCrewUserId(''); setNewCrewRole('crew')
+      // Refresh crew list
+      const r = await fetch(`/api/admin/job-crew?job_id=${crewModalJob.id}`)
+      const d = await r.json()
+      setCrewList(d.crew || [])
+      setCrewCounts(prev => ({ ...prev, [crewModalJob.id]: d.crew || [] }))
     } catch (e) {}
   }
 
-  const handleRemoveCrew = async (jobId, assignmentId) => {
-    if (!confirm('Remove this crew member from the job?')) return
+  const handleRemoveCrew = async (assignmentId) => {
+    if (!confirm('Remove this crew member?')) return
     try {
       await fetch('/api/admin/job-crew', {
         method: 'DELETE', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: assignmentId })
       })
-      fetchCrew(jobId)
-      setSuccessMsg('Crew removed'); setTimeout(() => setSuccessMsg(''), 2000)
+      const r = await fetch(`/api/admin/job-crew?job_id=${crewModalJob.id}`)
+      const d = await r.json()
+      setCrewList(d.crew || [])
+      setCrewCounts(prev => ({ ...prev, [crewModalJob.id]: d.crew || [] }))
     } catch (e) {}
+  }
+
+  const getAvailableUsers = () => {
+    const assigned = crewList.map(c => c.user_id)
+    return allUsers.filter(u => !assigned.includes(u.id))
   }
 
   const handleNew = () => { setEditing('new'); setFormData({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '', status: 'active' }) }
@@ -113,81 +139,20 @@ export default function JobsPage() {
     totalExpense: acc.totalExpense + totalExpense(j), revenue: acc.revenue + n(j.revenue), profit: acc.profit + profit(j), taxes: acc.taxes + n(j.taxes)
   }), { labor: 0, material: 0, gas: 0, misc: 0, totalExpense: 0, revenue: 0, profit: 0, taxes: 0 })
 
-  const getAvailableUsers = (jobId) => {
-    const assigned = (crewData[jobId] || []).map(c => c.user_id)
-    return allUsers.filter(u => !assigned.includes(u.id))
-  }
-
-  // Crew panel component
-  const CrewPanel = ({ jobId }) => {
-    const crew = crewData[jobId] || []
-    const isLoading = crewLoading === jobId
-
+  // Render crew avatars for a job
+  const CrewAvatars = ({ jobId }) => {
+    const crew = crewCounts[jobId] || []
+    if (crew.length === 0) return <span className="text-gray-300 text-[10px]">None</span>
     return (
-      <div className="px-4 py-3 bg-gray-50/80 border-t border-gray-100">
-        <div className="flex items-center justify-between mb-2">
-          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assigned Crew</h4>
-          {isAdmin && addingCrew !== jobId && (
-            <button onClick={() => { setAddingCrew(jobId); setNewCrewUserId(''); setNewCrewRole('crew') }}
-              className="text-[11px] text-[#115997] font-medium hover:underline flex items-center gap-1">
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Add
-            </button>
-          )}
+      <div className="flex items-center gap-1">
+        <div className="flex -space-x-1.5">
+          {crew.slice(0, 3).map(c => (
+            <div key={c.id} className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center" style={{ backgroundColor: c.user_color || '#115997' }} title={c.user_name}>
+              <span className="text-white text-[8px] font-bold">{c.user_name?.charAt(0)}</span>
+            </div>
+          ))}
         </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-3"><div className="w-5 h-5 border-2 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
-        ) : crew.length === 0 && addingCrew !== jobId ? (
-          <p className="text-xs text-gray-400 py-1">No crew assigned</p>
-        ) : (
-          <div className="space-y-1.5">
-            {crew.map(c => (
-              <div key={c.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.user_color || '#115997' }}>
-                    <span className="text-white font-bold text-[9px]">{c.user_name?.charAt(0)?.toUpperCase()}</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">{c.user_name}</span>
-                  <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                    c.role === 'lead' ? 'bg-purple-100 text-purple-700' :
-                    c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' :
-                    'bg-gray-100 text-gray-500'
-                  }`}>{c.role}</span>
-                </div>
-                {isAdmin && (
-                  <button onClick={() => handleRemoveCrew(jobId, c.id)} className="p-1 text-gray-300 hover:text-red-500 rounded hover:bg-red-50">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Add crew form */}
-        {addingCrew === jobId && (
-          <div className="flex items-center gap-2 mt-2 bg-white rounded-lg p-2 border border-[#115997]/20">
-            <select value={newCrewUserId} onChange={(e) => setNewCrewUserId(e.target.value)}
-              className="flex-1 px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-[#115997] outline-none min-w-0">
-              <option value="">Select person</option>
-              {getAvailableUsers(jobId).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-            </select>
-            <select value={newCrewRole} onChange={(e) => setNewCrewRole(e.target.value)}
-              className="px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-[#115997] outline-none w-24">
-              <option value="crew">Crew</option>
-              <option value="lead">Lead</option>
-              <option value="subcontractor">Sub</option>
-            </select>
-            <button onClick={() => handleAssignCrew(jobId)} disabled={!newCrewUserId}
-              className="p-1.5 text-white bg-[#115997] rounded hover:bg-[#273373] disabled:opacity-40">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            </button>
-            <button onClick={() => setAddingCrew(null)} className="p-1.5 text-gray-400 hover:text-gray-600 rounded hover:bg-gray-100">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          </div>
-        )}
+        {crew.length > 3 && <span className="text-[10px] text-gray-400 ml-0.5">+{crew.length - 3}</span>}
       </div>
     )
   }
@@ -235,16 +200,7 @@ export default function JobsPage() {
               <div><label className="block text-xs text-gray-500 mb-1">Material $</label><input type="number" step="0.01" value={formData.material} onChange={(e) => setFormData(p => ({ ...p, material: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Gas $</label><input type="number" step="0.01" value={formData.gas} onChange={(e) => setFormData(p => ({ ...p, gas: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Misc $</label><input type="number" step="0.01" value={formData.misc} onChange={(e) => setFormData(p => ({ ...p, misc: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">Status</label>
-                <select value={formData.status} onChange={(e) => setFormData(p => ({ ...p, status: e.target.value }))}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">
-                  <option value="active">Active</option>
-                  <option value="completed">Completed</option>
-                  <option value="on_hold">On Hold</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
+              <div><label className="block text-xs text-gray-500 mb-1">Status</label><select value={formData.status} onChange={(e) => setFormData(p => ({ ...p, status: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none"><option value="active">Active</option><option value="completed">Completed</option><option value="on_hold">On Hold</option><option value="cancelled">Cancelled</option></select></div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div><label className="block text-xs text-gray-500 mb-1">Revenue $</label><input type="number" step="0.01" value={formData.revenue} onChange={(e) => setFormData(p => ({ ...p, revenue: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
@@ -284,16 +240,15 @@ export default function JobsPage() {
                 <th className="text-right px-3 py-2.5 font-semibold text-emerald-700 whitespace-nowrap">Profit</th>
                 <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Payment</th>
                 <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Taxes</th>
-                {isAdmin && <th className="px-3 py-2.5 w-16"></th>}
+                {isAdmin && <th className="px-3 py-2.5 w-20"></th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {jobs.map((j, i) => {
                 const te = totalExpense(j)
                 const pr = profit(j)
-                const isExpanded = expandedJob === j.id
-                return [
-                  <tr key={j.id} className={'hover:bg-gray-50 transition-colors cursor-pointer ' + (isExpanded ? 'bg-blue-50/30' : '')} onClick={() => handleExpandJob(j.id)}>
+                return (
+                  <tr key={j.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-3 py-2 text-gray-400">{i + 1}</td>
                     <td className="px-3 py-2 font-medium text-gray-900 max-w-[180px] truncate">
                       {j.address}
@@ -308,18 +263,12 @@ export default function JobsPage() {
                     <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{dateRange(j)}</td>
                     <td className="px-3 py-2 text-gray-600 max-w-[120px] truncate">{j.client}</td>
                     <td className="px-3 py-2">
-                      {crewData[j.id] ? (
-                        <div className="flex -space-x-1.5">
-                          {crewData[j.id].slice(0, 4).map(c => (
-                            <div key={c.id} className="w-5 h-5 rounded-full border border-white flex items-center justify-center" style={{ backgroundColor: c.user_color || '#115997' }} title={c.user_name}>
-                              <span className="text-white text-[7px] font-bold">{c.user_name?.charAt(0)}</span>
-                            </div>
-                          ))}
-                          {crewData[j.id].length > 4 && <span className="text-[9px] text-gray-400 ml-1">+{crewData[j.id].length - 4}</span>}
-                        </div>
-                      ) : (
-                        <span className="text-gray-300 text-[10px]">—</span>
-                      )}
+                      <button onClick={() => openCrewModal(j)} className="flex items-center gap-1.5 hover:bg-blue-50 rounded-lg px-1.5 py-1 -mx-1.5 -my-1 transition-colors group">
+                        <CrewAvatars jobId={j.id} />
+                        <span className="text-[#115997] opacity-0 group-hover:opacity-100 transition-opacity">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        </span>
+                      </button>
                     </td>
                     <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.labor)}</td>
                     <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.material)}</td>
@@ -331,22 +280,18 @@ export default function JobsPage() {
                     <td className="px-3 py-2"><span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span></td>
                     <td className="px-3 py-2 text-right text-gray-600 tabular-nums">{fmt(j.taxes)}</td>
                     {isAdmin && (
-                      <td className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-3 py-2">
                         <div className="flex items-center gap-0.5">
-                          <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                          <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                          <button onClick={() => openCrewModal(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-blue-50" title="Manage Crew">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                          </button>
+                          <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100" title="Edit"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                          <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50" title="Delete"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                         </div>
                       </td>
                     )}
-                  </tr>,
-                  isExpanded && (
-                    <tr key={j.id + '-crew'}>
-                      <td colSpan={isAdmin ? 15 : 14} className="p-0">
-                        <CrewPanel jobId={j.id} />
-                      </td>
-                    </tr>
-                  )
-                ]
+                  </tr>
+                )
               })}
             </tbody>
             {jobs.length > 0 && (
@@ -377,57 +322,153 @@ export default function JobsPage() {
             <p className="text-gray-500">No jobs yet</p>
             {isAdmin && <button onClick={handleNew} className="mt-3 text-sm text-[#115997] font-medium hover:underline">Add your first job</button>}
           </div>
-        ) : jobs.map((j, i) => {
+        ) : jobs.map((j) => {
           const te = totalExpense(j)
           const pr = profit(j)
-          const isExpanded = expandedJob === j.id
           return (
-            <div key={j.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="p-4" onClick={() => handleExpandJob(j.id)}>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-semibold text-gray-900 text-sm truncate">{j.address}</p>
-                      {j.status && j.status !== 'active' && (
-                        <span className={`text-[9px] font-medium px-1 py-0.5 rounded flex-shrink-0 ${
-                          j.status === 'completed' ? 'bg-green-100 text-green-700' :
-                          j.status === 'on_hold' ? 'bg-amber-100 text-amber-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>{j.status.replace('_', ' ')}</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">{dateRange(j)}{j.client ? ' · ' + j.client : ''}</p>
+            <div key={j.id} className="bg-white rounded-xl shadow-sm p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-semibold text-gray-900 text-sm truncate">{j.address}</p>
+                    {j.status && j.status !== 'active' && (
+                      <span className={`text-[9px] font-medium px-1 py-0.5 rounded flex-shrink-0 ${
+                        j.status === 'completed' ? 'bg-green-100 text-green-700' :
+                        j.status === 'on_hold' ? 'bg-amber-100 text-amber-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>{j.status.replace('_', ' ')}</span>
+                    )}
                   </div>
-                  {isAdmin && (
-                    <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                      <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                    </div>
-                  )}
+                  <p className="text-xs text-gray-500">{dateRange(j)}{j.client ? ' · ' + j.client : ''}</p>
                 </div>
-                <div className="grid grid-cols-4 gap-2 text-xs mb-2">
-                  <div><span className="text-gray-400 block">Labor</span><span className="font-medium">${fmt(j.labor)}</span></div>
-                  <div><span className="text-gray-400 block">Material</span><span className="font-medium">${fmt(j.material)}</span></div>
-                  <div><span className="text-gray-400 block">Gas</span><span className="font-medium">${fmt(j.gas)}</span></div>
-                  <div><span className="text-gray-400 block">Misc</span><span className="font-medium">${fmt(j.misc)}</span></div>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="text-gray-500">Exp: <span className="font-semibold text-gray-800">${fmt(te)}</span></span>
-                    <span className="text-gray-500">Rev: <span className="font-semibold text-green-700">${fmt(j.revenue)}</span></span>
-                    <span className={'font-semibold ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>P: ${fmt(pr)}</span>
+                {isAdmin && (
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    <button onClick={() => openCrewModal(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-blue-50" title="Manage Crew">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    </button>
+                    <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                    <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span>
-                    <svg className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                  </div>
-                </div>
+                )}
               </div>
-              {isExpanded && <CrewPanel jobId={j.id} />}
+              {/* Crew row on mobile */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] text-gray-400 uppercase font-semibold">Crew:</span>
+                <button onClick={() => openCrewModal(j)} className="flex items-center gap-1.5">
+                  <CrewAvatars jobId={j.id} />
+                  <span className="text-[10px] text-[#115997] font-medium">Manage</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-2 text-xs mb-2">
+                <div><span className="text-gray-400 block">Labor</span><span className="font-medium">${fmt(j.labor)}</span></div>
+                <div><span className="text-gray-400 block">Material</span><span className="font-medium">${fmt(j.material)}</span></div>
+                <div><span className="text-gray-400 block">Gas</span><span className="font-medium">${fmt(j.gas)}</span></div>
+                <div><span className="text-gray-400 block">Misc</span><span className="font-medium">${fmt(j.misc)}</span></div>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="text-gray-500">Exp: <span className="font-semibold text-gray-800">${fmt(te)}</span></span>
+                  <span className="text-gray-500">Rev: <span className="font-semibold text-green-700">${fmt(j.revenue)}</span></span>
+                  <span className={'font-semibold ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>P: ${fmt(pr)}</span>
+                </div>
+                <span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span>
+              </div>
             </div>
           )
         })}
       </div>
+
+      {/* ============================================ */}
+      {/* CREW MANAGEMENT MODAL */}
+      {/* ============================================ */}
+      {crewModalJob && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setCrewModalJob(null)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-[#273373]">Manage Crew</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{crewModalJob.address}</p>
+                </div>
+                <button onClick={() => setCrewModalJob(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5">
+              {/* Add crew form */}
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Add Crew Member</label>
+                <div className="flex items-center gap-2">
+                  <select value={newCrewUserId} onChange={(e) => setNewCrewUserId(e.target.value)}
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">
+                    <option value="">Select person...</option>
+                    {getAvailableUsers().map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                  <select value={newCrewRole} onChange={(e) => setNewCrewRole(e.target.value)}
+                    className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none w-28">
+                    <option value="crew">Crew</option>
+                    <option value="lead">Lead</option>
+                    <option value="subcontractor">Sub</option>
+                  </select>
+                  <button onClick={handleAssignCrew} disabled={!newCrewUserId}
+                    className="px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-lg hover:bg-[#273373] disabled:opacity-40">
+                    Add
+                  </button>
+                </div>
+                {getAvailableUsers().length === 0 && crewList.length > 0 && (
+                  <p className="text-[11px] text-gray-400 mt-1.5">All active users are already assigned to this job.</p>
+                )}
+              </div>
+
+              {/* Current crew list */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                  Assigned ({crewList.length})
+                </label>
+                {crewLoading ? (
+                  <div className="flex items-center justify-center py-6"><div className="w-6 h-6 border-2 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
+                ) : crewList.length === 0 ? (
+                  <div className="bg-gray-50 rounded-lg p-6 text-center">
+                    <svg className="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    <p className="text-sm text-gray-400">No crew assigned yet</p>
+                    <p className="text-xs text-gray-300 mt-1">Use the dropdown above to add people</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {crewList.map(c => (
+                      <div key={c.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.user_color || '#115997' }}>
+                            <span className="text-white font-bold text-sm">{c.user_name?.charAt(0)?.toUpperCase()}</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{c.user_name}</p>
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                              c.role === 'lead' ? 'bg-purple-100 text-purple-700' :
+                              c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' :
+                              'bg-blue-100 text-blue-600'
+                            }`}>{c.role}</span>
+                          </div>
+                        </div>
+                        <button onClick={() => handleRemoveCrew(c.id)} className="p-2 text-gray-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors" title="Remove">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-gray-100">
+              <button onClick={() => setCrewModalJob(null)} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">Done</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Help Modal */}
       {showHelp && (
@@ -443,23 +484,19 @@ export default function JobsPage() {
             <div className="p-5 space-y-5">
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Crew assignment</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Click any job row (desktop) or card (mobile) to expand it and see assigned crew. Use the Add button to assign crew members with a role (Lead, Crew, or Subcontractor). Assigned jobs will appear on the crew member{"'"}s schedule in their time clock app.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Click the crew icon button on any job row to open the crew management panel. You can assign crew members with a role (Lead, Crew, or Subcontractor). Assigned crew will see the job on their schedule in the time clock app at /time.</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Job status</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Jobs can be Active, Completed, On Hold, or Cancelled. Set the status when editing a job. Completed and cancelled jobs stay in your records for financial tracking.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Jobs can be Active, Completed, On Hold, or Cancelled. Set the status when editing a job.</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Calculated fields</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Total Expense is automatically calculated as Labor + Material + Gas + Misc. Profit is Revenue minus Total Expense. You do not need to enter these — they update on their own.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Adding a job</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Tap Add Job, fill in the address and costs, then save. The address is the only required field. Everything else is optional but the more you fill in, the more useful the totals and reports become.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Total Expense = Labor + Material + Gas + Misc. Profit = Revenue - Total Expense. These update automatically.</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Payment methods</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Track how you were paid for each job: ACH, Check, Cash, Zelle, or Reliable. This helps with bookkeeping and tax prep.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Track how you were paid: ACH, Check, Cash, Zelle, or Reliable.</p>
               </div>
             </div>
             <div className="p-5 border-t border-gray-100">

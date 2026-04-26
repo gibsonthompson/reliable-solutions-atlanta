@@ -216,7 +216,7 @@ export default function AdminLayout({ children }) {
       </div>
       <style jsx global>{`
         @media (min-width: 1024px) {
-          .desktop-zoom { zoom: 0.9; }
+          .desktop-zoom { zoom: 0.8; }
         }
       `}</style>
     </AuthContext.Provider>
