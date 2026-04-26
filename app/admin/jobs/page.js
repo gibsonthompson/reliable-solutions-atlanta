@@ -4,6 +4,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAdminAuth } from '../layout'
 
 const PAYMENT_METHODS = ['ACH', 'Check', 'Cash', 'Zelle', 'Reliable', 'Other']
+const STATUS_STYLES = {
+  active: 'bg-blue-100 text-blue-700',
+  completed: 'bg-green-100 text-green-700',
+  on_hold: 'bg-amber-100 text-amber-700',
+  cancelled: 'bg-red-100 text-red-700',
+}
 
 export default function JobsPage() {
   const { user } = useAdminAuth()
@@ -15,56 +21,46 @@ export default function JobsPage() {
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [showHelp, setShowHelp] = useState(false)
+  const [crewByJob, setCrewByJob] = useState({})
+  const [jobCosts, setJobCosts] = useState({})
 
-  // Crew modal state
-  const [crewModalJob, setCrewModalJob] = useState(null) // full job object
+  // Crew modal
+  const [crewModalJob, setCrewModalJob] = useState(null)
   const [crewList, setCrewList] = useState([])
   const [crewLoading, setCrewLoading] = useState(false)
   const [newCrewUserId, setNewCrewUserId] = useState('')
   const [newCrewRole, setNewCrewRole] = useState('crew')
-  const [crewCounts, setCrewCounts] = useState({}) // { jobId: count }
-  const [jobCosts, setJobCosts] = useState({}) // { jobId: { labor_hours, labor_cost, expense_total, total_cost } }
 
   const [formData, setFormData] = useState({ address: '', date_start: '', date_end: '', client: '', labor: '', material: '', gas: '', misc: '', revenue: '', payment_method: 'ACH', taxes: '', notes: '', status: 'active' })
 
-  useEffect(() => { fetchJobs(); fetchUsers(); fetchJobCosts() }, [])
+  useEffect(() => { fetchAll() }, [])
 
-  const fetchJobs = async () => {
-    try { const r = await fetch('/api/admin/jobs'); const d = await r.json(); if (d.jobs) setJobs(d.jobs) }
-    catch (e) {} finally { setLoading(false) }
+  const fetchAll = async () => {
+    setLoading(true)
+    try {
+      const [jobsRes, usersRes, crewRes, costsRes] = await Promise.all([
+        fetch('/api/admin/jobs'),
+        fetch('/api/admin/users'),
+        fetch('/api/admin/job-crew/bulk'),
+        fetch('/api/admin/job-costing'),
+      ])
+      const jobsData = await jobsRes.json()
+      const usersData = await usersRes.json()
+      const crewData = await crewRes.json()
+      const costsData = await costsRes.json()
+
+      if (jobsData.jobs) setJobs(jobsData.jobs)
+      if (usersData.users) setAllUsers(usersData.users.filter(u => u.is_active))
+      if (crewData.by_job) setCrewByJob(crewData.by_job)
+      if (costsData.costs) setJobCosts(costsData.costs)
+    } catch (e) {}
+    finally { setLoading(false) }
   }
-
-  const fetchUsers = async () => {
-    try { const r = await fetch('/api/admin/users'); const d = await r.json(); if (d.users) setAllUsers(d.users.filter(u => u.is_active)) }
-    catch (e) {}
-  }
-
-  const fetchJobCosts = async () => {
-    try { const r = await fetch('/api/admin/job-costing'); const d = await r.json(); if (d.costs) setJobCosts(d.costs) }
-    catch (e) {}
-  }
-
-  // Fetch crew counts for all jobs on load
-  useEffect(() => {
-    const fetchAllCrewCounts = async () => {
-      const counts = {}
-      for (const job of jobs) {
-        try {
-          const r = await fetch(`/api/admin/job-crew?job_id=${job.id}`)
-          const d = await r.json()
-          counts[job.id] = d.crew || []
-        } catch (e) { counts[job.id] = [] }
-      }
-      setCrewCounts(counts)
-    }
-    if (jobs.length > 0) fetchAllCrewCounts()
-  }, [jobs])
 
   const openCrewModal = async (job) => {
     setCrewModalJob(job)
     setCrewLoading(true)
-    setNewCrewUserId('')
-    setNewCrewRole('crew')
+    setNewCrewUserId(''); setNewCrewRole('crew')
     try {
       const r = await fetch(`/api/admin/job-crew?job_id=${job.id}`)
       const d = await r.json()
@@ -81,11 +77,13 @@ export default function JobsPage() {
         body: JSON.stringify({ job_id: crewModalJob.id, user_id: newCrewUserId, role: newCrewRole, assigned_by: user?.id })
       })
       setNewCrewUserId(''); setNewCrewRole('crew')
-      // Refresh crew list
       const r = await fetch(`/api/admin/job-crew?job_id=${crewModalJob.id}`)
       const d = await r.json()
       setCrewList(d.crew || [])
-      setCrewCounts(prev => ({ ...prev, [crewModalJob.id]: d.crew || [] }))
+      // Refresh bulk crew data
+      const bulkR = await fetch('/api/admin/job-crew/bulk')
+      const bulkD = await bulkR.json()
+      if (bulkD.by_job) setCrewByJob(bulkD.by_job)
     } catch (e) {}
   }
 
@@ -99,7 +97,9 @@ export default function JobsPage() {
       const r = await fetch(`/api/admin/job-crew?job_id=${crewModalJob.id}`)
       const d = await r.json()
       setCrewList(d.crew || [])
-      setCrewCounts(prev => ({ ...prev, [crewModalJob.id]: d.crew || [] }))
+      const bulkR = await fetch('/api/admin/job-crew/bulk')
+      const bulkD = await bulkR.json()
+      if (bulkD.by_job) setCrewByJob(bulkD.by_job)
     } catch (e) {}
   }
 
@@ -123,22 +123,23 @@ export default function JobsPage() {
       const isNew = editing === 'new'
       if (!isNew) payload.id = editing
       const r = await fetch('/api/admin/jobs', { method: isNew ? 'POST' : 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (r.ok) { setEditing(null); fetchJobs(); setSuccessMsg(isNew ? 'Job added' : 'Job updated'); setTimeout(() => setSuccessMsg(''), 2000) }
+      if (r.ok) { setEditing(null); fetchAll(); setSuccessMsg(isNew ? 'Job added' : 'Job updated'); setTimeout(() => setSuccessMsg(''), 2000) }
     } catch (e) {} finally { setSaving(false) }
   }
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this job?')) return
-    try { await fetch('/api/admin/jobs', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); fetchJobs(); setSuccessMsg('Job deleted'); setTimeout(() => setSuccessMsg(''), 2000) } catch (e) {}
+    try { await fetch('/api/admin/jobs', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); fetchAll(); setSuccessMsg('Job deleted'); setTimeout(() => setSuccessMsg(''), 2000) } catch (e) {}
   }
 
   const n = (v) => parseFloat(v) || 0
   const totalExpense = (j) => n(j.labor) + n(j.material) + n(j.gas) + n(j.misc)
   const profit = (j) => n(j.revenue) - totalExpense(j)
-  const fmt = (v) => { const num = parseFloat(v); if (!num && num !== 0) return ''; return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) }
+  const fmt = (v) => { const num = parseFloat(v); if (!num && num !== 0) return '0'; return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) }
   const fmtMoney = (v) => { const num = parseFloat(v); if (!num && num !== 0) return '$0'; return '$' + Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) }
   const fmtDate = (d) => { if (!d) return ''; const dt = new Date(d + 'T00:00:00'); return (dt.getMonth() + 1) + '/' + dt.getDate() + '/' + String(dt.getFullYear()).slice(2) }
-  const dateRange = (j) => { if (!j.date_start) return ''; return fmtDate(j.date_start) + (j.date_end ? '-' + fmtDate(j.date_end) : '') }
+  const dateRange = (j) => { if (!j.date_start) return 'No dates'; return fmtDate(j.date_start) + (j.date_end ? ' – ' + fmtDate(j.date_end) : '') }
+  const getJobCost = (jobId) => jobCosts[jobId] || null
 
   const totals = jobs.reduce((acc, j) => ({
     labor: acc.labor + n(j.labor), material: acc.material + n(j.material), gas: acc.gas + n(j.gas), misc: acc.misc + n(j.misc),
@@ -147,38 +148,19 @@ export default function JobsPage() {
 
   const trackedLaborTotal = Object.values(jobCosts).reduce((s, c) => s + (c.labor_cost || 0), 0)
   const trackedHoursTotal = Object.values(jobCosts).reduce((s, c) => s + (c.labor_hours || 0), 0)
-  const trackedExpenseTotal = Object.values(jobCosts).reduce((s, c) => s + (c.expense_total || 0), 0)
-  const getJobCost = (jobId) => jobCosts[jobId] || null
-
-  // Render crew avatars for a job
-  const CrewAvatars = ({ jobId }) => {
-    const crew = crewCounts[jobId] || []
-    if (crew.length === 0) return <span className="text-gray-300 text-[10px]">None</span>
-    return (
-      <div className="flex items-center gap-1">
-        <div className="flex -space-x-1.5">
-          {crew.slice(0, 3).map(c => (
-            <div key={c.id} className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center" style={{ backgroundColor: c.user_color || '#115997' }} title={c.user_name}>
-              <span className="text-white text-[8px] font-bold">{c.user_name?.charAt(0)}</span>
-            </div>
-          ))}
-        </div>
-        {crew.length > 3 && <span className="text-[10px] text-gray-400 ml-0.5">+{crew.length - 3}</span>}
-      </div>
-    )
-  }
 
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
 
   return (
     <div className="px-4 py-4 sm:py-8">
+      {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
           <h2 className="text-lg sm:text-2xl font-bold text-[#273373]">All Jobs</h2>
           <p className="text-gray-500 text-xs sm:text-sm">{jobs.length} jobs · Revenue: {fmtMoney(totals.revenue)} · Profit: {fmtMoney(totals.profit)}</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowHelp(true)} className="px-2.5 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+          <button onClick={() => setShowHelp(true)} className="px-2.5 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
           {isAdmin && !editing && <button onClick={handleNew} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-xl hover:bg-[#273373]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Add Job</button>}
         </div>
       </div>
@@ -187,11 +169,11 @@ export default function JobsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
-        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Revenue</p><p className="text-lg font-bold text-green-600">{fmtMoney(totals.revenue)}</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Expenses</p><p className="text-lg font-bold text-red-500">{fmtMoney(totals.totalExpense)}</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Profit</p><p className={'text-lg font-bold ' + (totals.profit >= 0 ? 'text-emerald-600' : 'text-red-600')}>{totals.profit < 0 ? '-' : ''}{fmtMoney(totals.profit)}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Revenue</p><p className="text-lg font-bold text-green-600">{fmtMoney(totals.revenue)}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Expenses</p><p className="text-lg font-bold text-red-500">{fmtMoney(totals.totalExpense)}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Profit</p><p className={'text-lg font-bold ' + (totals.profit >= 0 ? 'text-emerald-600' : 'text-red-600')}>{totals.profit < 0 ? '-' : ''}{fmtMoney(totals.profit)}</p></div>
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Tracked Labor</p><p className="text-lg font-bold text-[#115997]">{trackedHoursTotal.toFixed(1)}h</p><p className="text-[10px] text-gray-400">${trackedLaborTotal.toFixed(0)} cost</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Total Taxes</p><p className="text-lg font-bold text-amber-600">{fmtMoney(totals.taxes)}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-[10px] text-gray-500 uppercase tracking-wide">Taxes</p><p className="text-lg font-bold text-amber-600">{fmtMoney(totals.taxes)}</p></div>
       </div>
 
       {/* Add/Edit Form */}
@@ -203,8 +185,8 @@ export default function JobsPage() {
               <div><label className="block text-xs text-gray-500 mb-1">Address *</label><input type="text" value={formData.address} onChange={(e) => setFormData(p => ({ ...p, address: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Client</label><input type="text" value={formData.client} onChange={(e) => setFormData(p => ({ ...p, client: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div className="grid grid-cols-2 gap-2">
-                <div><label className="block text-xs text-gray-500 mb-1">Start Date</label><input type="date" value={formData.date_start} onChange={(e) => setFormData(p => ({ ...p, date_start: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
-                <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={formData.date_end} onChange={(e) => setFormData(p => ({ ...p, date_end: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
+                <div><label className="block text-xs text-gray-500 mb-1">Start</label><input type="date" value={formData.date_start} onChange={(e) => setFormData(p => ({ ...p, date_start: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
+                <div><label className="block text-xs text-gray-500 mb-1">End</label><input type="date" value={formData.date_end} onChange={(e) => setFormData(p => ({ ...p, date_end: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -216,12 +198,12 @@ export default function JobsPage() {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div><label className="block text-xs text-gray-500 mb-1">Revenue $</label><input type="number" step="0.01" value={formData.revenue} onChange={(e) => setFormData(p => ({ ...p, revenue: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
-              <div><label className="block text-xs text-gray-500 mb-1">Payment Method</label><select value={formData.payment_method} onChange={(e) => setFormData(p => ({ ...p, payment_method: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">{PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
+              <div><label className="block text-xs text-gray-500 mb-1">Payment</label><select value={formData.payment_method} onChange={(e) => setFormData(p => ({ ...p, payment_method: e.target.value }))} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">{PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
               <div><label className="block text-xs text-gray-500 mb-1">Taxes $</label><input type="number" step="0.01" value={formData.taxes} onChange={(e) => setFormData(p => ({ ...p, taxes: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
               <div><label className="block text-xs text-gray-500 mb-1">Notes</label><input type="text" value={formData.notes} onChange={(e) => setFormData(p => ({ ...p, notes: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
             </div>
             <div className="flex items-center gap-4 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
-              <span>Total Expense: <span className="font-semibold text-gray-800">${(n(formData.labor) + n(formData.material) + n(formData.gas) + n(formData.misc)).toFixed(2)}</span></span>
+              <span>Expense: <span className="font-semibold text-gray-800">${(n(formData.labor) + n(formData.material) + n(formData.gas) + n(formData.misc)).toFixed(2)}</span></span>
               <span>Profit: <span className={'font-semibold ' + ((n(formData.revenue) - n(formData.labor) - n(formData.material) - n(formData.gas) - n(formData.misc)) >= 0 ? 'text-green-600' : 'text-red-600')}>${(n(formData.revenue) - n(formData.labor) - n(formData.material) - n(formData.gas) - n(formData.misc)).toFixed(2)}</span></span>
             </div>
             <div className="flex items-center gap-2 pt-1">
@@ -232,184 +214,106 @@ export default function JobsPage() {
         </div>
       )}
 
-      {/* Desktop Table */}
-      <div className="hidden sm:block bg-white rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">#</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Address</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Date</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Client</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Crew</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Labor</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Material</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Gas</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Misc</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-[#273373] whitespace-nowrap">Expense</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-green-700 whitespace-nowrap">Revenue</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-emerald-700 whitespace-nowrap">Profit</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-[#115997] whitespace-nowrap" title="Tracked labor + logged expenses">Tracked</th>
-                <th className="text-left px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Payment</th>
-                <th className="text-right px-3 py-2.5 font-semibold text-gray-600 whitespace-nowrap">Taxes</th>
-                {isAdmin && <th className="px-3 py-2.5 w-20"></th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {jobs.map((j, i) => {
-                const te = totalExpense(j)
-                const pr = profit(j)
-                return (
-                  <tr key={j.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2 text-gray-400">{i + 1}</td>
-                    <td className="px-3 py-2 font-medium text-gray-900 max-w-[180px] truncate">
-                      {j.address}
-                      {j.status && j.status !== 'active' && (
-                        <span className={`ml-1.5 text-[9px] font-medium px-1 py-0.5 rounded ${
-                          j.status === 'completed' ? 'bg-green-100 text-green-700' :
-                          j.status === 'on_hold' ? 'bg-amber-100 text-amber-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>{j.status.replace('_', ' ')}</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{dateRange(j)}</td>
-                    <td className="px-3 py-2 text-gray-600 max-w-[120px] truncate">{j.client}</td>
-                    <td className="px-3 py-2">
-                      <button onClick={() => openCrewModal(j)} className="flex items-center gap-1.5 hover:bg-blue-50 rounded-lg px-1.5 py-1 -mx-1.5 -my-1 transition-colors group">
-                        <CrewAvatars jobId={j.id} />
-                        <span className="text-[#115997] opacity-0 group-hover:opacity-100 transition-opacity">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                        </span>
-                      </button>
-                    </td>
-                    <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.labor)}</td>
-                    <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.material)}</td>
-                    <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.gas)}</td>
-                    <td className="px-3 py-2 text-right text-gray-700 tabular-nums">{fmt(j.misc)}</td>
-                    <td className="px-3 py-2 text-right font-medium text-gray-900 tabular-nums">{fmt(te)}</td>
-                    <td className="px-3 py-2 text-right font-medium text-green-700 tabular-nums">{fmt(j.revenue)}</td>
-                    <td className={'px-3 py-2 text-right font-semibold tabular-nums ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>{fmt(pr)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">
-                      {getJobCost(j.id) ? (
-                        <div>
-                          <span className="font-medium text-[#115997]">${fmt(getJobCost(j.id).total_cost)}</span>
-                          <p className="text-[9px] text-gray-400">{getJobCost(j.id).labor_hours}h labor</p>
-                        </div>
-                      ) : <span className="text-gray-300 text-[10px]">—</span>}
-                    </td>
-                    <td className="px-3 py-2"><span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span></td>
-                    <td className="px-3 py-2 text-right text-gray-600 tabular-nums">{fmt(j.taxes)}</td>
-                    {isAdmin && (
-                      <td className="px-3 py-2">
-                        <div className="flex items-center gap-0.5">
-                          <button onClick={() => openCrewModal(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-blue-50" title="Manage Crew">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                          </button>
-                          <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100" title="Edit"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                          <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50" title="Delete"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
-            </tbody>
-            {jobs.length > 0 && (
-              <tfoot>
-                <tr className="bg-gray-50 border-t-2 border-gray-300 font-semibold text-xs">
-                  <td className="px-3 py-2.5" colSpan={5}>TOTALS ({jobs.length} jobs)</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.labor)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.material)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.gas)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.misc)}</td>
-                  <td className="px-3 py-2.5 text-right text-gray-900 tabular-nums">{fmt(totals.totalExpense)}</td>
-                  <td className="px-3 py-2.5 text-right text-green-700 tabular-nums">{fmt(totals.revenue)}</td>
-                  <td className={'px-3 py-2.5 text-right tabular-nums ' + (totals.profit >= 0 ? 'text-emerald-600' : 'text-red-600')}>{fmt(totals.profit)}</td>
-                  <td className="px-3 py-2.5 text-right text-[#115997] tabular-nums">${fmt(trackedLaborTotal + trackedExpenseTotal)}</td>
-                  <td className="px-3 py-2.5"></td>
-                  <td className="px-3 py-2.5 text-right tabular-nums">{fmt(totals.taxes)}</td>
-                  {isAdmin && <td></td>}
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
-      </div>
-
-      {/* Mobile Cards */}
-      <div className="sm:hidden space-y-3">
+      {/* Job Cards */}
+      <div className="space-y-3">
         {jobs.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm p-8 text-center">
             <p className="text-gray-500">No jobs yet</p>
             {isAdmin && <button onClick={handleNew} className="mt-3 text-sm text-[#115997] font-medium hover:underline">Add your first job</button>}
           </div>
-        ) : jobs.map((j) => {
+        ) : jobs.map((j, i) => {
           const te = totalExpense(j)
           const pr = profit(j)
+          const crew = crewByJob[j.id] || []
+          const cost = getJobCost(j.id)
+
           return (
-            <div key={j.id} className="bg-white rounded-xl shadow-sm p-4">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-semibold text-gray-900 text-sm truncate">{j.address}</p>
-                    {j.status && j.status !== 'active' && (
-                      <span className={`text-[9px] font-medium px-1 py-0.5 rounded flex-shrink-0 ${
-                        j.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        j.status === 'on_hold' ? 'bg-amber-100 text-amber-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>{j.status.replace('_', ' ')}</span>
-                    )}
+            <div key={j.id} className="bg-white rounded-xl shadow-sm overflow-hidden">
+              {/* Top row: address, status, dates, actions */}
+              <div className="px-4 py-3 flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-400 font-mono">#{i + 1}</span>
+                    <h3 className="font-semibold text-gray-900 text-sm">{j.address}</h3>
+                    <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${STATUS_STYLES[j.status] || 'bg-gray-100 text-gray-600'}`}>{(j.status || 'active').replace('_', ' ')}</span>
                   </div>
-                  <p className="text-xs text-gray-500">{dateRange(j)}{j.client ? ' · ' + j.client : ''}</p>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                    <span>{dateRange(j)}</span>
+                    {j.client && <span>· {j.client}</span>}
+                    <span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span>
+                  </div>
                 </div>
                 {isAdmin && (
                   <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => openCrewModal(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-blue-50" title="Manage Crew">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    </button>
-                    <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                    <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                    <button onClick={() => handleEdit(j)} className="p-1.5 text-gray-400 hover:text-[#115997] rounded hover:bg-gray-100" title="Edit"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                    <button onClick={() => handleDelete(j.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50" title="Delete"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                   </div>
                 )}
               </div>
-              {/* Crew row on mobile */}
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] text-gray-400 uppercase font-semibold">Crew:</span>
-                <button onClick={() => openCrewModal(j)} className="flex items-center gap-1.5">
-                  <CrewAvatars jobId={j.id} />
-                  <span className="text-[10px] text-[#115997] font-medium">Manage</span>
-                </button>
-              </div>
-              <div className="grid grid-cols-4 gap-2 text-xs mb-2">
-                <div><span className="text-gray-400 block">Labor</span><span className="font-medium">${fmt(j.labor)}</span></div>
-                <div><span className="text-gray-400 block">Material</span><span className="font-medium">${fmt(j.material)}</span></div>
-                <div><span className="text-gray-400 block">Gas</span><span className="font-medium">${fmt(j.gas)}</span></div>
-                <div><span className="text-gray-400 block">Misc</span><span className="font-medium">${fmt(j.misc)}</span></div>
-              </div>
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                <div className="flex items-center gap-3 text-xs">
-                  <span className="text-gray-500">Exp: <span className="font-semibold text-gray-800">${fmt(te)}</span></span>
-                  <span className="text-gray-500">Rev: <span className="font-semibold text-green-700">${fmt(j.revenue)}</span></span>
-                  <span className={'font-semibold ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>P: ${fmt(pr)}</span>
+
+              {/* Crew Section - THE MAIN FEATURE */}
+              <div className="px-4 py-2.5 bg-slate-50 border-y border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide">Crew</span>
+                    {crew.length === 0 ? (
+                      <span className="text-xs text-gray-400 italic">No crew assigned</span>
+                    ) : (
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {crew.map(c => (
+                          <div key={c.id} className="flex items-center gap-1 bg-white rounded-full pl-0.5 pr-2 py-0.5 border border-gray-200">
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.user_color || '#115997' }}>
+                              <span className="text-white text-[8px] font-bold">{c.user_name?.charAt(0)}</span>
+                            </div>
+                            <span className="text-[11px] text-gray-700 font-medium">{c.user_name?.split(' ')[0]}</span>
+                            {c.role === 'lead' && <span className="text-[8px] text-purple-600 font-bold">LEAD</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {isAdmin && (
+                    <button onClick={() => openCrewModal(j)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        crew.length === 0
+                          ? 'bg-[#115997] text-white hover:bg-[#273373]'
+                          : 'bg-white text-[#115997] border border-[#115997]/30 hover:bg-[#115997]/5'
+                      }`}>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      {crew.length === 0 ? 'Assign Crew' : 'Manage'}
+                    </button>
+                  )}
                 </div>
-                <span className={'inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ' + (j.payment_method === 'ACH' ? 'bg-blue-100 text-blue-700' : j.payment_method === 'Check' ? 'bg-purple-100 text-purple-700' : j.payment_method === 'Cash' ? 'bg-green-100 text-green-700' : j.payment_method === 'Zelle' ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600')}>{j.payment_method || '—'}</span>
               </div>
-              {getJobCost(j.id) && (
-                <div className="flex items-center gap-3 text-xs mt-1.5 pt-1.5 border-t border-dashed border-gray-100">
-                  <span className="text-[10px] text-gray-400 uppercase font-semibold">Tracked:</span>
-                  <span className="text-[#115997] font-semibold">{getJobCost(j.id).labor_hours}h labor · ${fmt(getJobCost(j.id).labor_cost)}</span>
-                  {getJobCost(j.id).expense_total > 0 && <span className="text-gray-500">+ ${fmt(getJobCost(j.id).expense_total)} expenses</span>}
+
+              {/* Financials Row */}
+              <div className="px-4 py-2.5">
+                <div className="flex items-center gap-4 text-xs flex-wrap">
+                  <div className="flex items-center gap-1"><span className="text-gray-400">Lab:</span><span className="font-medium text-gray-700">${fmt(j.labor)}</span></div>
+                  <div className="flex items-center gap-1"><span className="text-gray-400">Mat:</span><span className="font-medium text-gray-700">${fmt(j.material)}</span></div>
+                  <div className="flex items-center gap-1"><span className="text-gray-400">Gas:</span><span className="font-medium text-gray-700">${fmt(j.gas)}</span></div>
+                  <div className="flex items-center gap-1"><span className="text-gray-400">Misc:</span><span className="font-medium text-gray-700">${fmt(j.misc)}</span></div>
+                  <div className="h-3 w-px bg-gray-200" />
+                  <div className="flex items-center gap-1"><span className="text-gray-500 font-medium">Exp:</span><span className="font-semibold text-gray-800">${fmt(te)}</span></div>
+                  <div className="flex items-center gap-1"><span className="text-green-600 font-medium">Rev:</span><span className="font-semibold text-green-700">${fmt(j.revenue)}</span></div>
+                  <div className="flex items-center gap-1"><span className={pr >= 0 ? 'text-emerald-600' : 'text-red-600'}>Profit:</span><span className={'font-bold ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>${fmt(pr)}</span></div>
+                  {cost && (
+                    <>
+                      <div className="h-3 w-px bg-gray-200" />
+                      <div className="flex items-center gap-1"><span className="text-[#115997]">Tracked:</span><span className="font-semibold text-[#115997]">{cost.labor_hours}h · ${fmt(cost.total_cost)}</span></div>
+                    </>
+                  )}
+                  {n(j.taxes) > 0 && (
+                    <div className="flex items-center gap-1"><span className="text-amber-600">Tax:</span><span className="font-medium text-amber-600">${fmt(j.taxes)}</span></div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           )
         })}
       </div>
 
-      {/* ============================================ */}
-      {/* CREW MANAGEMENT MODAL */}
-      {/* ============================================ */}
+      {/* CREW MODAL */}
       {crewModalJob && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setCrewModalJob(null)}>
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -425,75 +329,53 @@ export default function JobsPage() {
                 </button>
               </div>
             </div>
-
             <div className="p-5">
-              {/* Add crew form */}
               <div className="mb-4">
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Add Crew Member</label>
                 <div className="flex items-center gap-2">
-                  <select value={newCrewUserId} onChange={(e) => setNewCrewUserId(e.target.value)}
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">
+                  <select value={newCrewUserId} onChange={(e) => setNewCrewUserId(e.target.value)} className="flex-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none">
                     <option value="">Select person...</option>
                     {getAvailableUsers().map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                   </select>
-                  <select value={newCrewRole} onChange={(e) => setNewCrewRole(e.target.value)}
-                    className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none w-28">
+                  <select value={newCrewRole} onChange={(e) => setNewCrewRole(e.target.value)} className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none w-28">
                     <option value="crew">Crew</option>
                     <option value="lead">Lead</option>
                     <option value="subcontractor">Sub</option>
                   </select>
-                  <button onClick={handleAssignCrew} disabled={!newCrewUserId}
-                    className="px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-lg hover:bg-[#273373] disabled:opacity-40">
-                    Add
-                  </button>
+                  <button onClick={handleAssignCrew} disabled={!newCrewUserId} className="px-4 py-2.5 bg-[#115997] text-white text-sm font-medium rounded-lg hover:bg-[#273373] disabled:opacity-40">Add</button>
                 </div>
-                {getAvailableUsers().length === 0 && crewList.length > 0 && (
-                  <p className="text-[11px] text-gray-400 mt-1.5">All active users are already assigned to this job.</p>
-                )}
               </div>
-
-              {/* Current crew list */}
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Assigned ({crewList.length})
-                </label>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Assigned ({crewList.length})</label>
                 {crewLoading ? (
                   <div className="flex items-center justify-center py-6"><div className="w-6 h-6 border-2 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
                 ) : crewList.length === 0 ? (
                   <div className="bg-gray-50 rounded-lg p-6 text-center">
                     <svg className="w-8 h-8 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     <p className="text-sm text-gray-400">No crew assigned yet</p>
-                    <p className="text-xs text-gray-300 mt-1">Use the dropdown above to add people</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {crewList.map(c => (
                       <div key={c.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: c.user_color || '#115997' }}>
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: c.user_color || '#115997' }}>
                             <span className="text-white font-bold text-sm">{c.user_name?.charAt(0)?.toUpperCase()}</span>
                           </div>
                           <div>
                             <p className="text-sm font-medium text-gray-900">{c.user_name}</p>
-                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                              c.role === 'lead' ? 'bg-purple-100 text-purple-700' :
-                              c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' :
-                              'bg-blue-100 text-blue-600'
-                            }`}>{c.role}</span>
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${c.role === 'lead' ? 'bg-purple-100 text-purple-700' : c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-600'}`}>{c.role}</span>
                           </div>
                         </div>
-                        <button onClick={() => handleRemoveCrew(c.id)} className="p-2 text-gray-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors" title="Remove">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
+                        <button onClick={() => handleRemoveCrew(c.id)} className="p-2 text-gray-300 hover:text-red-500 rounded-lg hover:bg-red-50"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
-
             <div className="p-5 border-t border-gray-100">
-              <button onClick={() => setCrewModalJob(null)} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">Done</button>
+              <button onClick={() => setCrewModalJob(null)} className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200">Done</button>
             </div>
           </div>
         </div>
@@ -511,25 +393,12 @@ export default function JobsPage() {
               </div>
             </div>
             <div className="p-5 space-y-5">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Crew assignment</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Click the crew icon button on any job row to open the crew management panel. You can assign crew members with a role (Lead, Crew, or Subcontractor). Assigned crew will see the job on their schedule in the time clock app at /time.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Job status</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Jobs can be Active, Completed, On Hold, or Cancelled. Set the status when editing a job.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Calculated fields</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Total Expense = Labor + Material + Gas + Misc. Profit = Revenue - Total Expense. These update automatically.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Payment methods</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Track how you were paid: ACH, Check, Cash, Zelle, or Reliable.</p>
-              </div>
+              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Crew assignment</h4><p className="text-sm text-gray-600 leading-relaxed">Each job card has a Crew section. Click "Assign Crew" (blue button) to add crew members, or "Manage" to add/remove from an existing crew. Assigned crew will see the job on their schedule in the time clock app.</p></div>
+              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Financials</h4><p className="text-sm text-gray-600 leading-relaxed">Each card shows labor, material, gas, misc costs, total expense, revenue, and profit. "Tracked" shows actual hours logged by crew via the time clock × their pay rate.</p></div>
+              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Job status</h4><p className="text-sm text-gray-600 leading-relaxed">Jobs can be Active, Completed, On Hold, or Cancelled. Set the status when editing a job.</p></div>
             </div>
             <div className="p-5 border-t border-gray-100">
-              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
+              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373]">Got it</button>
             </div>
           </div>
         </div>
