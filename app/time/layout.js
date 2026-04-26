@@ -81,19 +81,21 @@ export default function TimeLayout({ children }) {
 
   const isActive = (item) => item.exact ? pathname === item.href : pathname.startsWith(item.href)
 
+  // Allow reset password page to render without auth
+  const isPublicPage = pathname === '/time/reset-password' || pathname === '/time/signup'
+
   if (checking) return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !isPublicPage) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #0a3d6b 0%, #115997 40%, #2692cc 100%)' }}>
         <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-sm w-full">
           <div className="text-center mb-6">
             <Image src="/images/logo.png" alt="Reliable Solutions Atlanta" width={200} height={62} className="h-12 w-auto mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">Crew Time Clock</p>
           </div>
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
@@ -111,11 +113,25 @@ export default function TimeLayout({ children }) {
             {loginError && <p className="text-red-500 text-sm text-center bg-red-50 rounded-lg py-2">{loginError}</p>}
             <button type="submit" disabled={loggingIn || !username || !password}
               className="w-full py-3.5 bg-[#115997] text-white rounded-xl font-bold hover:bg-[#273373] transition-colors disabled:opacity-40 text-sm">
-              {loggingIn ? 'Signing in...' : 'Clock In'}
+              {loggingIn ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-          <p className="text-center text-gray-300 text-xs mt-5">Forgot password? Ask your supervisor.</p>
+          <Link href="/time/reset-password" className="block text-center text-gray-400 hover:text-[#115997] mt-4 text-sm transition-colors">
+            Forgot password?
+          </Link>
+          <Link href="/time/signup" className="block text-center text-[#115997] hover:text-[#273373] mt-2 text-sm font-semibold transition-colors">
+            New here? Create an account
+          </Link>
         </div>
+      </div>
+    )
+  }
+
+  // Reset password page gets a minimal shell (no bottom nav, no auth required)
+  if (isPublicPage) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #0a3d6b 0%, #115997 40%, #2692cc 100%)' }}>
+        {children}
       </div>
     )
   }
