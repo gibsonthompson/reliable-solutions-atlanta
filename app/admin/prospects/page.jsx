@@ -44,7 +44,7 @@ export default function ProspectsPage() {
 
   const filtered = prospects.filter(p => {
     if (filter !== 'all' && p.status !== filter) return false
-    if (search) { const q = search.toLowerCase(); return p.name?.toLowerCase().includes(q) || p.email?.toLowerCase().includes(q) || p.brokerage?.toLowerCase().includes(q) || p.area?.toLowerCase().includes(q) }
+    if (search) { const q = search.toLowerCase(); return p.name?.toLowerCase().includes(q) || p.email?.toLowerCase().includes(q) || p.brokerage?.toLowerCase().includes(q) || p.area?.toLowerCase().includes(q) || p.phone?.includes(q) }
     return true
   })
 
@@ -59,7 +59,7 @@ export default function ProspectsPage() {
   return (
     <div className="px-4 py-4 sm:py-8">
       <div className="flex items-center justify-between mb-4 sm:mb-6">
-        <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Leads</h2><p className="text-gray-500 text-xs sm:text-sm">{prospects.length} total leads</p></div>
+        <div><h2 className="text-lg sm:text-2xl font-bold text-[#273373]">Contacts</h2><p className="text-gray-500 text-xs sm:text-sm">{prospects.length} total contacts</p></div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowHelp(true)} className="px-2.5 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
           <button onClick={() => setShowImport(true)} className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200">
@@ -75,7 +75,7 @@ export default function ProspectsPage() {
 
       {showAddForm && (
         <form onSubmit={handleAddProspect} className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6 border-2 border-[#115997]/20">
-          <h3 className="font-semibold text-[#273373] mb-4 text-sm">Add Lead</h3>
+          <h3 className="font-semibold text-[#273373] mb-4 text-sm">Add Contact</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input type="text" placeholder="Name *" value={newProspect.name} onChange={(e) => setNewProspect(p => ({ ...p, name: e.target.value }))} required style={{ fontSize: '16px' }} className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
             <input type="email" placeholder="Email" value={newProspect.email} onChange={(e) => setNewProspect(p => ({ ...p, email: e.target.value }))} style={{ fontSize: '16px' }} className="px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] outline-none" />
@@ -85,13 +85,13 @@ export default function ProspectsPage() {
           </div>
           <div className="flex items-center gap-2 mt-4">
             <button type="button" onClick={() => setShowAddForm(false)} className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg">Cancel</button>
-            <button type="submit" disabled={adding || !newProspect.name.trim()} className="px-4 py-2 text-sm font-medium text-white bg-[#115997] rounded-lg disabled:opacity-50">{adding ? 'Adding...' : 'Add Lead'}</button>
+            <button type="submit" disabled={adding || !newProspect.name.trim()} className="px-4 py-2 text-sm font-medium text-white bg-[#115997] rounded-lg disabled:opacity-50">{adding ? 'Adding...' : 'Add Contact'}</button>
           </div>
         </form>
       )}
 
       <div className="mb-4">
-        <div className="relative"><svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><input type="text" placeholder="Search name, email, company, area..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ fontSize: '16px' }} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
+        <div className="relative"><svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><input type="text" placeholder="Search name, email, phone, company, area..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ fontSize: '16px' }} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997] outline-none" /></div>
       </div>
 
       <div className="mb-4 -mx-4 px-4 overflow-x-auto scrollbar-hide"><div className="flex gap-2 min-w-max sm:min-w-0 sm:flex-wrap">{statuses.map((s) => <button key={s.value} onClick={() => setFilter(s.value)} className={'flex-shrink-0 px-3 sm:px-4 py-2 rounded-full text-sm font-medium transition-all ' + (filter === s.value ? 'bg-[#115997] text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 active:scale-95')}>{s.label}<span className={'ml-1.5 ' + (filter === s.value ? 'text-white/70' : 'text-gray-400')}>{getStatusCount(s.value)}</span></button>)}</div></div>
@@ -102,7 +102,7 @@ export default function ProspectsPage() {
         {filtered.length === 0 ? (
           <div className="p-8 sm:p-12 text-center">
             <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            <p className="text-gray-500">{search ? 'No leads match your search' : 'No leads yet'}</p>
+            <p className="text-gray-500">{search ? 'No contacts match your search' : 'No contacts yet'}</p>
             <div className="flex items-center justify-center gap-3 mt-4">
               <button onClick={() => setShowAddForm(true)} className="text-sm text-[#115997] font-medium hover:underline">Add manually</button>
               <span className="text-gray-300">or</span>
@@ -136,6 +136,7 @@ export default function ProspectsPage() {
                     <div className="flex flex-col items-end ml-3"><span className={'inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium ' + getStatusBadge(p.status)}>{getStatusLabel(p.status)}</span><p className="text-[10px] text-gray-400 mt-1">{timeAgo(p.created_at)}</p></div>
                   </div>
                   {p.area && <p className="text-xs text-gray-400 mt-1">{p.area}</p>}
+                  {p.phone && <p className="text-xs text-gray-400 mt-0.5">{formatPhone(p.phone)}</p>}
                   {p.outreach_count > 0 && <p className="text-xs text-gray-400 mt-1">{p.outreach_count} emails sent</p>}
                 </Link>
               ))}
@@ -151,30 +152,26 @@ export default function ProspectsPage() {
             <div className="p-5 border-b border-gray-100">
               <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#273373]">Leads Help</h3>
+                <h3 className="text-lg font-bold text-[#273373]">Contacts Help</h3>
                 <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
               </div>
             </div>
             <div className="p-5 space-y-5">
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">What is this page?</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">This is your list of leads, partners, and outreach contacts. These are separate from your main Contacts/Requests page. Use this for cold outreach, partner tracking, and prospecting.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">This is your list of all contacts. Anyone who fills out the form on the website is automatically added here, plus any contacts you add manually or import via CSV.</p>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Adding leads</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Tap the + Add button to add a single lead manually. Fill in their name, email, phone, company, and area.</p>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Website form submissions</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Every time someone submits a request through the website, a contact is automatically created here with their name, email, phone, and service type. You can see the raw form submissions on the Requests page.</p>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Importing from CSV</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Tap Import CSV to upload a spreadsheet of leads in bulk. The importer maps common column headers automatically. This works with exports from Apollo, LinkedIn, and most CRM tools.</p>
+                <h4 className="text-sm font-semibold text-gray-800 mb-1">Adding contacts</h4>
+                <p className="text-sm text-gray-600 leading-relaxed">Tap + Add to add a single contact manually. Use Import CSV to upload a spreadsheet of contacts in bulk.</p>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-800 mb-1">Status pipeline</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Each lead has a status: New, Contacted, Interested, Not Interested, or Converted. Use the filter pills at the top to show only leads in a specific stage. Tap a lead to update their status and log outreach.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Outreach tracking</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">When you open a lead{"'"}s detail page, you can log each outreach attempt with a date and notes. This helps you keep track of who you{"'"}ve contacted and when to follow up.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Each contact has a status: New, Contacted, Responded, Meeting Set, Partner, or Not Interested. Use the filter pills to show only contacts in a specific stage. Tap a contact to update their status and log outreach.</p>
               </div>
             </div>
             <div className="p-5 border-t border-gray-100">
