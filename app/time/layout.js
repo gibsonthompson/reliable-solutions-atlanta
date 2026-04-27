@@ -120,7 +120,7 @@ export default function TimeLayout({ children }) {
             Forgot password?
           </Link>
           <Link href="/time/signup" className="block text-center text-[#115997] hover:text-[#273373] mt-2 text-sm font-semibold transition-colors">
-            New here? Create an account
+            Create an account
           </Link>
         </div>
       </div>
