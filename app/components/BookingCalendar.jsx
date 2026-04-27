@@ -25,6 +25,10 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  // Earliest bookable date is tomorrow
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+
   const firstName = leadName?.split(' ')[0] || ''
 
   const getDays = () => {
@@ -39,7 +43,7 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
     }
     for (let d = 1; d <= last.getDate(); d++) {
       const date = new Date(y, m, d)
-      const isPast = date < today
+      const isPast = date < tomorrow // Changed: today is no longer selectable
       const isSunday = date.getDay() === 0
       days.push({ date, disabled: isPast || isSunday, outside: false })
     }
@@ -93,7 +97,6 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
           status: 'estimate_sent',
         }),
       })
-      // Fire and forget — server sleeps 60s then sends
       notify(leadId, 'booked')
       setStatus('done')
     } catch {

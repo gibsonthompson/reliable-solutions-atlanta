@@ -7,9 +7,8 @@ import { useAdminAuth } from '../layout'
 const statuses = [
   { value: 'all', label: 'All' },
   { value: 'new', label: 'New', bg: 'bg-blue-100 text-blue-700' },
-  { value: 'contacted', label: 'Contacted', bg: 'bg-yellow-100 text-yellow-700' },
   { value: 'estimate_sent', label: 'Estimate Sent', bg: 'bg-indigo-100 text-indigo-700' },
-  { value: 'booked', label: 'Booked', bg: 'bg-emerald-100 text-emerald-700' },
+  { value: 'in_progress', label: 'In Progress', bg: 'bg-emerald-100 text-emerald-700' },
   { value: 'done', label: 'Done', bg: 'bg-green-100 text-green-700' },
   { value: 'lost', label: 'Lost', bg: 'bg-red-100 text-red-700' },
 ]
@@ -33,9 +32,16 @@ export default function ContactsPage() {
     finally { setLoading(false) }
   }
 
+  // Map old statuses to new ones for filtering
+  const getDisplayStatus = (status) => {
+    if (status === 'contacted') return 'new'
+    if (status === 'booked') return 'in_progress'
+    return status
+  }
+
   const filtered = submissions
     .filter(s => {
-      if (filter !== 'all' && s.status !== filter) return false
+      if (filter !== 'all' && getDisplayStatus(s.status) !== filter) return false
       if (search) { const q = search.toLowerCase(); return s.name?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q) || s.phone?.includes(q) || s.service_type?.toLowerCase().includes(q) }
       return true
     })
@@ -49,9 +55,15 @@ export default function ContactsPage() {
   const formatPhone = (phone) => { if (!phone) return ''; const c = phone.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return phone }
   const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   const formatDateTime = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
-  const getStatusBadge = (status) => (statuses.find(s => s.value === status)?.bg || 'bg-gray-100 text-gray-700')
-  const getStatusLabel = (status) => (statuses.find(s => s.value === status)?.label || status)
-  const getStatusCount = (status) => status === 'all' ? submissions.length : submissions.filter(s => s.status === status).length
+  const getStatusBadge = (status) => {
+    const mapped = getDisplayStatus(status)
+    return statuses.find(s => s.value === mapped)?.bg || 'bg-gray-100 text-gray-700'
+  }
+  const getStatusLabel = (status) => {
+    const mapped = getDisplayStatus(status)
+    return statuses.find(s => s.value === mapped)?.label || status
+  }
+  const getStatusCount = (status) => status === 'all' ? submissions.length : submissions.filter(s => getDisplayStatus(s.status) === status).length
   const timeAgo = (d) => { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; if (s < 604800) return Math.floor(s/86400) + 'd ago'; return formatDate(d) }
   const getUrgencyColor = (contact) => { if (!['new', 'contacted'].includes(contact.status)) return ''; const h = (Date.now() - new Date(contact.created_at)) / 36e5; if (h < 1) return 'border-l-4 border-l-green-400'; if (h < 24) return 'border-l-4 border-l-yellow-400'; return 'border-l-4 border-l-red-400' }
 
@@ -70,7 +82,7 @@ export default function ContactsPage() {
       <div className="grid grid-cols-3 gap-3 mb-6">
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">New</p><p className="text-xl font-bold text-blue-600">{getStatusCount('new')}</p></div>
         <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">Estimates</p><p className="text-xl font-bold text-indigo-600">{getStatusCount('estimate_sent')}</p></div>
-        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">Booked</p><p className="text-xl font-bold text-emerald-600">{getStatusCount('booked')}</p></div>
+        <div className="bg-white rounded-xl p-3 shadow-sm"><p className="text-xs text-gray-500">In Progress</p><p className="text-xl font-bold text-emerald-600">{getStatusCount('in_progress')}</p></div>
       </div>
 
       <div className="mb-4 sm:mb-6"><div className="relative"><svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg><input type="text" placeholder="Search name, email, phone, service..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ fontSize: '16px' }} className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none" /></div></div>
@@ -127,36 +139,14 @@ export default function ContactsPage() {
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-5 border-b border-gray-100">
               <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-bold text-[#273373]">Contacts Help</h3>
-                <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
-              </div>
+              <div className="flex items-center justify-between"><h3 className="text-lg font-bold text-[#273373]">Requests Help</h3><button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div>
             </div>
             <div className="p-5 space-y-5">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">What is this page?</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">This is your list of all leads and contacts. Every person who fills out the form on the website, or is added manually, shows up here.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Status filters</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Use the pill filters at the top to show only leads in a specific stage like New, Contacted, Estimate Sent, Booked, Done, or Lost. The counts update in real time.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Search</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Type a name, phone number, or service type in the search bar to find a specific contact quickly.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Tap a contact</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Tap any contact to open their detail page where you can call, text, email, change their status, add notes, schedule a date, and see the full activity history.</p>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-800 mb-1">Board View</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">Tap "Board View" at the top right to switch to the Pipeline page where you can drag and drop contacts between stages.</p>
-              </div>
+              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">What is this page?</h4><p className="text-sm text-gray-600">Every person who fills out the form on the website shows up here. This is your list of all incoming requests.</p></div>
+              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Pipeline stages</h4><p className="text-sm text-gray-600">New → Estimate Sent → In Progress → Done. Use the Board View for drag-and-drop.</p></div>
+              <div><h4 className="text-sm font-semibold text-gray-800 mb-1">Tap a contact</h4><p className="text-sm text-gray-600">Open their detail page to call, text, email, change status, create a job, schedule a date, and see activity history.</p></div>
             </div>
-            <div className="p-5 border-t border-gray-100">
-              <button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373] transition-colors">Got it</button>
-            </div>
+            <div className="p-5 border-t border-gray-100"><button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#273373]">Got it</button></div>
           </div>
         </div>
       )}
