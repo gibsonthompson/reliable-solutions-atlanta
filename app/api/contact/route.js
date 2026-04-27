@@ -61,7 +61,7 @@ function isSpam({ name, email, message }) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { name, email, phone, service_type, message, source } = body
+    const { name, email, phone, service_type, message, source, address } = body
     if (!name || !email || !phone || !service_type) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
 
     const isManualEntry = source === 'calendar' || source === 'manual'
@@ -70,13 +70,15 @@ export async function POST(request) {
       if (spamReason) { console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`); return NextResponse.json({ success: true }) }
     }
 
-    // Insert into contact_submissions (the Requests log)
-    const { data, error } = await supabase.from('contact_submissions').insert([{ name, email, phone, service_type, message: message || null, source: source || 'website' }]).select().single()
+    // Insert into contact_submissions with address
+    const insertData = { name, email, phone, service_type, message: message || null, source: source || 'website' }
+    if (address) insertData.address = address
+
+    const { data, error } = await supabase.from('contact_submissions').insert([insertData]).select().single()
     if (error) { console.error('Supabase error:', error); return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 }) }
 
-    // Auto-create a contact in rsa_prospects so it shows up in the Contacts tab
+    // Auto-create a contact in rsa_prospects
     try {
-      // Check if a contact with this email or phone already exists to avoid duplicates
       let isDuplicate = false
       if (email && email !== 'noemail@placeholder.com') {
         const { data: existing } = await supabase
@@ -95,8 +97,8 @@ export async function POST(request) {
           phone: phone !== '0000000000' ? phone : null,
           source: source || 'website',
           status: 'new',
-          notes: service_type + (message ? ' — ' + message : ''),
-          area: service_type, // Use service_type as area since that's the relevant context for RSA
+          notes: service_type + (address ? ' — ' + address : '') + (message ? ' — ' + message : ''),
+          area: service_type,
         }
         const { error: prospectError } = await supabase.from('rsa_prospects').insert([prospectData])
         if (prospectError) console.error('Auto-create contact error:', prospectError.message)
@@ -105,7 +107,6 @@ export async function POST(request) {
         console.log(`[AUTO-CONTACT] Skipped duplicate for ${email}`)
       }
     } catch (prospectErr) {
-      // Don't fail the main submission if prospect creation fails
       console.error('Auto-create contact failed:', prospectErr)
     }
 

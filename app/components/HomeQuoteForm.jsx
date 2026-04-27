@@ -9,6 +9,7 @@ export default function HomeQuoteForm({ services }) {
     name: '',
     email: '',
     phone: '',
+    address: '',
     service_type: '',
   })
   const [status, setStatus] = useState('idle')
@@ -38,11 +39,10 @@ export default function HomeQuoteForm({ services }) {
       setLeadId(id)
       setLeadName(formData.name)
 
-      // Fire and forget — server sleeps 60s then sends internal SMS
       notify(id, 'new_lead')
 
       setStatus('booking')
-      setFormData({ name: '', email: '', phone: '', service_type: '' })
+      setFormData({ name: '', email: '', phone: '', address: '', service_type: '' })
     } catch (error) {
       setStatus('error')
     }
@@ -97,6 +97,10 @@ export default function HomeQuoteForm({ services }) {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
         <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all" placeholder="(770) 000-0000" required />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Property Address</label>
+        <input type="text" name="address" value={formData.address} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all" placeholder="Street address of the property" />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">What services do you need?</label>

@@ -9,6 +9,7 @@ export default function ContactForm() {
     name: '',
     email: '',
     phone: '',
+    address: '',
     service_type: '',
     message: '',
   })
@@ -50,11 +51,10 @@ export default function ContactForm() {
       setLeadId(id)
       setLeadName(formData.name)
 
-      // Fire and forget — server sleeps 60s then sends internal SMS
       notify(id, 'new_lead')
 
       setStatus('booking')
-      setFormData({ name: '', email: '', phone: '', service_type: '', message: '' })
+      setFormData({ name: '', email: '', phone: '', address: '', service_type: '', message: '' })
     } catch (error) {
       setStatus('error')
     }
@@ -122,6 +122,11 @@ export default function ContactForm() {
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="address" className="block text-white mb-1">Property Address</label>
+        <input type="text" id="address" name="address" value={formData.address} onChange={handleChange} placeholder="Street address of the property" className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800" />
       </div>
 
       <div>
