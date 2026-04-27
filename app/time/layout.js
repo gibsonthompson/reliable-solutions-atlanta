@@ -20,8 +20,36 @@ export default function TimeLayout({ children }) {
   const [loggingIn, setLoggingIn] = useState(false)
 
   useEffect(() => {
+    // Viewport
     const meta = document.querySelector('meta[name="viewport"]')
     if (meta) meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover')
+
+    // PWA meta tags
+    const addMeta = (name, content) => {
+      if (!document.querySelector(`meta[name="${name}"]`)) {
+        const m = document.createElement('meta'); m.name = name; m.content = content; document.head.appendChild(m)
+      }
+    }
+    addMeta('theme-color', '#115997')
+    addMeta('apple-mobile-web-app-capable', 'yes')
+    addMeta('apple-mobile-web-app-status-bar-style', 'black-translucent')
+    addMeta('apple-mobile-web-app-title', 'Clock')
+    addMeta('mobile-web-app-capable', 'yes')
+
+    // Manifest link
+    if (!document.querySelector('link[rel="manifest"]')) {
+      const link = document.createElement('link'); link.rel = 'manifest'; link.href = '/time-manifest.json'; document.head.appendChild(link)
+    }
+
+    // Apple touch icon
+    if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+      const icon = document.createElement('link'); icon.rel = 'apple-touch-icon'; icon.href = '/images/logo.png'; document.head.appendChild(icon)
+    }
+
+    // Service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/time-sw.js').catch(() => {})
+    }
   }, [])
 
   useEffect(() => {

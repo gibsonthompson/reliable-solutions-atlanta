@@ -1,0 +1,19 @@
+{
+  "name": "Clock",
+  "short_name": "Clock",
+  "description": "Reliable Solutions Atlanta",
+  "start_url": "/time",
+  "scope": "/time",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9fafb",
+  "theme_color": "#115997",
+  "icons": [
+    {
+      "src": "/images/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
