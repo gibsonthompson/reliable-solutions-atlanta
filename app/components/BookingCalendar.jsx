@@ -94,7 +94,6 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
           id: leadId,
           scheduled_date: dateStr,
           scheduled_time: selectedTime,
-          status: 'estimate_sent',
         }),
       })
       notify(leadId, 'booked')
