@@ -43,7 +43,7 @@ export default function TimeLayout({ children }) {
 
     // Apple touch icon
     if (!document.querySelector('link[rel="apple-touch-icon"]')) {
-      const icon = document.createElement('link'); icon.rel = 'apple-touch-icon'; icon.href = '/images/logo.png'; document.head.appendChild(icon)
+      const icon = document.createElement('link'); icon.rel = 'apple-touch-icon'; icon.href = '/images/icon-512.png'; document.head.appendChild(icon)
     }
 
     // Service worker
