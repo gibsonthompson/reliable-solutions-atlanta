@@ -55,14 +55,17 @@ export default function ContactDetailPage() {
   const [showHelp, setShowHelp] = useState(false)
   const [showJobModal, setShowJobModal] = useState(false)
   const [jobSaving, setJobSaving] = useState(false)
-  const [jobForm, setJobForm] = useState({ address: '', client: '', date_start: '', date_end: '', notes: '' })
+  const [jobForm, setJobForm] = useState({ address: '', client: '', date_start: '', date_end: '', notes: '', crew: [] })
+  const [allCrewUsers, setAllCrewUsers] = useState([])
+  const [addCrewUserId, setAddCrewUserId] = useState('')
+  const [addCrewRole, setAddCrewRole] = useState('crew')
 
   useEffect(() => { if (contactId && user) { fetchContact(); fetchOutreach(); fetchActivity(); if (user.role === 'admin') fetchUsers() } }, [contactId, user])
 
   const fetchContact = async () => { try { const r = await fetch('/api/contact'); const res = await r.json(); if (res.data) { const f = res.data.find(s => s.id === contactId); if (f) { setContact(f); setFormData({ name: f.name||'', email: f.email||'', phone: f.phone||'', service_type: f.service_type||'', message: f.message||'', status: f.status||'new', notes: f.notes||'', next_follow_up: f.next_follow_up||'', scheduled_date: f.scheduled_date||'', scheduled_time: f.scheduled_time||'', address: f.address||'', assigned_to: f.assigned_to||'' }) } else setError('Contact not found') } } catch(e) { setError('Failed to load') } finally { setLoading(false) } }
   const fetchOutreach = async () => { try { const r = await fetch('/api/admin/outreach?contact_id='+contactId); const d = await r.json(); if (d.outreach) setOutreachLog(d.outreach) } catch(e) {} }
   const fetchActivity = async () => { try { const r = await fetch('/api/admin/activity?contact_id='+contactId); const d = await r.json(); if (d.activity) setActivityLog(d.activity) } catch(e) {} }
-  const fetchUsers = async () => { try { const r = await fetch('/api/admin/users'); const d = await r.json(); if (d.users) setTeamUsers(d.users.filter(u => u.is_active)) } catch(e) {} }
+  const fetchUsers = async () => { try { const r = await fetch('/api/admin/users'); const d = await r.json(); if (d.users) { setTeamUsers(d.users.filter(u => u.is_active)); setAllCrewUsers(d.users.filter(u => u.is_active)) } } catch(e) {} }
 
   const handleSave = async () => { setSaving(true); setError(''); setSuccessMsg(''); try { const r = await fetch('/api/contact', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ id:contactId, status:formData.status, notes:formData.notes, next_follow_up:formData.next_follow_up||null, scheduled_date:formData.scheduled_date||null, scheduled_time:formData.scheduled_time||null, address:formData.address||null, assigned_to:formData.assigned_to||null }) }); if (r.ok) { setSuccessMsg('Saved'); fetchContact(); fetchActivity(); setTimeout(()=>setSuccessMsg(''),3000) } else setError('Failed to save') } catch(e) { setError('Failed to save') } finally { setSaving(false) } }
   const handleStatusChange = async (newStatus) => {
@@ -78,8 +81,21 @@ export default function ContactDetailPage() {
   const handleCloseLost = async () => { const old = formData.status; setFormData(p => ({ ...p, status: 'lost' })); setShowCloseModal(false); try { await fetch('/api/contact', { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:contactId, status:'lost', close_reason:closeReason }) }); await fetch('/api/admin/activity', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ contact_id:contactId, action:'status_change', old_value:old, new_value:'lost', note:'Reason: '+closeReason, user_id:user?.id }) }); setSuccessMsg('Marked as lost'); fetchActivity(); setTimeout(() => setSuccessMsg(''), 2000) } catch(e) {} }
 
   const openJobModal = () => {
-    setJobForm({ address: formData.address || '', client: contact?.name || '', date_start: formData.scheduled_date || '', date_end: '', notes: contact?.service_type || '' })
+    setJobForm({ address: formData.address || '', client: contact?.name || '', date_start: formData.scheduled_date || '', date_end: '', notes: contact?.service_type || '', crew: [] })
+    setAddCrewUserId(''); setAddCrewRole('crew')
     setShowJobModal(true)
+  }
+
+  const addCrewToJobForm = () => {
+    if (!addCrewUserId) return
+    const u = allCrewUsers.find(x => x.id === addCrewUserId)
+    if (!u || jobForm.crew.some(c => c.user_id === addCrewUserId)) return
+    setJobForm(p => ({ ...p, crew: [...p.crew, { user_id: addCrewUserId, role: addCrewRole, name: u.name, color: u.color }] }))
+    setAddCrewUserId(''); setAddCrewRole('crew')
+  }
+
+  const removeCrewFromJobForm = (userId) => {
+    setJobForm(p => ({ ...p, crew: p.crew.filter(c => c.user_id !== userId) }))
   }
 
   const handleCreateJob = async () => {
@@ -89,7 +105,18 @@ export default function ContactDetailPage() {
       const r = await fetch('/api/admin/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ address: jobForm.address, client: jobForm.client, date_start: jobForm.date_start || null, date_end: jobForm.date_end || null, notes: jobForm.notes || null, status: 'active', labor: 0, material: 0, gas: 0, misc: 0, revenue: 0, taxes: 0 })
       })
-      if (r.ok) { setShowJobModal(false); setSuccessMsg('Job created — assign crew on Jobs or Schedule page'); setTimeout(() => setSuccessMsg(''), 4000) }
+      if (!r.ok) return
+      const jobData = await r.json()
+      const newJobId = jobData.job?.id
+      if (newJobId && jobForm.crew.length > 0) {
+        for (const c of jobForm.crew) {
+          await fetch('/api/admin/job-crew', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_id: newJobId, user_id: c.user_id, role: c.role, assigned_by: user?.id }) })
+        }
+      }
+      setShowJobModal(false)
+      setSuccessMsg(`Job created${jobForm.crew.length > 0 ? ` with ${jobForm.crew.length} crew assigned` : ' — assign crew on Jobs or Schedule page'}`)
+      setTimeout(() => setSuccessMsg(''), 4000)
     } catch (e) {}
     finally { setJobSaving(false) }
   }

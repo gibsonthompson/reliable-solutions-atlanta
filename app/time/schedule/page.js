@@ -6,6 +6,7 @@ import { useTimeAuth } from '../layout'
 export default function SchedulePage() {
   const { user } = useTimeAuth()
   const [jobs, setJobs] = useState([])
+  const [unscheduledJobs, setUnscheduledJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [weekOffset, setWeekOffset] = useState(0)
 
@@ -16,23 +17,21 @@ export default function SchedulePage() {
     monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1) + (offset * 7))
     monday.setHours(0, 0, 0, 0)
     const days = []
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(monday)
-      d.setDate(monday.getDate() + i)
-      days.push(d)
-    }
+    for (let i = 0; i < 7; i++) { const d = new Date(monday); d.setDate(monday.getDate() + i); days.push(d) }
     return days
   }, [])
 
   const fetchJobs = useCallback(async () => {
     if (!user?.id) return
+    setLoading(true)
     try {
       const days = getWeekDates(weekOffset)
       const start = days[0].toISOString().split('T')[0]
       const end = days[6].toISOString().split('T')[0]
-      const r = await fetch(`/api/time/schedule?user_id=${user.id}&start=${start}&end=${end}`)
+      const r = await fetch(`/api/time/schedule?user_id=${user.id}&start=${start}&end=${end}&include_unscheduled=true`)
       const data = await r.json()
       setJobs(data.jobs || [])
+      setUnscheduledJobs(data.unscheduled || [])
     } catch (e) {}
     finally { setLoading(false) }
   }, [user?.id, weekOffset, getWeekDates])
@@ -42,7 +41,6 @@ export default function SchedulePage() {
   const weekDates = getWeekDates(weekOffset)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-
   const isToday = (d) => d.getTime() === today.getTime()
   const isPast = (d) => d.getTime() < today.getTime()
 
@@ -50,43 +48,54 @@ export default function SchedulePage() {
     const ds = date.toISOString().split('T')[0]
     return jobs.filter(j => {
       if (!j.date_start) return false
-      const start = j.date_start
       const end = j.date_end || j.date_start
-      return ds >= start && ds <= end
+      return ds >= j.date_start && ds <= end
     })
   }
 
   const weekLabel = () => {
-    const s = weekDates[0]
-    const e = weekDates[6]
-    const sameMonth = s.getMonth() === e.getMonth()
-    if (sameMonth) return `${s.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${e.getDate()}, ${e.getFullYear()}`
+    const s = weekDates[0]; const e = weekDates[6]
+    if (s.getMonth() === e.getMonth()) return `${s.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} – ${e.getDate()}, ${e.getFullYear()}`
     return `${s.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${e.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
 
   return (
     <div className="px-4 py-4">
       {/* Week Navigation */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={() => setWeekOffset(p => p - 1)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white transition-colors">
+        <button onClick={() => setWeekOffset(p => p - 1)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
         <div className="text-center">
           <h2 className="text-sm font-bold text-gray-900">{weekLabel()}</h2>
-          {weekOffset !== 0 && (
-            <button onClick={() => setWeekOffset(0)} className="text-[11px] text-[#115997] font-medium mt-0.5">Go to this week</button>
-          )}
+          {weekOffset !== 0 && <button onClick={() => setWeekOffset(0)} className="text-[11px] text-[#115997] font-medium mt-0.5">Go to this week</button>}
         </div>
-        <button onClick={() => setWeekOffset(p => p + 1)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white transition-colors">
+        <button onClick={() => setWeekOffset(p => p + 1)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
+
+      {/* Unscheduled Jobs Warning */}
+      {unscheduledJobs.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+          <div className="flex items-center gap-2 mb-2">
+            <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+            <span className="text-xs font-semibold text-amber-800">Assigned jobs without dates</span>
+          </div>
+          <div className="space-y-1.5">
+            {unscheduledJobs.map(job => (
+              <div key={job.id} className="flex items-center gap-2">
+                <div className="w-1 h-4 rounded-full bg-amber-400 flex-shrink-0" />
+                <p className="text-xs text-amber-700">{job.address}{job.client ? ` · ${job.client}` : ''}</p>
+                <span className={`text-[9px] font-medium px-1 py-0.5 rounded ${job.crew_role === 'lead' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>{job.crew_role}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-amber-600 mt-2">Ask your supervisor to set dates for these jobs</p>
+        </div>
+      )}
 
       {/* Days */}
       <div className="space-y-2">
@@ -99,9 +108,7 @@ export default function SchedulePage() {
             <div key={date.toISOString()} className={`bg-white rounded-xl overflow-hidden transition-all ${
               td ? 'ring-2 ring-[#115997] shadow-md' : 'shadow-sm'
             } ${past ? 'opacity-60' : ''}`}>
-              <div className={`px-4 py-2.5 flex items-center justify-between ${
-                td ? 'bg-[#115997] text-white' : 'bg-gray-50'
-              }`}>
+              <div className={`px-4 py-2.5 flex items-center justify-between ${td ? 'bg-[#115997] text-white' : 'bg-gray-50'}`}>
                 <div className="flex items-center gap-2">
                   <span className={`text-sm font-bold ${td ? 'text-white' : 'text-gray-900'}`}>
                     {date.toLocaleDateString('en-US', { weekday: 'short' })}
@@ -132,11 +139,9 @@ export default function SchedulePage() {
                           <p className="text-sm font-medium text-gray-900 truncate">{job.address}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             {job.client && <span className="text-xs text-gray-500">{job.client}</span>}
-                            {job.crew_role && (
-                              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
-                                job.crew_role === 'lead' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
-                              }`}>{job.crew_role}</span>
-                            )}
+                            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
+                              job.crew_role === 'lead' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
+                            }`}>{job.crew_role}</span>
                           </div>
                         </div>
                       </div>

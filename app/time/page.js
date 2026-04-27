@@ -8,6 +8,7 @@ export default function TimeClockPage() {
   const [clockStatus, setClockStatus] = useState(null)
   const [todayEntries, setTodayEntries] = useState([])
   const [todayJobs, setTodayJobs] = useState([])
+  const [unscheduledJobs, setUnscheduledJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [clocking, setClocking] = useState(false)
   const [elapsed, setElapsed] = useState(0)
@@ -40,20 +41,21 @@ export default function TimeClockPage() {
     } catch (e) {}
   }, [user?.id])
 
-  const fetchTodayJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async () => {
     if (!user?.id) return
     try {
       const today = new Date().toISOString().split('T')[0]
-      const r = await fetch(`/api/time/schedule?user_id=${user.id}&start=${today}&end=${today}`)
+      const r = await fetch(`/api/time/schedule?user_id=${user.id}&start=${today}&end=${today}&include_unscheduled=true`)
       const data = await r.json()
-      setTodayJobs(data.jobs || [])
+      setTodayJobs((data.jobs || []).filter(j => j.status !== 'completed' && j.status !== 'cancelled'))
+      setUnscheduledJobs(data.unscheduled || [])
     } catch (e) {}
   }, [user?.id])
 
   useEffect(() => {
-    const init = async () => { await Promise.all([fetchStatus(), fetchTodayEntries(), fetchTodayJobs()]); setLoading(false) }
+    const init = async () => { await Promise.all([fetchStatus(), fetchTodayEntries(), fetchJobs()]); setLoading(false) }
     init()
-  }, [fetchStatus, fetchTodayEntries, fetchTodayJobs])
+  }, [fetchStatus, fetchTodayEntries, fetchJobs])
 
   useEffect(() => {
     if (clockStatus?.clocked_in) { timerRef.current = setInterval(() => setElapsed(p => p + 1), 1000) }
@@ -79,7 +81,8 @@ export default function TimeClockPage() {
   const formatDuration = (mins) => { if (!mins) return '0m'; const h = Math.floor(mins / 60); const m = mins % 60; return h === 0 ? `${m}m` : `${h}h ${m}m` }
 
   const isClockedIn = clockStatus?.clocked_in
-  const hasJobsToday = todayJobs.length > 0 && !isClockedIn
+  const allAvailableJobs = [...todayJobs, ...unscheduledJobs]
+  const hasJobsToShow = allAvailableJobs.length > 0 && !isClockedIn
 
   if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
 
@@ -95,9 +98,7 @@ export default function TimeClockPage() {
         </p>
       </div>
 
-      {/* ======================================= */}
-      {/* CLOCKED IN STATE — big red stop button */}
-      {/* ======================================= */}
+      {/* CLOCKED IN — big red stop */}
       {isClockedIn && (
         <div className="flex flex-col items-center mb-6">
           <button onClick={() => handleClock(null)} disabled={clocking}
@@ -115,22 +116,19 @@ export default function TimeClockPage() {
                 Clocked in at {formatTime(clockStatus.entry.clock_in)}
                 {clockStatus.entry.entry_type === 'job' && clockStatus.entry.job_address
                   ? <span className="text-[#115997] font-medium"> · {clockStatus.entry.job_address}</span>
-                  : <span className="text-gray-400"> · General</span>
-                }
+                  : <span className="text-gray-400"> · General</span>}
               </p>
             </div>
           )}
         </div>
       )}
 
-      {/* ======================================= */}
-      {/* NOT CLOCKED IN + HAS JOBS — jobs first  */}
-      {/* ======================================= */}
-      {hasJobsToday && (
+      {/* NOT CLOCKED IN + HAS JOBS — jobs are primary */}
+      {hasJobsToShow && (
         <div className="mb-6">
           <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-3">
             <div className="px-4 py-3 bg-[#115997] text-white">
-              <h3 className="font-bold text-sm">Today&apos;s Jobs</h3>
+              <h3 className="font-bold text-sm">Your Jobs</h3>
               <p className="text-[11px] text-white/70">Tap a job to clock in and start tracking</p>
             </div>
             <div className="divide-y divide-gray-100">
@@ -138,16 +136,33 @@ export default function TimeClockPage() {
                 <button key={job.id} onClick={() => handleClock(job.id)} disabled={clocking}
                   className="w-full px-4 py-4 flex items-center justify-between hover:bg-blue-50/50 active:bg-blue-50 transition-colors text-left">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-2 h-10 rounded-full flex-shrink-0 ${
-                      job.status === 'completed' ? 'bg-green-400' : job.status === 'on_hold' ? 'bg-amber-400' : 'bg-[#115997]'
-                    }`} />
+                    <div className="w-2 h-10 rounded-full flex-shrink-0 bg-[#115997]" />
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-900 truncate">{job.address}</p>
                       <div className="flex items-center gap-2 mt-0.5">
                         {job.client && <span className="text-xs text-gray-500">{job.client}</span>}
-                        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${
-                          job.crew_role === 'lead' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
-                        }`}>{job.crew_role}</span>
+                        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${job.crew_role === 'lead' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>{job.crew_role}</span>
+                        <span className="text-[9px] text-emerald-600 font-medium">Today</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-xl flex-shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /></svg>
+                    <span className="text-sm font-bold">Start</span>
+                  </div>
+                </button>
+              ))}
+              {unscheduledJobs.map(job => (
+                <button key={job.id} onClick={() => handleClock(job.id)} disabled={clocking}
+                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-blue-50/50 active:bg-blue-50 transition-colors text-left">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-2 h-10 rounded-full flex-shrink-0 bg-amber-400" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{job.address}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {job.client && <span className="text-xs text-gray-500">{job.client}</span>}
+                        <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${job.crew_role === 'lead' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>{job.crew_role}</span>
+                        <span className="text-[9px] text-amber-600 font-medium">No date set</span>
                       </div>
                     </div>
                   </div>
@@ -159,7 +174,6 @@ export default function TimeClockPage() {
               ))}
             </div>
           </div>
-          {/* General clock-in as secondary */}
           <button onClick={() => handleClock(null)} disabled={clocking}
             className="w-full text-center text-sm text-gray-400 hover:text-[#115997] py-2 transition-colors">
             Or clock in without a job (general)
@@ -167,10 +181,8 @@ export default function TimeClockPage() {
         </div>
       )}
 
-      {/* ======================================= */}
-      {/* NOT CLOCKED IN + NO JOBS — big button   */}
-      {/* ======================================= */}
-      {!isClockedIn && !hasJobsToday && (
+      {/* NOT CLOCKED IN + NO JOBS — big green button */}
+      {!isClockedIn && !hasJobsToShow && (
         <div className="flex flex-col items-center mb-6">
           <button onClick={() => handleClock(null)} disabled={clocking}
             className={`relative w-44 h-44 rounded-full flex flex-col items-center justify-center transition-all duration-300 active:scale-95 shadow-lg bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-emerald-200 ${clocking ? 'opacity-70 scale-95' : ''}`}>
@@ -179,7 +191,7 @@ export default function TimeClockPage() {
             </svg>
             <span className="text-white font-bold text-lg">{clocking ? 'Working...' : 'Clock In'}</span>
           </button>
-          <p className="text-xs text-gray-400 mt-3">No jobs assigned today</p>
+          <p className="text-xs text-gray-400 mt-3">No jobs assigned</p>
         </div>
       )}
 
