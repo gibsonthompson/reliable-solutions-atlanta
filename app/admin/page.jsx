@@ -176,40 +176,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 animate-[fadeUp_0.4s_ease-out]">
-        <Link href="/admin/timesheets" className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-emerald-200 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-400 rounded-r" />
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Crew Active</p>
-          <div className="flex items-baseline gap-1 ml-2 mt-1">
-            <p className="text-3xl font-extrabold text-emerald-600 tabular-nums">{stats.clockedIn}</p>
-            <p className="text-sm text-gray-300 font-medium">/ {stats.totalCrew}</p>
-          </div>
-          {stats.clockedIn > 0 && <div className="flex gap-0.5 ml-2 mt-2">{activeCrew.slice(0, 5).map(u => <div key={u.id} className="w-5 h-5 rounded-full border-2 border-white shadow-sm" style={{ backgroundColor: u.color || '#115997' }} />)}{activeCrew.length > 5 && <div className="w-5 h-5 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"><span className="text-[7px] font-bold text-gray-500">+{activeCrew.length-5}</span></div>}</div>}
-        </Link>
-
-        <Link href="/admin/jobs" className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-blue-200 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-[#115997] rounded-r" />
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Active Jobs</p>
-          <p className="text-3xl font-extrabold text-[#115997] tabular-nums ml-2 mt-1">{stats.jobsActive}</p>
-          <p className="text-[10px] text-gray-300 ml-2 mt-1">{todayJobs.length} scheduled today</p>
-        </Link>
-
-        <Link href="/admin/contacts" className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-amber-200 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-r" />
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">New Requests</p>
-          <p className="text-3xl font-extrabold text-amber-600 tabular-nums ml-2 mt-1">{stats.requestsNew}</p>
-          <p className="text-[10px] text-gray-300 ml-2 mt-1">{stats.requestsTotal} total</p>
-        </Link>
-
-        <Link href="/admin/jobs" className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-green-200 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-green-400 rounded-r" />
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Revenue</p>
-          <p className="text-2xl font-extrabold text-green-600 tabular-nums ml-2 mt-1">{fmtMoney(stats.revenue)}</p>
-          <p className={'text-[11px] font-semibold ml-2 mt-1 ' + (stats.profit >= 0 ? 'text-emerald-500' : 'text-red-500')}>{stats.profit >= 0 ? '+' : '-'}{fmtMoney(stats.profit)} profit</p>
-        </Link>
-      </div>
-
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
 
         {/* Active Crew */}
