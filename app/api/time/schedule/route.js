@@ -12,10 +12,11 @@ export async function GET(request) {
     const user_id = searchParams.get('user_id')
     const start = searchParams.get('start')
     const end = searchParams.get('end')
-    const include_unscheduled = searchParams.get('include_unscheduled') // 'true' to get jobs with no dates
+    const include_unscheduled = searchParams.get('include_unscheduled')
 
     if (!user_id) return NextResponse.json({ error: 'user_id required' }, { status: 400 })
 
+    // Get all job IDs assigned to this user
     const { data: assignments, error: aErr } = await supabase
       .from('rsa_job_crew')
       .select('job_id, role')
@@ -28,10 +29,12 @@ export async function GET(request) {
     const roleMap = {}
     assignments.forEach(a => { roleMap[a.job_id] = a.role })
 
+    // Fetch assigned jobs — only active and on_hold (not completed, not cancelled)
     const { data: jobs, error: jErr } = await supabase
       .from('rsa_jobs')
       .select('id, address, client, date_start, date_end, status, notes, description')
       .in('id', jobIds)
+      .in('status', ['active', 'on_hold'])
       .order('date_start', { ascending: true, nullsFirst: false })
 
     if (jErr) throw jErr
@@ -40,7 +43,7 @@ export async function GET(request) {
 
     // Split into scheduled and unscheduled
     const unscheduled = allJobs
-      .filter(j => !j.date_start && j.status !== 'completed' && j.status !== 'cancelled')
+      .filter(j => !j.date_start)
       .map(j => ({ ...j, crew_role: roleMap[j.id] || 'crew' }))
 
     let scheduled = allJobs.filter(j => j.date_start)

@@ -33,7 +33,6 @@ export async function PUT(request) {
     const { id } = body
     if (!id) return NextResponse.json({ error: 'Job ID required' }, { status: 400 })
 
-    // Only update known rsa_jobs columns — don't blindly spread
     const updates = {}
     if (body.address !== undefined) updates.address = body.address
     if (body.date_start !== undefined) updates.date_start = body.date_start || null
@@ -65,8 +64,31 @@ export async function DELETE(request) {
   try {
     const { id } = await request.json()
     if (!id) return NextResponse.json({ error: 'Job ID required' }, { status: 400 })
+
+    // Clean up all related data before deleting the job (FK constraints would block otherwise)
+
+    // 1. Remove crew assignments
+    const { error: crewErr } = await supabase.from('rsa_job_crew').delete().eq('job_id', id)
+    if (crewErr) console.error('Cleanup crew error:', crewErr.message)
+
+    // 2. Unlink time entries (don't delete — keep the hours, just remove the job reference)
+    const { error: timeErr } = await supabase
+      .from('rsa_time_entries')
+      .update({ job_id: null, entry_type: 'general' })
+      .eq('job_id', id)
+    if (timeErr) console.error('Cleanup time entries error:', timeErr.message)
+
+    // 3. Delete expenses tied to this job
+    const { error: expErr } = await supabase.from('rsa_expenses').delete().eq('job_id', id)
+    if (expErr) console.error('Cleanup expenses error:', expErr.message)
+
+    // 4. Now delete the job itself
     const { error } = await supabase.from('rsa_jobs').delete().eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
     return NextResponse.json({ success: true })
-  } catch (e) { return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
+  } catch (e) {
+    console.error('Jobs DELETE error:', e)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
 }

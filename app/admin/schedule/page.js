@@ -53,7 +53,9 @@ export default function SchedulePage() {
       const byUser = crewData.by_user || {}
       Object.entries(byUser).forEach(([userId, assignments]) => {
         if (userJobs[userId]) {
-          userJobs[userId] = assignments.filter(a => jobMap[a.job_id]).map(a => ({ ...jobMap[a.job_id], crew_role: a.role }))
+          userJobs[userId] = assignments
+            .filter(a => jobMap[a.job_id] && jobMap[a.job_id].status !== 'completed' && jobMap[a.job_id].status !== 'cancelled')
+            .map(a => ({ ...jobMap[a.job_id], crew_role: a.role }))
         }
       })
       setCrewByUser(userJobs)
@@ -129,6 +131,7 @@ export default function SchedulePage() {
     const ds = date.toISOString().split('T')[0]
     const userId = assignModal?.userId
     return jobs.filter(j => {
+      if (j.status === 'completed' || j.status === 'cancelled') return false
       if (!j.date_start) return false
       if (ds < j.date_start || ds > (j.date_end || j.date_start)) return false
       const crew = crewByJob[j.id] || []
