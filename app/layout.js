@@ -6,7 +6,7 @@ export const metadata = {
     default: 'Reliable Solutions Atlanta | Waterproofing & Foundation Repair',
     template: '%s | Reliable Solutions Atlanta',
   },
-  description: 'Atlanta\'s trusted waterproofing and foundation repair experts. Family owned with 20+ years experience. Basement waterproofing, crawl space encapsulation, drainage, and foundation repair. Free estimates. 770-895-2039',
+  description: 'Family owned, 20+ years experience. 5-star rated on Google. We fix wet basements, crawl spaces, drainage, and foundation problems across Metro Atlanta — permanently. Free same-week inspections. Call 770-895-2039.',
   keywords: ['waterproofing Atlanta', 'foundation repair Atlanta', 'basement waterproofing Atlanta', 'crawl space repair Atlanta', 'crawl space encapsulation Georgia', 'drainage solutions Atlanta', 'French drain installation', 'foundation repair Lawrenceville GA'],
   authors: [{ name: 'Reliable Solutions Atlanta' }],
   creator: 'Reliable Solutions Atlanta',
@@ -28,7 +28,7 @@ export const metadata = {
     url: 'https://www.waterhelpme.com',
     siteName: 'Reliable Solutions Atlanta',
     title: 'Reliable Solutions Atlanta | Waterproofing & Foundation Repair',
-    description: 'Metro Atlanta\'s trusted waterproofing and foundation repair experts. Family owned, 20+ years experience. Free estimates. 770-895-2039',
+    description: 'Family owned, 20+ years experience. 5-star rated on Google. We fix wet basements, crawl spaces, drainage, and foundation problems across Metro Atlanta — permanently. Free same-week inspections.',
     images: [
       {
         url: '/images/og-image.jpg',
@@ -41,7 +41,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Reliable Solutions Atlanta | Waterproofing & Foundation Repair',
-    description: 'Metro Atlanta\'s trusted waterproofing and foundation repair experts. Free estimates. 770-895-2039',
+    description: 'Family owned, 20+ years experience. 5-star rated on Google. Basement waterproofing, crawl space, drainage, and foundation repair across Metro Atlanta. Free estimates. 770-895-2039',
     images: ['/images/og-image.jpg'],
   },
   robots: {
@@ -138,7 +138,7 @@ export default function RootLayout({ children }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body>{children}</body>
+      <body style={{ zoom: '0.9' }}>{children}</body>
     </html>
   )
 }
