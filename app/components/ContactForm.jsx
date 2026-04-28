@@ -11,6 +11,7 @@ export default function ContactForm() {
     phone: '',
     address: '',
     service_type: '',
+    referral_source: '',
     message: '',
   })
   const [status, setStatus] = useState('idle')
@@ -25,6 +26,17 @@ export default function ContactForm() {
     'Crawl Space Waterproofing',
     'Concrete Repair',
     'Drainage',
+    'Other',
+  ]
+
+  const referralOptions = [
+    'Google Search',
+    'Facebook',
+    'Nextdoor',
+    'Referral / Word of Mouth',
+    'Yard Sign',
+    'Drove By',
+    'Angi / HomeAdvisor',
     'Other',
   ]
 
@@ -54,7 +66,7 @@ export default function ContactForm() {
       notify(id, 'new_lead')
 
       setStatus('booking')
-      setFormData({ name: '', email: '', phone: '', address: '', service_type: '', message: '' })
+      setFormData({ name: '', email: '', phone: '', address: '', service_type: '', referral_source: '', message: '' })
     } catch (error) {
       setStatus('error')
     }
@@ -127,6 +139,16 @@ export default function ContactForm() {
       <div>
         <label htmlFor="address" className="block text-white mb-1">Property Address</label>
         <input type="text" id="address" name="address" value={formData.address} onChange={handleChange} placeholder="Street address of the property" className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800" />
+      </div>
+
+      <div>
+        <label htmlFor="referral_source" className="block text-white mb-1">How did you hear about us?</label>
+        <select id="referral_source" name="referral_source" value={formData.referral_source} onChange={handleChange} className="w-full px-4 py-3 bg-white/80 backdrop-blur-sm rounded-lg border-0 focus:ring-2 focus:ring-[#115997] text-gray-800">
+          <option value="">Select one...</option>
+          {referralOptions.map((option, index) => (
+            <option key={index} value={option}>{option}</option>
+          ))}
+        </select>
       </div>
 
       <div>

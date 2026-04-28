@@ -178,6 +178,7 @@ export default function ContactDetailPage() {
               <div className="mt-4"><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1.5">Assigned To</label><select value={formData.assigned_to} onChange={(e) => setFormData(p => ({ ...p, assigned_to: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none bg-white transition-all"><option value="">Unassigned</option>{teamUsers.map(u => <option key={u.id} value={u.id}>{u.name} (@{u.username})</option>)}</select></div>
             )}
             {contact?.message && <div className="mt-4"><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1.5">Original Message</p><p className="text-sm text-gray-600 bg-[#F5F6F8] rounded-xl p-3 leading-relaxed">{contact.message}</p></div>}
+            {contact?.referral_source && <div className="mt-4"><div className="bg-[#F5F6F8] rounded-xl p-3"><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">How They Found Us</p><p className="font-semibold text-gray-900 text-sm">{contact.referral_source}</p></div></div>}
           </div>
 
           {/* Scheduling */}

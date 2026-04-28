@@ -61,7 +61,7 @@ function isSpam({ name, email, message }) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { name, email, phone, service_type, message, source, address } = body
+    const { name, email, phone, service_type, message, source, address, referral_source } = body
     if (!name || !email || !phone || !service_type) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
 
     const isManualEntry = source === 'calendar' || source === 'manual'
@@ -73,6 +73,7 @@ export async function POST(request) {
     // Insert into contact_submissions with address
     const insertData = { name, email, phone, service_type, message: message || null, source: source || 'website' }
     if (address) insertData.address = address
+    if (referral_source) insertData.referral_source = referral_source
 
     const { data, error } = await supabase.from('contact_submissions').insert([insertData]).select().single()
     if (error) { console.error('Supabase error:', error); return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 }) }

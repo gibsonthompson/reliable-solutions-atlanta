@@ -11,10 +11,22 @@ export default function HomeQuoteForm({ services }) {
     phone: '',
     address: '',
     service_type: '',
+    referral_source: '',
   })
   const [status, setStatus] = useState('idle')
   const [leadId, setLeadId] = useState(null)
   const [leadName, setLeadName] = useState('')
+
+  const referralOptions = [
+    'Google Search',
+    'Facebook',
+    'Nextdoor',
+    'Referral / Word of Mouth',
+    'Yard Sign',
+    'Drove By',
+    'Angi / HomeAdvisor',
+    'Other',
+  ]
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -42,7 +54,7 @@ export default function HomeQuoteForm({ services }) {
       notify(id, 'new_lead')
 
       setStatus('booking')
-      setFormData({ name: '', email: '', phone: '', address: '', service_type: '' })
+      setFormData({ name: '', email: '', phone: '', address: '', service_type: '', referral_source: '' })
     } catch (error) {
       setStatus('error')
     }
@@ -108,6 +120,15 @@ export default function HomeQuoteForm({ services }) {
           <option value="">Select a service...</option>
           {services.map((service) => (
             <option key={service.href} value={service.name}>{service.name}</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">How did you hear about us?</label>
+        <select name="referral_source" value={formData.referral_source} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all bg-white">
+          <option value="">Select one...</option>
+          {referralOptions.map((option, index) => (
+            <option key={index} value={option}>{option}</option>
           ))}
         </select>
       </div>
