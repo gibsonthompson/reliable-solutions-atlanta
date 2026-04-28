@@ -152,6 +152,46 @@ export async function PATCH(request) {
     const { data, error } = await supabase.from('contact_submissions').update(updateData).eq('id', id).select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)').single()
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+    // Auto-create job when moved to in_progress
+    if (status === 'in_progress' && data) {
+      try {
+        // Check if a job already exists for this address + client combo
+        const jobAddress = data.address || data.name || 'No address'
+        const jobClient = data.name || ''
+        const { data: existingJob } = await supabase
+          .from('rsa_jobs')
+          .select('id')
+          .eq('address', jobAddress)
+          .eq('client', jobClient)
+          .limit(1)
+          .maybeSingle()
+
+        if (!existingJob) {
+          const jobData = {
+            address: jobAddress,
+            client: jobClient,
+            notes: data.service_type || null,
+            date_start: data.scheduled_date || null,
+            date_end: null,
+            status: 'active',
+            labor: 0,
+            material: 0,
+            gas: 0,
+            misc: 0,
+            revenue: 0,
+            taxes: 0,
+          }
+          const { error: jobError } = await supabase.from('rsa_jobs').insert([jobData])
+          if (jobError) console.error('[AUTO-JOB] Failed to create:', jobError.message)
+          else console.log(`[AUTO-JOB] Created job for ${jobClient} at ${jobAddress}`)
+        } else {
+          console.log(`[AUTO-JOB] Skipped — job already exists for ${jobClient} at ${jobAddress}`)
+        }
+      } catch (jobErr) {
+        console.error('[AUTO-JOB] Error:', jobErr)
+      }
+    }
+
     return NextResponse.json({ success: true, data })
   } catch (error) { console.error('API error:', error); return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
 }
