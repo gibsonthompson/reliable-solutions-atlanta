@@ -153,11 +153,13 @@ export async function PATCH(request) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     // Auto-create job when moved to in_progress
+    let autoJobResult = null
     if (status === 'in_progress' && data) {
       try {
-        // Check if a job already exists for this address + client combo
         const jobAddress = data.address || data.name || 'No address'
         const jobClient = data.name || ''
+
+        // Check if a job already exists for this address + client
         const { data: existingJob } = await supabase
           .from('rsa_jobs')
           .select('id')
@@ -167,10 +169,11 @@ export async function PATCH(request) {
           .maybeSingle()
 
         if (!existingJob) {
-          const jobData = {
+          const { data: newJob, error: jobError } = await supabase.from('rsa_jobs').insert([{
             address: jobAddress,
             client: jobClient,
             notes: data.service_type || null,
+            description: data.service_type || null,
             date_start: data.scheduled_date || null,
             date_end: null,
             status: 'active',
@@ -180,18 +183,25 @@ export async function PATCH(request) {
             misc: 0,
             revenue: 0,
             taxes: 0,
+            payment_method: null,
+          }]).select().single()
+
+          if (jobError) {
+            console.error('[AUTO-JOB] Failed:', jobError.message)
+            autoJobResult = { created: false, error: jobError.message }
+          } else {
+            console.log(`[AUTO-JOB] Created job ${newJob.id} for ${jobClient} at ${jobAddress}`)
+            autoJobResult = { created: true, job_id: newJob.id }
           }
-          const { error: jobError } = await supabase.from('rsa_jobs').insert([jobData])
-          if (jobError) console.error('[AUTO-JOB] Failed to create:', jobError.message)
-          else console.log(`[AUTO-JOB] Created job for ${jobClient} at ${jobAddress}`)
         } else {
-          console.log(`[AUTO-JOB] Skipped — job already exists for ${jobClient} at ${jobAddress}`)
+          autoJobResult = { created: false, reason: 'already_exists', job_id: existingJob.id }
         }
       } catch (jobErr) {
         console.error('[AUTO-JOB] Error:', jobErr)
+        autoJobResult = { created: false, error: jobErr.message }
       }
     }
 
-    return NextResponse.json({ success: true, data })
+    return NextResponse.json({ success: true, data, autoJob: autoJobResult })
   } catch (error) { console.error('API error:', error); return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
 }

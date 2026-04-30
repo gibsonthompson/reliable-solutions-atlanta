@@ -38,10 +38,19 @@ export default function PipelinePage() {
     if (newStatus === 'lost') { setShowCloseModal({ id: contactId, oldStatus }); setCloseReason(''); return }
     setSubmissions(prev => prev.map(s => s.id === contactId ? { ...s, status: newStatus } : s))
     try {
-      await fetch('/api/contact', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: contactId, status: newStatus }) })
+      const r = await fetch('/api/contact', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: contactId, status: newStatus }) })
+      const result = await r.json()
       await fetch('/api/admin/activity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact_id: contactId, action: 'status_change', old_value: oldStatus, new_value: newStatus, user_id: user?.id }) })
-      setSuccessMsg('Moved to ' + (COLUMNS.find(c => c.key === newStatus)?.label || newStatus))
-      setTimeout(() => setSuccessMsg(''), 3000)
+      if (result.autoJob?.created) {
+        setSuccessMsg('Moved to In Progress — Job created automatically')
+      } else if (result.autoJob?.reason === 'already_exists') {
+        setSuccessMsg('Moved to In Progress — Job already exists')
+      } else if (result.autoJob?.error) {
+        setSuccessMsg('Moved to In Progress — Job creation failed: ' + result.autoJob.error)
+      } else {
+        setSuccessMsg('Moved to ' + (COLUMNS.find(c => c.key === newStatus)?.label || newStatus))
+      }
+      setTimeout(() => setSuccessMsg(''), 4000)
     } catch (err) { setSubmissions(prev => prev.map(s => s.id === contactId ? { ...s, status: oldStatus } : s)) }
   }
 

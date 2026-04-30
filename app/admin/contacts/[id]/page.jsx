@@ -71,9 +71,17 @@ export default function ContactDetailPage() {
     if (newStatus === 'lost') { setShowCloseModal(true); return }
     const old = formData.status; setFormData(p => ({ ...p, status: newStatus }))
     try {
-      await fetch('/api/contact', { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:contactId, status:newStatus }) })
+      const r = await fetch('/api/contact', { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:contactId, status:newStatus }) })
+      const result = await r.json()
       await fetch('/api/admin/activity', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ contact_id:contactId, action:'status_change', old_value:old, new_value:newStatus, user_id:user?.id }) })
-      setSuccessMsg('Status updated'); fetchActivity(); setTimeout(() => setSuccessMsg(''), 3000)
+      if (result.autoJob?.created) {
+        setSuccessMsg('Status updated — Job created automatically')
+      } else if (result.autoJob?.error) {
+        setSuccessMsg('Status updated — Job creation failed: ' + result.autoJob.error)
+      } else {
+        setSuccessMsg('Status updated')
+      }
+      fetchActivity(); setTimeout(() => setSuccessMsg(''), 4000)
     } catch(e) {}
   }
   const handleCloseLost = async () => { const old = formData.status; setFormData(p => ({ ...p, status: 'lost' })); setShowCloseModal(false); try { await fetch('/api/contact', { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ id:contactId, status:'lost', close_reason:closeReason }) }); await fetch('/api/admin/activity', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ contact_id:contactId, action:'status_change', old_value:old, new_value:'lost', note:'Reason: '+closeReason, user_id:user?.id }) }); setSuccessMsg('Marked as lost'); fetchActivity(); setTimeout(() => setSuccessMsg(''), 2000) } catch(e) {} }
