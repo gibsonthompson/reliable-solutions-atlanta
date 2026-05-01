@@ -150,7 +150,26 @@ export async function PATCH(request) {
     if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null
 
     const { data, error } = await supabase.from('contact_submissions').update(updateData).eq('id', id).select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)').single()
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      // Update might have succeeded even if select failed — try fetching separately
+      const { data: fallbackData } = await supabase.from('contact_submissions').select('*').eq('id', id).single()
+      if (!fallbackData) return NextResponse.json({ error: error.message }, { status: 500 })
+      // Continue with fallbackData for auto-job
+      let autoJobResult = null
+      if (status === 'in_progress') {
+        try {
+          const jobAddress = fallbackData.address || fallbackData.name || 'No address'
+          const jobClient = fallbackData.name || ''
+          const { data: existingJob } = await supabase.from('rsa_jobs').select('id').eq('address', jobAddress).eq('client', jobClient).limit(1).maybeSingle()
+          if (!existingJob) {
+            const { data: newJob, error: jobError } = await supabase.from('rsa_jobs').insert([{ address: jobAddress, client: jobClient, notes: fallbackData.service_type || null, description: fallbackData.service_type || null, date_start: fallbackData.scheduled_date || null, date_end: null, status: 'active', labor: 0, material: 0, gas: 0, misc: 0, revenue: 0, taxes: 0, payment_method: null }]).select().single()
+            if (jobError) { autoJobResult = { created: false, error: jobError.message } }
+            else { autoJobResult = { created: true, job_id: newJob.id } }
+          } else { autoJobResult = { created: false, reason: 'already_exists', job_id: existingJob.id } }
+        } catch (jobErr) { autoJobResult = { created: false, error: jobErr.message } }
+      }
+      return NextResponse.json({ success: true, data: fallbackData, autoJob: autoJobResult })
+    }
 
     // Auto-create job when moved to in_progress
     let autoJobResult = null
@@ -159,7 +178,6 @@ export async function PATCH(request) {
         const jobAddress = data.address || data.name || 'No address'
         const jobClient = data.name || ''
 
-        // Check if a job already exists for this address + client
         const { data: existingJob } = await supabase
           .from('rsa_jobs')
           .select('id')
