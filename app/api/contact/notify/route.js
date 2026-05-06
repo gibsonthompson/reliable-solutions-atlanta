@@ -64,6 +64,7 @@ export async function POST(request) {
     if (type === 'new_lead') {
       const smsBody = ['New Lead - RSA', data.name, formatPhoneDisplay(data.phone), data.service_type].filter(Boolean).join('\n')
       await sendSms(process.env.RSA_NOTIFICATION_PHONE, smsBody)
+      await sendSms('+16783161454', smsBody)
     }
 
     if (type === 'booked') {
