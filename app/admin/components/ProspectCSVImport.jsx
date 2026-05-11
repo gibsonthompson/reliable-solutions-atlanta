@@ -6,22 +6,21 @@ const PROSPECT_FIELDS = [
   { key: 'name', label: 'Name', required: true },
   { key: 'email', label: 'Email', required: false },
   { key: 'phone', label: 'Phone', required: false },
-  { key: 'brokerage', label: 'Brokerage / Company', required: false },
-  { key: 'area', label: 'Area / Market', required: false },
+  { key: 'brokerage', label: 'Company', required: false },
+  { key: 'area', label: 'Service / Area', required: false },
   { key: 'notes', label: 'Notes', required: false },
 ]
 
 const SOURCE_OPTIONS = [
   { value: 'csv_import', label: 'CSV Import' },
+  { value: 'meta_ads', label: 'Meta Ads' },
   { value: 'linkedin', label: 'LinkedIn' },
   { value: 'google', label: 'Google Search' },
-  { value: 'realtor_com', label: 'Realtor.com' },
-  { value: 'zillow', label: 'Zillow' },
   { value: 'referral', label: 'Referral' },
+  { value: 'website', label: 'Website' },
   { value: 'other', label: 'Other' },
 ]
 
-// Auto-mapping for realtor CSV columns
 const AUTO_MAP = {
   'name': 'name',
   'full name': 'name',
@@ -30,8 +29,6 @@ const AUTO_MAP = {
   'contact_name': 'name',
   'agent name': 'name',
   'agent': 'name',
-  'realtor': 'name',
-  'realtor name': 'name',
   'first name': '_first_name',
   'first_name': '_first_name',
   'firstname': '_first_name',
@@ -83,9 +80,16 @@ const AUTO_MAP = {
   'description': 'notes',
   'bio': 'notes',
   'about': 'notes',
+  // Meta ads specific
+  'what_services_do_you_need?': 'area',
+  'what services do you need?': 'area',
+  'what_services_do_you_need': 'area',
+  'service': 'area',
+  'services': 'area',
+  'campaign_name': 'notes',
+  'ad_name': 'notes',
 }
 
-// Headers to completely skip — Apollo/CRM noise that causes mis-mapping
 const IGNORED_HEADERS = new Set([
   'company name for emails',
   'primary email catch-all status',
@@ -125,39 +129,70 @@ const IGNORED_HEADERS = new Set([
   'tags',
   'lists',
   'stage',
+  // Meta ads noise
+  'id',
+  'created_time',
+  'ad_id',
+  'adset_id',
+  'adset_name',
+  'campaign_id',
+  'form_id',
+  'form_name',
+  'is_organic',
+  'platform',
+  'lead_status',
 ])
 
 function fuzzyMatch(header) {
   const lower = header.toLowerCase().trim()
-
-  // Skip known noise headers first
   if (IGNORED_HEADERS.has(lower)) return '_skip'
-
-  // Exact match
   if (AUTO_MAP[lower]) return AUTO_MAP[lower]
-
-  // Skip any header that contains BOTH "company"/"name" AND "email"
-  // (catches "Company Name for Emails" and similar)
   if ((lower.includes('company') || lower.includes('name for')) && lower.includes('email')) return '_skip'
-
-  // Fuzzy — check multi-word patterns FIRST, then single-word
-  if (lower.includes('first name') || lower.includes('firstname')) return '_first_name'
-  if (lower.includes('last name') || lower.includes('lastname')) return '_last_name'
+  if (lower.includes('first name') || lower.includes('firstname') || lower === 'first_name') return '_first_name'
+  if (lower.includes('last name') || lower.includes('lastname') || lower === 'last_name') return '_last_name'
   if (lower.includes('company') || lower.includes('brokerage') || lower.includes('office') || lower.includes('firm')) return 'brokerage'
+  if (lower.includes('service')) return 'area'
   if (lower.includes('email')) return 'email'
   if (lower.includes('phone') || lower.includes('mobile') || lower.includes('cell')) return 'phone'
   if (lower.includes('area') || lower.includes('market') || lower.includes('city') || lower.includes('region')) return 'area'
+  if (lower.includes('campaign') || lower.includes('ad_name') || lower.includes('ad name')) return 'notes'
   return null
 }
 
-function parseCSV(text) {
+function cleanPhone(phone) {
+  if (!phone) return ''
+  // Strip Meta's p: prefix
+  let cleaned = phone.replace(/^p:/i, '').trim()
+  // Strip + prefix
+  cleaned = cleaned.replace(/^\+/, '')
+  // Get just digits
+  const digits = cleaned.replace(/\D/g, '')
+  // If 11 digits starting with 1, strip the 1
+  if (digits.length === 11 && digits[0] === '1') return digits.slice(1)
+  if (digits.length === 10) return digits
+  return digits
+}
+
+function detectDelimiter(text) {
+  const firstLine = text.split(/\r?\n/)[0] || ''
+  const tabs = (firstLine.match(/\t/g) || []).length
+  const commas = (firstLine.match(/,/g) || []).length
+  return tabs > commas ? '\t' : ','
+}
+
+function parseCSV(text, delimiter) {
   const lines = text.split(/\r?\n/).filter(line => line.trim())
   if (lines.length < 2) return { headers: [], rows: [] }
 
-  const headers = parseCSVLine(lines[0])
+  const headers = delimiter === '\t'
+    ? lines[0].split('\t').map(h => h.replace(/^"|"$/g, '').trim())
+    : parseCSVLine(lines[0])
+
   const rows = []
   for (let i = 1; i < lines.length; i++) {
-    const values = parseCSVLine(lines[i])
+    const values = delimiter === '\t'
+      ? lines[i].split('\t').map(v => v.replace(/^"|"$/g, '').trim())
+      : parseCSVLine(lines[i])
     if (values.length === 0 || values.every(v => !v.trim())) continue
     const row = {}
     headers.forEach((header, idx) => { row[header] = values[idx] || '' })
@@ -187,6 +222,11 @@ function parseCSVLine(line) {
   return result
 }
 
+function isMetaCSV(headers) {
+  const lower = new Set(headers.map(h => h.toLowerCase().trim()))
+  return lower.has('ad_id') || lower.has('campaign_id') || lower.has('platform') || lower.has('form_id') || lower.has('lead_status')
+}
+
 export default function ProspectCSVImport({ isOpen, onClose, onImportComplete }) {
   const fileInputRef = useRef(null)
   const [step, setStep] = useState('upload')
@@ -200,11 +240,12 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
   const [error, setError] = useState('')
   const [firstNameCol, setFirstNameCol] = useState(null)
   const [lastNameCol, setLastNameCol] = useState(null)
+  const [isMeta, setIsMeta] = useState(false)
 
   const reset = () => {
     setStep('upload'); setFileName(''); setCsvHeaders([]); setCsvRows([])
     setColumnMapping({}); setDefaultSource('csv_import'); setImporting(false)
-    setResult(null); setError(''); setFirstNameCol(null); setLastNameCol(null)
+    setResult(null); setError(''); setFirstNameCol(null); setLastNameCol(null); setIsMeta(false)
   }
 
   const handleClose = () => { reset(); onClose() }
@@ -217,7 +258,7 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
 
   const processFile = (file) => {
     if (!file.name.match(/\.(csv|tsv|txt)$/i)) {
-      setError('Please upload a CSV file')
+      setError('Please upload a CSV or TSV file')
       return
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -227,60 +268,91 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
     setError('')
     setFileName(file.name)
 
+    // Try UTF-16 first (Meta exports), fall back to UTF-8
     const reader = new FileReader()
     reader.onload = (e) => {
-      const text = e.target?.result
-      const { headers, rows } = parseCSV(text)
-      if (headers.length === 0 || rows.length === 0) {
-        setError('Could not parse CSV. Make sure it has headers and data rows.')
+      let text = e.target?.result || ''
+
+      // Strip BOM
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1)
+
+      // Check if it looks like UTF-16 garbage (null bytes)
+      if (text.includes('\u0000')) {
+        // Re-read as UTF-16
+        const reader16 = new FileReader()
+        reader16.onload = (e2) => {
+          let text16 = e2.target?.result || ''
+          if (text16.charCodeAt(0) === 0xFEFF) text16 = text16.slice(1)
+          handleParsedText(text16)
+        }
+        reader16.readAsText(file, 'UTF-16LE')
         return
       }
-      setCsvHeaders(headers)
-      setCsvRows(rows)
 
-      // Auto-map
-      const mapping = {}
-      let fnCol = null, lnCol = null
-      const usedFields = new Set()
-
-      headers.forEach(header => {
-        const match = fuzzyMatch(header)
-        if (!match || match === '_skip') return
-        if (match === '_first_name') { fnCol = header }
-        else if (match === '_last_name') { lnCol = header }
-        else if (!usedFields.has(match)) {
-          mapping[match] = header
-          usedFields.add(match)
-        }
-      })
-
-      if (fnCol && !mapping['name']) {
-        setFirstNameCol(fnCol)
-        setLastNameCol(lnCol)
-        mapping['name'] = fnCol
-      }
-
-      // Auto-detect source
-      const headerSet = new Set(headers.map(h => h.toLowerCase().trim()))
-      if (headerSet.has('brokerage') || headerSet.has('broker')) {
-        setDefaultSource('csv_import')
-      }
-
-      setColumnMapping(mapping)
-      setStep('map')
+      handleParsedText(text)
     }
-    reader.readAsText(file)
+    reader.readAsText(file, 'UTF-8')
+  }
+
+  const handleParsedText = (text) => {
+    const delimiter = detectDelimiter(text)
+    const { headers, rows } = parseCSV(text, delimiter)
+
+    if (headers.length === 0 || rows.length === 0) {
+      setError('Could not parse file. Make sure it has headers and data rows.')
+      return
+    }
+
+    setCsvHeaders(headers)
+    setCsvRows(rows)
+
+    const metaDetected = isMetaCSV(headers)
+    setIsMeta(metaDetected)
+
+    // Auto-map
+    const mapping = {}
+    let fnCol = null, lnCol = null
+    const usedFields = new Set()
+
+    headers.forEach(header => {
+      const match = fuzzyMatch(header)
+      if (!match || match === '_skip') return
+      if (match === '_first_name') { fnCol = header }
+      else if (match === '_last_name') { lnCol = header }
+      else if (!usedFields.has(match)) {
+        mapping[match] = header
+        usedFields.add(match)
+      }
+    })
+
+    if (fnCol && !mapping['name']) {
+      setFirstNameCol(fnCol)
+      setLastNameCol(lnCol)
+      mapping['name'] = fnCol
+    }
+
+    // Auto-detect source
+    if (metaDetected) {
+      setDefaultSource('meta_ads')
+    }
+
+    setColumnMapping(mapping)
+    setStep('map')
   }
 
   const handleImport = async () => {
     setImporting(true)
     setError('')
     try {
-      // Combine first+last name if needed
       const processedRows = csvRows.map(row => {
         const processed = { ...row }
+        // Combine first+last name
         if (firstNameCol && lastNameCol && columnMapping['name'] === firstNameCol) {
           processed[firstNameCol] = `${row[firstNameCol] || ''} ${row[lastNameCol] || ''}`.trim()
+        }
+        // Clean phone numbers (Meta p: prefix, +1, etc)
+        if (columnMapping['phone'] && processed[columnMapping['phone']]) {
+          processed[columnMapping['phone']] = cleanPhone(processed[columnMapping['phone']])
         }
         return processed
       })
@@ -318,6 +390,7 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
         if (field === 'name' && firstNameCol && lastNameCol && col === firstNameCol) {
           value = `${row[firstNameCol] || ''} ${row[lastNameCol] || ''}`.trim()
         }
+        if (field === 'phone') value = cleanPhone(value)
         preview[field] = value
       }
     }
@@ -329,7 +402,6 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50">
       <div className="bg-white w-full sm:rounded-2xl sm:max-w-2xl sm:mx-4 max-h-[92vh] flex flex-col rounded-t-2xl overflow-hidden">
-        {/* Header */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-[#115997]/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -338,10 +410,10 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
               </svg>
             </div>
             <div>
-              <h3 className="font-semibold text-[#273373] text-sm sm:text-base">Import Prospects</h3>
+              <h3 className="font-semibold text-[#273373] text-sm sm:text-base">Import Contacts</h3>
               <p className="text-xs text-gray-500">
                 {step === 'upload' && 'Upload your CSV file'}
-                {step === 'map' && `${csvRows.length} rows found — map columns`}
+                {step === 'map' && `${csvRows.length} rows found${isMeta ? ' (Meta Ads detected)' : ''} — map columns`}
                 {step === 'review' && 'Review before importing'}
                 {step === 'importing' && 'Importing...'}
                 {step === 'done' && 'Import complete'}
@@ -355,49 +427,40 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {error && (
             <div className="mb-4 rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700 flex items-center gap-2">
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               {error}
             </div>
           )}
 
-          {/* UPLOAD */}
           {step === 'upload' && (
             <div>
-              <div
-                className="rounded-xl p-8 sm:p-12 text-center cursor-pointer border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleFileDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <svg className="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
+              <div className="rounded-xl p-8 sm:p-12 text-center cursor-pointer border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors" onDragOver={(e) => e.preventDefault()} onDrop={handleFileDrop} onClick={() => fileInputRef.current?.click()}>
+                <svg className="w-10 h-10 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                 <p className="font-medium text-sm text-gray-700 mb-1">Drop your CSV here or click to browse</p>
-                <p className="text-xs text-gray-500">Supports .csv files up to 5MB</p>
+                <p className="text-xs text-gray-500">Supports .csv, .tsv files up to 5MB</p>
               </div>
               <input ref={fileInputRef} type="file" accept=".csv,.tsv,.txt" onChange={(e) => { const f = e.target.files?.[0]; if (f) processFile(f) }} className="hidden" />
               <div className="mt-4 rounded-xl p-4 bg-blue-50 border border-blue-100">
-                <p className="text-xs text-gray-700 font-medium mb-1">Tips for realtor prospecting CSVs:</p>
-                <p className="text-xs text-gray-500">- Export from LinkedIn, Realtor.com, or your CRM</p>
-                <p className="text-xs text-gray-500">- Include at minimum: Name and Email</p>
-                <p className="text-xs text-gray-500">- Brokerage and Area columns help with personalization</p>
+                <p className="text-xs text-gray-700 font-medium mb-1">Supported formats:</p>
+                <p className="text-xs text-gray-500">- Meta / Facebook Ads lead exports (auto-detected)</p>
+                <p className="text-xs text-gray-500">- LinkedIn, Apollo, or any CRM export</p>
+                <p className="text-xs text-gray-500">- Include at minimum: Name and Email or Phone</p>
                 <p className="text-xs text-gray-500">- Duplicate emails will be skipped automatically</p>
               </div>
             </div>
           )}
 
-          {/* MAP */}
           {step === 'map' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-gray-800">Map your CSV columns</p>
-                <span className="text-xs px-2 py-1 rounded-full bg-[#115997]/10 text-[#115997] font-medium">{csvRows.length} rows</span>
+                <p className="text-sm font-medium text-gray-800">Map your columns</p>
+                <div className="flex items-center gap-2">
+                  {isMeta && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold">META ADS</span>}
+                  <span className="text-xs px-2 py-1 rounded-full bg-[#115997]/10 text-[#115997] font-medium">{csvRows.length} rows</span>
+                </div>
               </div>
 
               <div>
@@ -411,19 +474,10 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
                 {PROSPECT_FIELDS.map(field => (
                   <div key={field.key} className="flex items-center gap-3 rounded-lg p-3 bg-gray-50 border border-gray-200">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800">
-                        {field.label}
-                        {field.required && <span className="text-red-500"> *</span>}
-                      </p>
+                      <p className="text-sm font-medium text-gray-800">{field.label}{field.required && <span className="text-red-500"> *</span>}</p>
                     </div>
-                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    <select
-                      value={columnMapping[field.key] || ''}
-                      onChange={(e) => setColumnMapping(prev => ({ ...prev, [field.key]: e.target.value }))}
-                      className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none"
-                    >
+                    <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                    <select value={columnMapping[field.key] || ''} onChange={(e) => setColumnMapping(prev => ({ ...prev, [field.key]: e.target.value }))} className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#115997] focus:border-transparent outline-none">
                       <option value="">-- Skip --</option>
                       {csvHeaders.filter(h => !IGNORED_HEADERS.has(h.toLowerCase().trim())).map(h => <option key={h} value={h}>{h}</option>)}
                     </select>
@@ -433,25 +487,27 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
 
               {firstNameCol && lastNameCol && columnMapping['name'] === firstNameCol && (
                 <div className="rounded-lg p-3 bg-blue-50 border border-blue-200 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <p className="text-xs text-blue-700">First + Last Name will be combined into Name</p>
+                </div>
+              )}
+
+              {isMeta && (
+                <div className="rounded-lg p-3 bg-blue-50 border border-blue-200 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="text-xs text-blue-700">Meta Ads format detected — phone numbers will be cleaned automatically</p>
                 </div>
               )}
 
               {!hasRequired && (
                 <div className="rounded-lg p-3 bg-amber-50 border border-amber-200 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.072 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
+                  <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.072 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
                   <p className="text-xs text-amber-700">Map the Name column to continue</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* REVIEW */}
           {step === 'review' && (
             <div className="space-y-4">
               <p className="text-sm font-medium text-gray-800">Preview (first 5 rows)</p>
@@ -474,59 +530,39 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
                   )
                 })}
               </div>
-              {csvRows.length > 5 && (
-                <p className="text-xs text-center text-gray-400">...and {csvRows.length - 5} more rows</p>
-              )}
+              {csvRows.length > 5 && <p className="text-xs text-center text-gray-400">...and {csvRows.length - 5} more rows</p>}
               <div className="rounded-xl p-4 bg-[#115997]/10 border border-[#115997]/20">
-                <p className="text-sm font-medium text-[#115997]">Ready to import {csvRows.length} prospects</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Source: {SOURCE_OPTIONS.find(s => s.value === defaultSource)?.label} · Duplicate emails will be skipped
-                </p>
+                <p className="text-sm font-medium text-[#115997]">Ready to import {csvRows.length} contacts</p>
+                <p className="text-xs text-gray-500 mt-1">Source: {SOURCE_OPTIONS.find(s => s.value === defaultSource)?.label} · Duplicate emails will be skipped</p>
               </div>
             </div>
           )}
 
-          {/* IMPORTING */}
           {step === 'importing' && (
             <div className="py-12 text-center">
               <div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="font-medium text-gray-800">Importing {csvRows.length} prospects...</p>
+              <p className="font-medium text-gray-800">Importing {csvRows.length} contacts...</p>
               <p className="text-sm text-gray-500 mt-1">This may take a moment</p>
             </div>
           )}
 
-          {/* DONE */}
           {step === 'done' && result && (
             <div className="py-8 text-center">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               </div>
-              <p className="text-lg font-semibold text-gray-800 mb-1">
-                {result.imported} prospect{result.imported !== 1 ? 's' : ''} imported
-              </p>
-              {result.duplicates > 0 && (
-                <p className="text-sm text-amber-600">{result.duplicates} duplicate{result.duplicates !== 1 ? 's' : ''} skipped</p>
-              )}
+              <p className="text-lg font-semibold text-gray-800 mb-1">{result.imported} contact{result.imported !== 1 ? 's' : ''} imported</p>
+              {result.duplicates > 0 && <p className="text-sm text-amber-600">{result.duplicates} duplicate{result.duplicates !== 1 ? 's' : ''} skipped</p>}
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 flex items-center gap-2"
-          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
-        >
-          {step === 'upload' && (
-            <button onClick={handleClose} className="flex-1 px-4 py-3 sm:py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl">Cancel</button>
-          )}
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 flex items-center gap-2" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+          {step === 'upload' && <button onClick={handleClose} className="flex-1 px-4 py-3 sm:py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl">Cancel</button>}
           {step === 'map' && (
             <>
               <button onClick={() => { setStep('upload'); reset() }} className="flex-1 px-4 py-3 sm:py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl">Back</button>
-              <button onClick={() => setStep('review')} disabled={!hasRequired} className="flex-[1.3] px-4 py-3 sm:py-2.5 text-sm font-medium text-white bg-[#115997] rounded-xl disabled:opacity-40 flex items-center justify-center gap-2">
-                Review
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </button>
+              <button onClick={() => setStep('review')} disabled={!hasRequired} className="flex-[1.3] px-4 py-3 sm:py-2.5 text-sm font-medium text-white bg-[#115997] rounded-xl disabled:opacity-40 flex items-center justify-center gap-2">Review <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
             </>
           )}
           {step === 'review' && (
@@ -534,13 +570,11 @@ export default function ProspectCSVImport({ isOpen, onClose, onImportComplete })
               <button onClick={() => setStep('map')} className="flex-1 px-4 py-3 sm:py-2.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl">Back</button>
               <button onClick={() => { setStep('importing'); handleImport() }} disabled={importing} className="flex-[1.3] px-4 py-3 sm:py-2.5 text-sm font-medium text-white bg-[#115997] rounded-xl disabled:opacity-50 flex items-center justify-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                Import {csvRows.length} Prospects
+                Import {csvRows.length} Contacts
               </button>
             </>
           )}
-          {step === 'done' && (
-            <button onClick={handleClose} className="flex-1 px-4 py-3 sm:py-2.5 text-sm font-medium text-white bg-[#115997] rounded-xl">Done</button>
-          )}
+          {step === 'done' && <button onClick={handleClose} className="flex-1 px-4 py-3 sm:py-2.5 text-sm font-medium text-white bg-[#115997] rounded-xl">Done</button>}
         </div>
       </div>
     </div>
