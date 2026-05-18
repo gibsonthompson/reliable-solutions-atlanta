@@ -136,6 +136,29 @@ export default function CrawlSpaceEncapsulationPage() {
         </div>
       </section>
 
+      {/* Cost Table */}
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#273373] mb-6 font-display">Crawl Space Encapsulation Costs in Atlanta</h2>
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-[#273373] text-white"><tr><th className="px-6 py-4 text-left text-sm font-semibold">Service</th><th className="px-6 py-4 text-left text-sm font-semibold">Typical Cost</th><th className="px-6 py-4 text-left text-sm font-semibold hidden sm:table-cell">Timeline</th></tr></thead>
+              <tbody className="divide-y divide-gray-100">
+                {[
+                  ['Vapor barrier only (20-mil floor)', '$1,500 – $4,000', '1 day'],
+                  ['Full encapsulation (liner + vents + insulation)', '$5,000 – $12,000', '2-3 days'],
+                  ['Encapsulation with drainage integration', '$8,000 – $18,000', '3-5 days'],
+                  ['Commercial dehumidifier installation', '$1,000 – $2,200', 'Same day'],
+                  ['Mold treatment (before encapsulation)', '$1,500 – $3,500', '1 day'],
+                  ['Structural repair + encapsulation', '$10,000 – $22,000', '4-7 days'],
+                ].map(([r, c, t], i) => (<tr key={i} className="hover:bg-gray-50"><td className="px-6 py-4 text-sm text-gray-900">{r}</td><td className="px-6 py-4 text-sm font-semibold text-[#115997]">{c}</td><td className="px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">{t}</td></tr>))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">Financing available through GreenSky with plans starting at 0% interest. All encapsulation work includes transferable warranty. Free inspections with written estimates.</p>
+        </div>
+      </section>
+
       {/* Service Areas - City Pages */}
       <section className="py-12 sm:py-16 md:py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

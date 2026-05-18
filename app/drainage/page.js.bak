@@ -136,6 +136,31 @@ export default function DrainagePage() {
         </div>
       </section>
 
+      {/* Cost Table */}
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#273373] mb-6 font-display">Drainage Costs in Metro Atlanta</h2>
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-[#273373] text-white"><tr><th className="px-6 py-4 text-left text-sm font-semibold">Service</th><th className="px-6 py-4 text-left text-sm font-semibold">Typical Cost</th><th className="px-6 py-4 text-left text-sm font-semibold hidden sm:table-cell">Timeline</th></tr></thead>
+              <tbody className="divide-y divide-gray-100">
+                {[
+                  ['French drain (per linear ft)', '$25 – $60', '1-2 days'],
+                  ['Yard French drain (50-100 ft run)', '$2,000 – $5,000', '1-2 days'],
+                  ['Sump pump with battery backup', '$1,500 – $3,000', '1 day'],
+                  ['Downspout underground routing (per downspout)', '$300 – $600', 'Same day'],
+                  ['Full downspout system (6-10 downspouts)', '$2,000 – $5,000', '1-2 days'],
+                  ['Yard grading correction', '$1,000 – $3,500', '1-2 days'],
+                  ['Retaining wall drain retrofit', '$2,000 – $5,000', '1-2 days'],
+                  ['Complete property drainage plan', '$5,000 – $15,000', '3-5 days'],
+                ].map(([r, c, t], i) => (<tr key={i} className="hover:bg-gray-50"><td className="px-6 py-4 text-sm text-gray-900">{r}</td><td className="px-6 py-4 text-sm font-semibold text-[#115997]">{c}</td><td className="px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">{t}</td></tr>))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">Financing available through GreenSky with plans starting at 0% interest. All drainage work includes lawn restoration and warranty. Free inspections with written estimates.</p>
+        </div>
+      </section>
+
       {/* Service Areas - City Pages */}
       <section className="py-12 sm:py-16 md:py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
