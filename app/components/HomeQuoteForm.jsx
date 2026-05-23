@@ -13,7 +13,9 @@ export default function HomeQuoteForm({ services }) {
     service_type: '',
     referral_source: '',
   })
+  const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState('idle')
+  const [phoneError, setPhoneError] = useState('')
   const [leadId, setLeadId] = useState(null)
   const [leadName, setLeadName] = useState('')
 
@@ -31,10 +33,30 @@ export default function HomeQuoteForm({ services }) {
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+    if (name === 'phone') setPhoneError('')
+  }
+
+  const validatePhone = (phone) => {
+    const digits = phone.replace(/\D/g, '')
+    if (digits.length !== 10) return false
+    // Reject obvious fakes: all same digit, sequential
+    if (/^(\d)\1{9}$/.test(digits)) return false
+    if (digits === '1234567890' || digits === '0987654321') return false
+    return true
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Honeypot check — bots fill this hidden field, humans don't see it
+    if (honeypot) return
+
+    // Phone validation
+    if (!validatePhone(formData.phone)) {
+      setPhoneError('Please enter a valid 10-digit phone number.')
+      return
+    }
+
     setStatus('submitting')
 
     try {
@@ -50,6 +72,14 @@ export default function HomeQuoteForm({ services }) {
       const id = result.data?.id || null
       setLeadId(id)
       setLeadName(formData.name)
+
+      // Fire Meta Pixel Lead event
+      if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+        window.fbq('track', 'Lead', {
+          content_name: formData.service_type || 'General Inquiry',
+          content_category: 'Free Estimate',
+        })
+      }
 
       notify(id, 'new_lead')
 
@@ -98,6 +128,21 @@ export default function HomeQuoteForm({ services }) {
           Something went wrong. Please try again.
         </div>
       )}
+
+      {/* Honeypot — hidden from humans, bots auto-fill it */}
+      <div className="absolute -left-[9999px]" aria-hidden="true">
+        <label htmlFor="company">Company</label>
+        <input
+          type="text"
+          id="company"
+          name="company"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
         <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all" placeholder="Your name" required />
@@ -108,7 +153,8 @@ export default function HomeQuoteForm({ services }) {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all" placeholder="(770) 000-0000" required />
+        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-[#84d2f2] focus:border-[#2692cc] outline-none transition-all ${phoneError ? 'border-red-400' : 'border-gray-200'}`} placeholder="(770) 000-0000" required />
+        {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Property Address</label>

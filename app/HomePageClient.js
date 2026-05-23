@@ -38,7 +38,6 @@ export default function HomePageClient() {
     { title: 'Drainage', description: 'Poor drainage can destroy your home! It is very important that water can flow away from your structure to prevent basement flooding and foundation damage.', href: '/drainage', image: '/images/portfolio/drainage-crew-excavator.png' }
   ]
 
-  // Add more testimonials here — same format: { name: '...', text: '...' }
   const testimonials = [
     { name: 'Torrey Williams', text: "I unexpectedly discovered standing water in a utility room of my finished basement. I called Reliable since they showed they are open 24 hrs. Alejandro (Alex) took my call right away and scheduled a time to come out the next day. The crew, led by Gabriel, were punctual, communicated clearly and took care of my home and yard as if it were their own. My basement is bone dry after a heavy rain!! I can't thank these guys enough." },
     { name: 'Jessica Y.', text: 'Reliable Solutions arrived on time and did a wonderful job installing downspouts around my house. They were professional, polite, and hard working. All questions were answered and detailed explanations were given. I would not hesitate to recommend Reliable Solutions for any waterproofing and/or drainage issues.' },
@@ -96,7 +95,7 @@ export default function HomePageClient() {
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100 order-first lg:order-none">
               <h3 className="text-2xl font-bold text-[#273373] mb-6">Request a Free Quote</h3>
               <HomeQuoteForm services={services} />
             </div>
