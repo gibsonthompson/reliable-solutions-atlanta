@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useTimeAuth } from '../layout'
+import { useTimeAuth } from '../TimeShell'
 
 export default function ProfilePage() {
   const { user } = useTimeAuth()

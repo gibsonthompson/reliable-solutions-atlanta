@@ -1,33 +1,40 @@
-const CACHE_NAME = 'rsa-time-v1'
+// /time-sw.js — service worker for the RSA Crew Clock PWA
+// Scope is /time/ (set by registration in TimeShell.js). Restricted to same-origin GETs.
 
-self.addEventListener('install', (event) => {
+const CACHE_NAME = 'rsa-time-v2'
+
+self.addEventListener('install', () => {
   self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((names) =>
-      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
-    )
-  )
-  self.clients.claim()
+  event.waitUntil((async () => {
+    const names = await caches.keys()
+    await Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)))
+    await self.clients.claim()
+  })())
 })
 
 self.addEventListener('fetch', (event) => {
-  // Only cache GET requests, let API calls pass through
-  if (event.request.method !== 'GET') return
-  if (event.request.url.includes('/api/')) return
+  const req = event.request
+  if (req.method !== 'GET') return
 
-  event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Cache successful page loads
-        if (response.status === 200) {
-          const clone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone))
-        }
-        return response
-      })
-      .catch(() => caches.match(event.request))
-  )
+  const url = new URL(req.url)
+  if (url.origin !== self.location.origin) return
+  if (url.pathname.startsWith('/api/')) return
+
+  event.respondWith((async () => {
+    try {
+      const fresh = await fetch(req)
+      if (fresh && fresh.status === 200 && fresh.type === 'basic') {
+        const cache = await caches.open(CACHE_NAME)
+        cache.put(req, fresh.clone())
+      }
+      return fresh
+    } catch (e) {
+      const cached = await caches.match(req)
+      if (cached) return cached
+      throw e
+    }
+  })())
 })

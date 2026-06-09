@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useTimeAuth } from './layout'
+import { useTimeAuth } from './TimeShell'
 
 export default function TimeClockPage() {
   const { user } = useTimeAuth()

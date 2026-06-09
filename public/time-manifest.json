@@ -1,14 +1,22 @@
 {
-  "name": "Clock",
+  "id": "/time",
+  "name": "RSA Crew Clock",
   "short_name": "Clock",
-  "description": "Reliable Solutions Atlanta",
+  "description": "Time clock for Reliable Solutions Atlanta crew",
   "start_url": "/time",
-  "scope": "/time",
+  "scope": "/time/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f9fafb",
   "theme_color": "#115997",
+  "categories": ["business", "productivity"],
   "icons": [
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/images/icon-512.png",
       "sizes": "512x512",
