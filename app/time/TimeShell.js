@@ -20,11 +20,19 @@ export default function TimeShell({ children }) {
   const [loggingIn, setLoggingIn] = useState(false)
 
   // Root layout's `body { zoom: 0.9 }` breaks safe-area math + standalone viewport.
-  // Reset it for as long as the crew app is mounted; restore on navigate-away.
+  // Also kill the rubber-band bounce so short screens (the clock home) don't feel janky.
   useEffect(() => {
-    const prev = document.body.style.zoom
+    const prevZoom = document.body.style.zoom
+    const prevBodyOverscroll = document.body.style.overscrollBehavior
+    const prevHtmlOverscroll = document.documentElement.style.overscrollBehavior
     document.body.style.zoom = '1'
-    return () => { document.body.style.zoom = prev }
+    document.body.style.overscrollBehavior = 'none'
+    document.documentElement.style.overscrollBehavior = 'none'
+    return () => {
+      document.body.style.zoom = prevZoom
+      document.body.style.overscrollBehavior = prevBodyOverscroll
+      document.documentElement.style.overscrollBehavior = prevHtmlOverscroll
+    }
   }, [])
 
   // Service worker — unregister any stale wide-scope SW from previous deploys, then
@@ -177,7 +185,7 @@ export default function TimeShell({ children }) {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 pb-20 overflow-y-auto">
+        <main className="flex-1 pb-20 overflow-y-auto overscroll-none">
           <div className="max-w-lg mx-auto">
             {children}
           </div>
