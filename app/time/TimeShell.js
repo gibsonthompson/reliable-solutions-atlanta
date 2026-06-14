@@ -148,10 +148,7 @@ export default function TimeShell({ children }) {
               {loggingIn ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-          <Link href="/time/reset-password" className="block text-center text-gray-400 hover:text-[#115997] mt-4 text-sm transition-colors">
-            Forgot password?
-          </Link>
-          <Link href="/time/signup" className="block text-center text-[#115997] hover:text-[#273373] mt-2 text-sm font-semibold transition-colors">
+          <Link href="/time/signup" className="block text-center text-[#115997] hover:text-[#273373] mt-4 text-sm font-semibold transition-colors">
             Create an account
           </Link>
         </div>
