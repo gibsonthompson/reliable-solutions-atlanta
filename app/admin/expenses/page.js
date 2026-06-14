@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAdminAuth } from '../layout'
 
 const CATEGORIES = [
@@ -31,7 +31,6 @@ export default function ExpensesPage() {
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState('')
   const [scanConfidence, setScanConfidence] = useState(null)
-  const fileInputRef = useRef(null)
 
   const fetchExpenses = useCallback(async () => {
     setLoading(true)
@@ -57,33 +56,42 @@ export default function ExpensesPage() {
     reader.onload = () => {
       const img = document.createElement('img')
       img.onload = () => {
-        const maxW = 1600
-        const scale = Math.min(1, maxW / img.width)
-        const canvas = document.createElement('canvas')
-        canvas.width = Math.round(img.width * scale)
-        canvas.height = Math.round(img.height * scale)
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
-        resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1])
+        try {
+          const maxW = 1600
+          const scale = Math.min(1, maxW / (img.width || 1600))
+          const canvas = document.createElement('canvas')
+          canvas.width = Math.max(1, Math.round(img.width * scale))
+          canvas.height = Math.max(1, Math.round(img.height * scale))
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+          resolve(dataUrl.split(',')[1])
+        } catch (e) { reject(e) }
       }
-      img.onerror = reject
+      img.onerror = () => reject(new Error('Could not decode image. Try a JPEG or PNG.'))
       img.src = reader.result
     }
-    reader.onerror = reject
+    reader.onerror = () => reject(new Error('Could not read file.'))
     reader.readAsDataURL(file)
   })
 
   const handleFileSelected = async (e) => {
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (!file) return
-    setScanError(''); setScanning(true)
+    console.log('[scan] file selected:', file?.name, file?.type, file?.size)
+    if (!file) { console.log('[scan] no file, bailing'); return }
+    setScanError(''); setScanning(true); window.scrollTo({ top: 0, behavior: 'smooth' })
     try {
+      console.log('[scan] compressing…')
       const base64 = await compressImage(file)
+      console.log('[scan] compressed, calling /api/admin/expenses/scan')
       const r = await fetch('/api/admin/expenses/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' }) })
-      const data = await r.json()
-      if (!r.ok) throw new Error(data.error || 'Scan failed')
-      const x = data.extracted
-      setEditing(null); setAdding(true); setScanConfidence(x.confidence)
+      console.log('[scan] response status:', r.status)
+      const data = await r.json().catch(() => ({}))
+      console.log('[scan] response data:', data)
+      if (!r.ok) throw new Error(data.error || `Scan failed (HTTP ${r.status})`)
+      const x = data.extracted || {}
+      setEditing(null); setAdding(true); setScanConfidence(x.confidence ?? null)
       setFormData({
         ...blankForm(),
         job_id: filterJob || '',
@@ -96,6 +104,7 @@ export default function ExpensesPage() {
         receipt_url: data.receipt_url || '',
       })
     } catch (err) {
+      console.error('[scan] error:', err)
       setScanError(err.message || 'Could not scan receipt. Try again or add it manually.')
     } finally {
       setScanning(false)
@@ -132,10 +141,10 @@ export default function ExpensesPage() {
 
   if (!hasPermission('jobs') && !hasPermission('timesheets')) return <div className="px-4 py-16 text-center"><p className="text-gray-400 font-medium">You don{"'"}t have permission to view expenses</p></div>
 
+  const scanLabelBase = 'flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-semibold rounded-xl hover:bg-[#0d4a7a] shadow-sm shadow-[#115997]/20 transition-all active:scale-[0.97] cursor-pointer select-none'
+
   return (
     <div className="px-4 py-5 sm:py-8">
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelected} className="hidden" />
-
       <div className="flex items-start justify-between gap-3 mb-5 animate-[fadeUp_0.3s_ease-out]">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Expenses</h2>
@@ -145,19 +154,21 @@ export default function ExpensesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={() => fileInputRef.current?.click()} disabled={scanning} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-semibold rounded-xl hover:bg-[#0d4a7a] shadow-sm shadow-[#115997]/20 transition-all active:scale-[0.97] disabled:opacity-50">
+          <label className={`${scanLabelBase} ${scanning ? 'opacity-60 pointer-events-none' : ''}`}>
+            <input type="file" accept="image/*" onChange={handleFileSelected} disabled={scanning} className="sr-only" />
             {scanning
-              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span className="hidden sm:inline">Reading…</span></>
-              : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>Scan Receipt</>}
-          </button>
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Reading…</span></>
+              : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg><span>Scan Receipt</span></>}
+          </label>
           <button onClick={handleNew} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-[0.97]">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Manual</span>
           </button>
         </div>
       </div>
 
+      {scanning && <div className="mb-4 rounded-xl p-3 text-sm bg-blue-50 border border-blue-200 text-blue-700 flex items-center gap-2"><div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />Reading receipt…</div>}
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
-      {scanError && <div className="mb-4 rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700 flex items-center gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{scanError}</div>}
+      {scanError && <div className="mb-4 rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700 flex items-start gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div><div className="font-semibold mb-0.5">Scan failed</div><div>{scanError}</div></div></div>}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4 animate-[fadeUp_0.35s_ease-out]">
@@ -252,7 +263,10 @@ export default function ExpensesPage() {
         <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-100">
           <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           <p className="text-gray-400 text-sm">No expenses recorded</p>
-          <button onClick={() => fileInputRef.current?.click()} className="mt-3 text-sm text-[#115997] font-semibold hover:underline">Scan your first receipt</button>
+          <label className="mt-3 inline-block text-sm text-[#115997] font-semibold hover:underline cursor-pointer">
+            <input type="file" accept="image/*" onChange={handleFileSelected} disabled={scanning} className="sr-only" />
+            Scan your first receipt
+          </label>
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-[fadeUp_0.45s_ease-out]">
