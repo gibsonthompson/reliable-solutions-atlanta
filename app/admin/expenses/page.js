@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAdminAuth } from '../layout'
 
 const CATEGORIES = [
@@ -12,6 +12,8 @@ const CATEGORIES = [
   { value: 'food', label: 'Food', color: 'bg-green-50 text-green-700' },
   { value: 'other', label: 'Other', color: 'bg-gray-100 text-gray-600' },
 ]
+
+const blankForm = () => ({ job_id: '', user_id: '', title: '', description: '', amount: '', category: 'materials', expense_date: new Date().toISOString().split('T')[0], is_reimbursable: false, receipt_url: '' })
 
 export default function ExpensesPage() {
   const { user: adminUser, hasPermission } = useAdminAuth()
@@ -25,7 +27,11 @@ export default function ExpensesPage() {
   const [successMsg, setSuccessMsg] = useState('')
   const [filterJob, setFilterJob] = useState('')
   const [filterUser, setFilterUser] = useState('')
-  const [formData, setFormData] = useState({ job_id: '', user_id: '', title: '', description: '', amount: '', category: 'materials', expense_date: new Date().toISOString().split('T')[0], is_reimbursable: false })
+  const [formData, setFormData] = useState(blankForm())
+  const [scanning, setScanning] = useState(false)
+  const [scanError, setScanError] = useState('')
+  const [scanConfidence, setScanConfidence] = useState(null)
+  const fileInputRef = useRef(null)
 
   const fetchExpenses = useCallback(async () => {
     setLoading(true)
@@ -41,8 +47,60 @@ export default function ExpensesPage() {
 
   useEffect(() => { fetchExpenses() }, [fetchExpenses])
 
-  const handleNew = () => { setAdding(true); setEditing(null); setFormData({ job_id: filterJob || '', user_id: adminUser?.id || '', title: '', description: '', amount: '', category: 'materials', expense_date: new Date().toISOString().split('T')[0], is_reimbursable: false }) }
-  const handleEdit = (e) => { setEditing(e.id); setAdding(false); setFormData({ job_id: e.job_id || '', user_id: e.user_id, title: e.title, description: e.description || '', amount: e.amount, category: e.category, expense_date: e.expense_date, is_reimbursable: e.is_reimbursable }) }
+  const handleNew = () => { setAdding(true); setEditing(null); setScanConfidence(null); setScanError(''); setFormData({ ...blankForm(), job_id: filterJob || '', user_id: adminUser?.id || '' }) }
+  const handleEdit = (e) => { setEditing(e.id); setAdding(false); setScanConfidence(null); setScanError(''); setFormData({ job_id: e.job_id || '', user_id: e.user_id, title: e.title, description: e.description || '', amount: e.amount, category: e.category, expense_date: e.expense_date, is_reimbursable: e.is_reimbursable, receipt_url: e.receipt_url || '' }) }
+  const closeForm = () => { setAdding(false); setEditing(null); setScanConfidence(null); setScanError('') }
+
+  // --- Receipt scanning ---
+  const compressImage = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = document.createElement('img')
+      img.onload = () => {
+        const maxW = 1600
+        const scale = Math.min(1, maxW / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1])
+      }
+      img.onerror = reject
+      img.src = reader.result
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+
+  const handleFileSelected = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setScanError(''); setScanning(true)
+    try {
+      const base64 = await compressImage(file)
+      const r = await fetch('/api/admin/expenses/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' }) })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error || 'Scan failed')
+      const x = data.extracted
+      setEditing(null); setAdding(true); setScanConfidence(x.confidence)
+      setFormData({
+        ...blankForm(),
+        job_id: filterJob || '',
+        user_id: adminUser?.id || '',
+        title: x.title || '',
+        description: x.description || '',
+        amount: x.amount != null && x.amount !== '' ? String(x.amount) : '',
+        category: x.category || 'materials',
+        expense_date: x.expense_date || new Date().toISOString().split('T')[0],
+        receipt_url: data.receipt_url || '',
+      })
+    } catch (err) {
+      setScanError(err.message || 'Could not scan receipt. Try again or add it manually.')
+    } finally {
+      setScanning(false)
+    }
+  }
 
   const handleSave = async () => {
     if (!formData.title.trim() || !formData.amount) return
@@ -51,7 +109,7 @@ export default function ExpensesPage() {
       const payload = { ...formData, amount: parseFloat(formData.amount) }
       if (editing) payload.id = editing
       const r = await fetch('/api/admin/expenses', { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (r.ok) { setAdding(false); setEditing(null); setSuccessMsg(editing ? 'Expense updated' : 'Expense added'); setTimeout(() => setSuccessMsg(''), 2000); fetchExpenses() }
+      if (r.ok) { closeForm(); setSuccessMsg(editing ? 'Expense updated' : 'Expense added'); setTimeout(() => setSuccessMsg(''), 2000); fetchExpenses() }
     } catch (e) {}
     finally { setSaving(false) }
   }
@@ -70,11 +128,15 @@ export default function ExpensesPage() {
   const totalAmount = expenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
   const reimbursableTotal = expenses.filter(e => e.is_reimbursable && !e.reimbursed_at).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
 
+  const confTone = scanConfidence == null ? null : scanConfidence >= 0.8 ? 'bg-green-50 text-green-700 border-green-200' : scanConfidence >= 0.6 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-700 border-red-200'
+
   if (!hasPermission('jobs') && !hasPermission('timesheets')) return <div className="px-4 py-16 text-center"><p className="text-gray-400 font-medium">You don{"'"}t have permission to view expenses</p></div>
 
   return (
     <div className="px-4 py-5 sm:py-8">
-      <div className="flex items-center justify-between mb-5 animate-[fadeUp_0.3s_ease-out]">
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelected} className="hidden" />
+
+      <div className="flex items-start justify-between gap-3 mb-5 animate-[fadeUp_0.3s_ease-out]">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Expenses</h2>
           <p className="text-gray-400 text-sm mt-0.5">
@@ -82,12 +144,20 @@ export default function ExpensesPage() {
             {reimbursableTotal > 0 && <span className="text-amber-500"> · ${reimbursableTotal.toFixed(2)} pending</span>}
           </p>
         </div>
-        <button onClick={handleNew} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-semibold rounded-xl hover:bg-[#0d4a7a] shadow-sm shadow-[#115997]/20 transition-all active:scale-[0.97]">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Add Expense
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button onClick={() => fileInputRef.current?.click()} disabled={scanning} className="flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-semibold rounded-xl hover:bg-[#0d4a7a] shadow-sm shadow-[#115997]/20 transition-all active:scale-[0.97] disabled:opacity-50">
+            {scanning
+              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span className="hidden sm:inline">Reading…</span></>
+              : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>Scan Receipt</>}
+          </button>
+          <button onClick={handleNew} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-[0.97]">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Manual</span>
+          </button>
+        </div>
       </div>
 
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
+      {scanError && <div className="mb-4 rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700 flex items-center gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>{scanError}</div>}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4 animate-[fadeUp_0.35s_ease-out]">
@@ -117,7 +187,18 @@ export default function ExpensesPage() {
       {/* Add/Edit Form */}
       {(adding || editing) && (
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 border-2 border-[#115997]/20 animate-[fadeUp_0.2s_ease-out]">
-          <h3 className="font-bold text-gray-900 mb-4">{editing ? 'Edit Expense' : 'Add Expense'}</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-gray-900">{editing ? 'Edit Expense' : adding && scanConfidence != null ? 'Confirm Scanned Expense' : 'Add Expense'}</h3>
+            {scanConfidence != null && (
+              <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-lg border ${confTone}`}>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                AI-filled · {Math.round(scanConfidence * 100)}% sure
+              </span>
+            )}
+          </div>
+          {scanConfidence != null && scanConfidence < 0.8 && (
+            <p className="text-xs text-amber-600 -mt-2 mb-4">Low confidence — double-check the amount and date before saving.</p>
+          )}
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Title *</label><input type="text" value={formData.title} onChange={(e) => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Concrete mix, gas fill-up" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
@@ -141,8 +222,23 @@ export default function ExpensesPage() {
                 </button>
               </div>
             </div>
+
+            {/* Receipt thumbnail */}
+            {formData.receipt_url && (
+              <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-xl border border-gray-100">
+                <a href={formData.receipt_url} target="_blank" rel="noopener noreferrer" className="block w-12 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-white">
+                  <img src={formData.receipt_url} alt="Receipt" className="w-full h-full object-cover" />
+                </a>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-700">Receipt attached</p>
+                  <a href={formData.receipt_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#115997] hover:underline">View full image</a>
+                </div>
+                <button onClick={() => setFormData(p => ({ ...p, receipt_url: '' }))} className="ml-auto text-[11px] text-gray-400 hover:text-red-600 font-medium">Remove</button>
+              </div>
+            )}
+
             <div className="flex items-center gap-2 pt-1">
-              <button onClick={() => { setAdding(false); setEditing(null) }} className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
+              <button onClick={closeForm} className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
               <button onClick={handleSave} disabled={saving || !formData.title.trim() || !formData.amount} className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-semibold text-white bg-[#115997] rounded-xl hover:bg-[#0d4a7a] disabled:opacity-40 shadow-sm shadow-[#115997]/20 transition-all">{saving ? 'Saving...' : editing ? 'Save Changes' : 'Add Expense'}</button>
             </div>
           </div>
@@ -156,7 +252,7 @@ export default function ExpensesPage() {
         <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-100">
           <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
           <p className="text-gray-400 text-sm">No expenses recorded</p>
-          <button onClick={handleNew} className="mt-3 text-sm text-[#115997] font-semibold hover:underline">Add your first expense</button>
+          <button onClick={() => fileInputRef.current?.click()} className="mt-3 text-sm text-[#115997] font-semibold hover:underline">Scan your first receipt</button>
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-[fadeUp_0.45s_ease-out]">
@@ -179,7 +275,19 @@ export default function ExpensesPage() {
                 {expenses.map(exp => (
                   <tr key={exp.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{new Date(exp.expense_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                    <td className="px-3 py-2.5"><p className="font-semibold text-gray-900">{exp.title}</p>{exp.description && <p className="text-[10px] text-gray-300 mt-0.5">{exp.description}</p>}</td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-1.5">
+                        {exp.receipt_url && (
+                          <a href={exp.receipt_url} target="_blank" rel="noopener noreferrer" title="View receipt" className="text-gray-300 hover:text-[#115997] flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                          </a>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900">{exp.title}</p>
+                          {exp.description && <p className="text-[10px] text-gray-300 mt-0.5">{exp.description}</p>}
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-3 py-2.5"><span className={`inline-flex px-1.5 py-0.5 rounded-md text-[10px] font-bold ${getCatStyle(exp.category)}`}>{getCatLabel(exp.category)}</span></td>
                     <td className="px-3 py-2.5 text-gray-500 max-w-[150px] truncate">{exp.job_address || '—'}</td>
                     <td className="px-3 py-2.5">
@@ -223,7 +331,14 @@ export default function ExpensesPage() {
               <div key={exp.id} className="p-4">
                 <div className="flex items-start justify-between gap-2 mb-1.5">
                   <div className="min-w-0">
-                    <p className="font-bold text-gray-900 text-sm">{exp.title}</p>
+                    <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
+                      {exp.receipt_url && (
+                        <a href={exp.receipt_url} target="_blank" rel="noopener noreferrer" title="View receipt" className="text-gray-300 flex-shrink-0">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                        </a>
+                      )}
+                      {exp.title}
+                    </p>
                     <p className="text-xs text-gray-400">
                       {new Date(exp.expense_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       {exp.job_address ? ` · ${exp.job_address}` : ''}
