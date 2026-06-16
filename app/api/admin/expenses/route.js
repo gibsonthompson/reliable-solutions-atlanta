@@ -24,7 +24,7 @@ export async function GET(request) {
     if (start) query = query.gte('expense_date', start)
     if (end) query = query.lte('expense_date', end)
 
-    const { data: expenses, error } = await query.limit(500)
+    const { data: expenses, error } = await query.limit(1000)
     if (error) throw error
 
     // Enrich with user names and job addresses
@@ -64,7 +64,7 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    const { job_id, user_id, title, description, amount, category, expense_date, is_reimbursable, receipt_url } = await request.json()
+    const { job_id, user_id, title, description, amount, category, expense_date, is_reimbursable, receipt_url, miles } = await request.json()
     if (!user_id || !title || !amount) return NextResponse.json({ error: 'User, title, and amount required' }, { status: 400 })
 
     const { data, error } = await supabase
@@ -79,6 +79,7 @@ export async function POST(request) {
         expense_date: expense_date || new Date().toISOString().split('T')[0],
         is_reimbursable: is_reimbursable || false,
         receipt_url: receipt_url || null,
+        miles: miles != null && miles !== '' ? parseFloat(miles) : null,
       }])
       .select()
       .single()
@@ -106,6 +107,7 @@ export async function PUT(request) {
     if (body.is_reimbursable !== undefined) updates.is_reimbursable = body.is_reimbursable
     if (body.reimbursed_at !== undefined) updates.reimbursed_at = body.reimbursed_at
     if (body.receipt_url !== undefined) updates.receipt_url = body.receipt_url
+    if (body.miles !== undefined) updates.miles = body.miles != null && body.miles !== '' ? parseFloat(body.miles) : null
 
     const { data, error } = await supabase
       .from('rsa_expenses')
