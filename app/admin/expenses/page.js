@@ -1,390 +1,469 @@
-'use client'
+'use client';
 
-import { useState, useEffect, useCallback } from 'react'
-import { useAdminAuth } from '../layout'
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  ArrowLeft, Building2, User, Mail, Phone, MapPin, Globe,
+  PhoneCall, CreditCard, Calendar, Clock, ChevronRight, Loader2,
+  Copy, Check, ExternalLink, Save, RotateCcw, AlertCircle, Bot,
+  Brain, Zap, X, BookOpen, Paintbrush, Lock, ChevronDown
+} from 'lucide-react';
+import { useAgency } from '../../context';
+import { useTheme } from '@/hooks/useTheme';
+import { getDemoClientDetail } from '../../demoData';
 
-const CATEGORIES = [
-  { value: 'materials', label: 'Materials', color: 'bg-blue-50 text-blue-700' },
-  { value: 'fuel', label: 'Fuel', color: 'bg-amber-50 text-amber-700' },
-  { value: 'dump_fee', label: 'Dump Fee', color: 'bg-orange-50 text-orange-700' },
-  { value: 'equipment', label: 'Equipment', color: 'bg-purple-50 text-purple-700' },
-  { value: 'rental', label: 'Rental', color: 'bg-indigo-50 text-indigo-700' },
-  { value: 'food', label: 'Food', color: 'bg-green-50 text-green-700' },
-  { value: 'other', label: 'Other', color: 'bg-gray-100 text-gray-600' },
-]
+const INDUSTRY_INTELLIGENCE: Record<string, { label: string; services: number; faqs: number; terms: number; features: string[]; }> = {
+  home_services: { label: 'Home Services', services: 47, faqs: 10, terms: 9, features: ['Emergency Triage', 'Seasonal Awareness', 'Urgency Detection'] },
+  medical: { label: 'Medical & Dental', services: 38, faqs: 11, terms: 8, features: ['HIPAA Compliant', 'Emergency Triage', 'Insurance Terminology'] },
+  professional_services: { label: 'Professional Services', services: 32, faqs: 8, terms: 7, features: ['Engagement Flow', 'NDA Awareness', 'Retainer Handling'] },
+  restaurants: { label: 'Restaurants', services: 12, faqs: 12, terms: 7, features: ['Allergen Awareness', 'Reservation Logic', 'Peak Hour Handling'] },
+  salon_spa: { label: 'Salon & Spa', services: 42, faqs: 11, terms: 6, features: ['Duration Estimates', 'Upsell Suggestions', 'Cancellation Policy'] },
+  retail: { label: 'Retail', services: 10, faqs: 11, terms: 5, features: ['Inventory Checks', 'Return Policy', 'Order Status Handling'] },
+  fitness: { label: 'Fitness', services: 28, faqs: 12, terms: 9, features: ['Trial Offers', 'Class Schedules', 'Membership Freeze'] },
+  legal: { label: 'Legal Services', services: 35, faqs: 8, terms: 10, features: ['Privilege Compliant', 'No Legal Advice', 'Intake Flow'] },
+  real_estate: { label: 'Real Estate', services: 24, faqs: 10, terms: 12, features: ['Buyer/Seller Routing', 'Seasonal Market', 'Mortgage Referrals'] },
+  financial: { label: 'Financial Services', services: 30, faqs: 10, terms: 10, features: ['Compliance Safe', 'Tax Season Aware', 'No Financial Advice'] },
+  automotive: { label: 'Automotive', services: 40, faqs: 12, terms: 10, features: ['Safety Priority', 'Maintenance Schedules', 'OEM/Aftermarket'] },
+};
 
-const blankForm = () => ({ job_id: '', user_id: '', title: '', description: '', amount: '', category: 'materials', expense_date: new Date().toISOString().split('T')[0], is_reimbursable: false, receipt_url: '' })
+const INDUSTRY_KEY_MAP: Record<string, string> = {
+  'Home Services (plumbing, HVAC, contractors)': 'home_services', 'Medical/Dental': 'medical', 'Retail/E-commerce': 'retail', 'Professional Services (legal, accounting)': 'professional_services', 'Restaurants/Food Service': 'restaurants', 'Salon/Spa (hair, nails, skincare)': 'salon_spa', 'home_services': 'home_services', 'medical': 'medical', 'medical_dental': 'medical', 'retail': 'retail', 'professional_services': 'professional_services', 'restaurants': 'restaurants', 'restaurant': 'restaurants', 'salon_spa': 'salon_spa', 'beauty_wellness': 'salon_spa', 'fitness': 'fitness', 'legal': 'legal', 'real_estate': 'real_estate', 'financial_services': 'financial', 'financial': 'financial', 'automotive': 'automotive', 'general': 'professional_services', 'other': 'professional_services',
+};
 
-export default function ExpensesPage() {
-  const { user: adminUser, hasPermission } = useAdminAuth()
-  const [expenses, setExpenses] = useState([])
-  const [jobs, setJobs] = useState([])
-  const [users, setUsers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [adding, setAdding] = useState(false)
-  const [editing, setEditing] = useState(null)
-  const [saving, setSaving] = useState(false)
-  const [successMsg, setSuccessMsg] = useState('')
-  const [filterJob, setFilterJob] = useState('')
-  const [filterUser, setFilterUser] = useState('')
-  const [formData, setFormData] = useState(blankForm())
-  const [scanning, setScanning] = useState(false)
-  const [scanError, setScanError] = useState('')
-  const [scanConfidence, setScanConfidence] = useState(null)
+const INDUSTRY_OPTIONS = [
+  { value: 'home_services', label: 'Home Services (Plumbing, HVAC, Contractors)' },
+  { value: 'medical', label: 'Medical & Dental' },
+  { value: 'professional_services', label: 'Professional Services' },
+  { value: 'restaurants', label: 'Restaurants & Food Service' },
+  { value: 'salon_spa', label: 'Salon & Spa' },
+  { value: 'retail', label: 'Retail' },
+  { value: 'fitness', label: 'Fitness' },
+  { value: 'legal', label: 'Legal Services' },
+  { value: 'real_estate', label: 'Real Estate' },
+  { value: 'financial', label: 'Financial Services' },
+  { value: 'automotive', label: 'Automotive' },
+];
 
-  const fetchExpenses = useCallback(async () => {
-    setLoading(true)
-    try {
-      let url = '/api/admin/expenses?'
-      if (filterJob) url += `job_id=${filterJob}&`
-      if (filterUser) url += `user_id=${filterUser}&`
-      const r = await fetch(url); const data = await r.json()
-      setExpenses(data.expenses || []); setJobs(data.jobs || []); setUsers(data.users || [])
-    } catch (e) {}
-    finally { setLoading(false) }
-  }, [filterJob, filterUser])
+interface Client { id: string; business_name: string; email: string; owner_name: string; owner_phone: string; business_city?: string; business_state?: string; business_website?: string; industry?: string; plan_type: string; subscription_status: string; status: string; calls_this_month: number; monthly_call_limit?: number; created_at: string; vapi_phone_number: string; vapi_assistant_id?: string; trial_ends_at?: string; logo_url?: string | null; primary_color?: string | null; secondary_color?: string | null; accent_color?: string | null; login_email?: string | null; login_password?: string | null; }
+interface Call { id: string; customer_name: string; caller_phone: string; customer_phone?: string; created_at: string; urgency_level: string; call_status: string; duration_seconds?: number; duration?: number; service_requested?: string; }
 
-  useEffect(() => { fetchExpenses() }, [fetchExpenses])
+function ClientBrandingCard({ client, agencyId, theme, backendUrl, onUpdate }: { client: Client; agencyId?: string; theme: any; backendUrl: string; onUpdate: () => void; }) {
+  const [brandingOpen, setBrandingOpen] = useState(false);
+  const [savingBranding, setSavingBranding] = useState(false);
+  const [brandingSaved, setBrandingSaved] = useState(false);
+  const [brandingError, setBrandingError] = useState<string | null>(null);
+  const [clientLogo, setClientLogo] = useState<string | null>(client.logo_url || null);
+  const [clientPrimary, setClientPrimary] = useState(client.primary_color || '');
+  const [clientSecondary, setClientSecondary] = useState(client.secondary_color || '');
+  const [clientAccent, setClientAccent] = useState(client.accent_color || '');
+  const [clientName, setClientName] = useState(client.business_name || '');
 
-  const handleNew = () => { setAdding(true); setEditing(null); setScanConfidence(null); setScanError(''); setFormData({ ...blankForm(), job_id: filterJob || '', user_id: adminUser?.id || '' }) }
-  const handleEdit = (e) => { setEditing(e.id); setAdding(false); setScanConfidence(null); setScanError(''); setFormData({ job_id: e.job_id || '', user_id: e.user_id, title: e.title, description: e.description || '', amount: e.amount, category: e.category, expense_date: e.expense_date, is_reimbursable: e.is_reimbursable, receipt_url: e.receipt_url || '' }) }
-  const closeForm = () => { setAdding(false); setEditing(null); setScanConfidence(null); setScanError('') }
-
-  // --- Receipt scanning ---
-  const compressImage = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => {
-      const img = document.createElement('img')
-      img.onload = () => {
-        try {
-          const maxW = 1600
-          const scale = Math.min(1, maxW / (img.width || 1600))
-          const canvas = document.createElement('canvas')
-          canvas.width = Math.max(1, Math.round(img.width * scale))
-          canvas.height = Math.max(1, Math.round(img.height * scale))
-          const ctx = canvas.getContext('2d')
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
-          resolve(dataUrl.split(',')[1])
-        } catch (e) { reject(e) }
-      }
-      img.onerror = () => reject(new Error('Could not decode image. Try a JPEG or PNG.'))
-      img.src = reader.result
-    }
-    reader.onerror = () => reject(new Error('Could not read file.'))
-    reader.readAsDataURL(file)
-  })
-
-  const handleFileSelected = async (e) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    console.log('[scan] file selected:', file?.name, file?.type, file?.size)
-    if (!file) { console.log('[scan] no file, bailing'); return }
-    setScanError(''); setScanning(true); window.scrollTo({ top: 0, behavior: 'smooth' })
-    try {
-      console.log('[scan] compressing…')
-      const base64 = await compressImage(file)
-      console.log('[scan] compressed, calling /api/admin/expenses/scan')
-      const r = await fetch('/api/admin/expenses/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: base64, mediaType: 'image/jpeg' }) })
-      console.log('[scan] response status:', r.status)
-      const data = await r.json().catch(() => ({}))
-      console.log('[scan] response data:', data)
-      if (!r.ok) throw new Error(data.error || `Scan failed (HTTP ${r.status})`)
-      const x = data.extracted || {}
-      setEditing(null); setAdding(true); setScanConfidence(x.confidence ?? null)
-      setFormData({
-        ...blankForm(),
-        job_id: filterJob || '',
-        user_id: adminUser?.id || '',
-        title: x.title || '',
-        description: x.description || '',
-        amount: x.amount != null && x.amount !== '' ? String(x.amount) : '',
-        category: x.category || 'materials',
-        expense_date: x.expense_date || new Date().toISOString().split('T')[0],
-        receipt_url: data.receipt_url || '',
-      })
-    } catch (err) {
-      console.error('[scan] error:', err)
-      setScanError(err.message || 'Could not scan receipt. Try again or add it manually.')
-    } finally {
-      setScanning(false)
-    }
-  }
-
-  const handleSave = async () => {
-    if (!formData.title.trim() || !formData.amount) return
-    setSaving(true)
-    try {
-      const payload = { ...formData, amount: parseFloat(formData.amount) }
-      if (editing) payload.id = editing
-      const r = await fetch('/api/admin/expenses', { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-      if (r.ok) { closeForm(); setSuccessMsg(editing ? 'Expense updated' : 'Expense added'); setTimeout(() => setSuccessMsg(''), 2000); fetchExpenses() }
-    } catch (e) {}
-    finally { setSaving(false) }
-  }
-
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this expense?')) return
-    try { await fetch('/api/admin/expenses', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) }); setSuccessMsg('Expense deleted'); setTimeout(() => setSuccessMsg(''), 2000); fetchExpenses() } catch (e) {}
-  }
-
-  const handleReimburse = async (expense) => {
-    try { await fetch('/api/admin/expenses', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: expense.id, reimbursed_at: expense.reimbursed_at ? null : new Date().toISOString() }) }); fetchExpenses() } catch (e) {}
-  }
-
-  const getCatStyle = (cat) => CATEGORIES.find(c => c.value === cat)?.color || 'bg-gray-100 text-gray-600'
-  const getCatLabel = (cat) => CATEGORIES.find(c => c.value === cat)?.label || cat
-  const totalAmount = expenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-  const reimbursableTotal = expenses.filter(e => e.is_reimbursable && !e.reimbursed_at).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-
-  const confTone = scanConfidence == null ? null : scanConfidence >= 0.8 ? 'bg-green-50 text-green-700 border-green-200' : scanConfidence >= 0.6 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-700 border-red-200'
-
-  if (!hasPermission('jobs') && !hasPermission('timesheets')) return <div className="px-4 py-16 text-center"><p className="text-gray-400 font-medium">You don{"'"}t have permission to view expenses</p></div>
-
-  const scanLabelBase = 'flex items-center gap-2 px-4 py-2.5 bg-[#115997] text-white text-sm font-semibold rounded-xl hover:bg-[#0d4a7a] shadow-sm shadow-[#115997]/20 transition-all active:scale-[0.97] cursor-pointer select-none'
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; if (file.size > 2 * 1024 * 1024) { setBrandingError('Logo must be under 2MB'); return; } const reader = new FileReader(); reader.onload = () => { setClientLogo(reader.result as string); setBrandingSaved(false); }; reader.readAsDataURL(file); };
+  const handleSaveBranding = async () => { setSavingBranding(true); setBrandingError(null); setBrandingSaved(false); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/client/${client.id}/branding`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ logo_url: clientLogo, primary_color: clientPrimary || null, secondary_color: clientSecondary || null, accent_color: clientAccent || null, business_name: clientName }) }); if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Failed to save'); } setBrandingSaved(true); setTimeout(() => setBrandingSaved(false), 3000); onUpdate(); } catch (err: any) { setBrandingError(err.message || 'Failed to save branding'); } finally { setSavingBranding(false); } };
+  const handleClearBranding = async () => { if (!confirm('Clear client branding? They will fall back to your agency\'s branding.')) return; setSavingBranding(true); try { const token = localStorage.getItem('auth_token'); await fetch(`${backendUrl}/api/client/${client.id}/branding`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ logo_url: null, primary_color: null, secondary_color: null, accent_color: null }) }); setClientLogo(null); setClientPrimary(''); setClientSecondary(''); setClientAccent(''); onUpdate(); } catch {} finally { setSavingBranding(false); } };
+  const hasCustomBranding = client.logo_url || client.primary_color || client.secondary_color || client.accent_color;
 
   return (
-    <div className="px-4 py-5 sm:py-8">
-      <div className="flex items-start justify-between gap-3 mb-5 animate-[fadeUp_0.3s_ease-out]">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Expenses</h2>
-          <p className="text-gray-400 text-sm mt-0.5">
-            {expenses.length} expenses · ${totalAmount.toFixed(2)} total
-            {reimbursableTotal > 0 && <span className="text-amber-500"> · ${reimbursableTotal.toFixed(2)} pending</span>}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <label className={`${scanLabelBase} ${scanning ? 'opacity-60 pointer-events-none' : ''}`}>
-            <input type="file" accept="image/*" onChange={handleFileSelected} disabled={scanning} className="sr-only" />
-            {scanning
-              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Reading…</span></>
-              : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg><span>Scan Receipt</span></>}
-          </label>
-          <button onClick={handleNew} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-[0.97]">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Manual</span>
-          </button>
-        </div>
+    <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}>
+      <div className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-1"><div className="flex items-center gap-2"><Paintbrush className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">Client Branding</h2></div>{hasCustomBranding && (<span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: theme.primary15, color: theme.primary }}>Custom</span>)}</div>
+        <p className="text-xs mb-3" style={{ color: theme.textMuted }}>Override your agency branding for this client&apos;s dashboard</p>
+        <button onClick={() => setBrandingOpen(!brandingOpen)} className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors" style={{ backgroundColor: theme.hover, color: theme.text, border: `1px solid ${theme.border}` }}><Paintbrush className="h-4 w-4" />{brandingOpen ? 'Hide' : 'Configure'} Branding</button>
+        {brandingOpen && (
+          <div className="mt-4 space-y-4">
+            {brandingError && (<div className="rounded-lg p-3 flex items-center gap-2" style={{ backgroundColor: theme.errorBg, border: `1px solid ${theme.errorBorder}` }}><AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: theme.error }} /><p className="text-xs" style={{ color: theme.errorText }}>{brandingError}</p></div>)}
+            {brandingSaved && (<div className="rounded-lg p-3 flex items-center gap-2" style={{ backgroundColor: theme.primary15, border: `1px solid ${theme.primary30}` }}><Check className="h-4 w-4" style={{ color: theme.primary }} /><p className="text-xs" style={{ color: theme.primary }}>Branding saved!</p></div>)}
+            <div><label className="text-xs font-medium mb-1 block" style={{ color: theme.textMuted }}>Business Name</label><input type="text" value={clientName} onChange={e => setClientName(e.target.value)} className="w-full px-3 py-2 text-sm rounded-lg focus:outline-none" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text }} /></div>
+            <div><label className="text-xs font-medium mb-1 block" style={{ color: theme.textMuted }}>Logo</label><div className="flex items-center gap-3">{clientLogo ? (<img src={clientLogo} alt="Logo" className="h-10 w-10 rounded-lg object-contain" style={{ backgroundColor: theme.hover }} />) : (<div className="h-10 w-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.hover }}><Building2 className="h-5 w-5" style={{ color: theme.textMuted }} /></div>)}<label className="flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-medium cursor-pointer transition" style={{ backgroundColor: theme.hover, color: theme.textMuted, border: `1px solid ${theme.border}` }}>Upload Logo<input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" /></label>{clientLogo && (<button onClick={() => { setClientLogo(null); setBrandingSaved(false); }} className="p-2 rounded-lg" style={{ color: theme.textMuted }}><X className="h-4 w-4" /></button>)}</div></div>
+            <div className="grid grid-cols-3 gap-2">{[{ label: 'Primary', value: clientPrimary, set: setClientPrimary }, { label: 'Secondary', value: clientSecondary, set: setClientSecondary }, { label: 'Accent', value: clientAccent, set: setClientAccent }].map(({ label, value, set }) => (<div key={label}><label className="text-[10px] font-medium mb-1 block" style={{ color: theme.textMuted }}>{label}</label><div className="flex items-center gap-1.5"><div className="relative"><div className="w-8 h-8 rounded-lg border cursor-pointer" style={{ backgroundColor: value || theme.primary, borderColor: theme.border }} /><input type="color" value={value || theme.primary} onChange={e => { set(e.target.value); setBrandingSaved(false); }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" /></div><input type="text" value={value} onChange={e => { set(e.target.value); setBrandingSaved(false); }} placeholder="#hex" className="flex-1 px-2 py-1.5 text-[10px] font-mono rounded-lg focus:outline-none min-w-0" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text }} maxLength={7} /></div></div>))}</div>
+            <div className="flex gap-2">{hasCustomBranding && (<button onClick={handleClearBranding} disabled={savingBranding} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-medium transition disabled:opacity-50" style={{ backgroundColor: theme.hover, color: theme.textMuted, border: `1px solid ${theme.border}` }}><RotateCcw className="h-3.5 w-3.5" /> Clear</button>)}<button onClick={handleSaveBranding} disabled={savingBranding} className="flex-1 flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs font-medium transition disabled:opacity-50" style={{ backgroundColor: theme.primary, color: theme.primaryText }}>{savingBranding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}{savingBranding ? 'Saving...' : 'Save Branding'}</button></div>
+          </div>
+        )}
       </div>
-
-      {scanning && <div className="mb-4 rounded-xl p-3 text-sm bg-blue-50 border border-blue-200 text-blue-700 flex items-center gap-2"><div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />Reading receipt…</div>}
-      {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
-      {scanError && <div className="mb-4 rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700 flex items-start gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><div><div className="font-semibold mb-0.5">Scan failed</div><div>{scanError}</div></div></div>}
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4 animate-[fadeUp_0.35s_ease-out]">
-        <select value={filterJob} onChange={(e) => setFilterJob(e.target.value)} className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all">
-          <option value="">All jobs</option>
-          {jobs.map(j => <option key={j.id} value={j.id}>{j.address}{j.client ? ` (${j.client})` : ''}</option>)}
-        </select>
-        <select value={filterUser} onChange={(e) => setFilterUser(e.target.value)} className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all">
-          <option value="">All crew</option>
-          {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-        </select>
-      </div>
-
-      {/* Category Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 animate-[fadeUp_0.4s_ease-out]">
-        {CATEGORIES.filter(c => expenses.some(e => e.category === c.value)).map(cat => {
-          const catTotal = expenses.filter(e => e.category === cat.value).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-          return (
-            <div key={cat.value} className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">{cat.label}</p>
-              <p className="text-lg font-extrabold text-gray-900 tabular-nums mt-0.5">${catTotal.toFixed(2)}</p>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Add/Edit Form */}
-      {(adding || editing) && (
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-4 border-2 border-[#115997]/20 animate-[fadeUp_0.2s_ease-out]">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900">{editing ? 'Edit Expense' : adding && scanConfidence != null ? 'Confirm Scanned Expense' : 'Add Expense'}</h3>
-            {scanConfidence != null && (
-              <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-lg border ${confTone}`}>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                AI-filled · {Math.round(scanConfidence * 100)}% sure
-              </span>
-            )}
-          </div>
-          {scanConfidence != null && scanConfidence < 0.8 && (
-            <p className="text-xs text-amber-600 -mt-2 mb-4">Low confidence — double-check the amount and date before saving.</p>
-          )}
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Title *</label><input type="text" value={formData.title} onChange={(e) => setFormData(p => ({ ...p, title: e.target.value }))} placeholder="e.g. Concrete mix, gas fill-up" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Amount *</label><input type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData(p => ({ ...p, amount: e.target.value }))} placeholder="0.00" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Category</label><select value={formData.category} onChange={(e) => setFormData(p => ({ ...p, category: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all">{CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Job</label><select value={formData.job_id} onChange={(e) => setFormData(p => ({ ...p, job_id: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all"><option value="">No job (general)</option>{jobs.map(j => <option key={j.id} value={j.id}>{j.address}</option>)}</select></div>
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Crew Member</label><select value={formData.user_id} onChange={(e) => setFormData(p => ({ ...p, user_id: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all"><option value="">Select person</option>{users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}</select></div>
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Date</label><input type="date" value={formData.expense_date} onChange={(e) => setFormData(p => ({ ...p, expense_date: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Description</label><input type="text" value={formData.description} onChange={(e) => setFormData(p => ({ ...p, description: e.target.value }))} placeholder="Optional details" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
-              <div className="flex items-end">
-                <button onClick={() => setFormData(p => ({ ...p, is_reimbursable: !p.is_reimbursable }))}
-                  className={'flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-sm transition-all ' + (formData.is_reimbursable ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-400')}>
-                  <div className={'w-8 h-4 rounded-full transition-colors relative ' + (formData.is_reimbursable ? 'bg-amber-500' : 'bg-gray-300')}>
-                    <div className={'absolute top-0.5 w-3 h-3 rounded-full bg-white shadow-sm transition-transform ' + (formData.is_reimbursable ? 'translate-x-4' : 'translate-x-0.5')} />
-                  </div>
-                  Reimbursable
-                </button>
-              </div>
-            </div>
-
-            {/* Receipt thumbnail */}
-            {formData.receipt_url && (
-              <div className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-xl border border-gray-100">
-                <a href={formData.receipt_url} target="_blank" rel="noopener noreferrer" className="block w-12 h-12 rounded-lg overflow-hidden border border-gray-200 flex-shrink-0 bg-white">
-                  <img src={formData.receipt_url} alt="Receipt" className="w-full h-full object-cover" />
-                </a>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-gray-700">Receipt attached</p>
-                  <a href={formData.receipt_url} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#115997] hover:underline">View full image</a>
-                </div>
-                <button onClick={() => setFormData(p => ({ ...p, receipt_url: '' }))} className="ml-auto text-[11px] text-gray-400 hover:text-red-600 font-medium">Remove</button>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2 pt-1">
-              <button onClick={closeForm} className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !formData.title.trim() || !formData.amount} className="flex-1 sm:flex-none px-4 py-2.5 text-sm font-semibold text-white bg-[#115997] rounded-xl hover:bg-[#0d4a7a] disabled:opacity-40 shadow-sm shadow-[#115997]/20 transition-all">{saving ? 'Saving...' : editing ? 'Save Changes' : 'Add Expense'}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Expenses List */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /></div>
-      ) : expenses.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-8 text-center border border-gray-100">
-          <svg className="w-12 h-12 text-gray-200 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-          <p className="text-gray-400 text-sm">No expenses recorded</p>
-          <label className="mt-3 inline-block text-sm text-[#115997] font-semibold hover:underline cursor-pointer">
-            <input type="file" accept="image/*" onChange={handleFileSelected} disabled={scanning} className="sr-only" />
-            Scan your first receipt
-          </label>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 animate-[fadeUp_0.45s_ease-out]">
-          {/* Desktop Table */}
-          <div className="hidden sm:block overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-gray-50/80 border-b border-gray-200">
-                  <th className="text-left px-3 py-2.5 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Date</th>
-                  <th className="text-left px-3 py-2.5 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Title</th>
-                  <th className="text-left px-3 py-2.5 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Category</th>
-                  <th className="text-left px-3 py-2.5 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Job</th>
-                  <th className="text-left px-3 py-2.5 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Crew</th>
-                  <th className="text-right px-3 py-2.5 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Amount</th>
-                  <th className="text-center px-3 py-2.5 font-bold text-gray-400 text-[10px] uppercase tracking-widest">Status</th>
-                  <th className="px-3 py-2.5 w-20"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {expenses.map(exp => (
-                  <tr key={exp.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">{new Date(exp.expense_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        {exp.receipt_url && (
-                          <a href={exp.receipt_url} target="_blank" rel="noopener noreferrer" title="View receipt" className="text-gray-300 hover:text-[#115997] flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                          </a>
-                        )}
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-900">{exp.title}</p>
-                          {exp.description && <p className="text-[10px] text-gray-300 mt-0.5">{exp.description}</p>}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5"><span className={`inline-flex px-1.5 py-0.5 rounded-md text-[10px] font-bold ${getCatStyle(exp.category)}`}>{getCatLabel(exp.category)}</span></td>
-                    <td className="px-3 py-2.5 text-gray-500 max-w-[150px] truncate">{exp.job_address || '—'}</td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm" style={{ backgroundColor: exp.user_color }}>
-                          <span className="text-white text-[7px] font-bold">{exp.user_name?.charAt(0)}</span>
-                        </div>
-                        <span className="text-gray-500 text-[11px]">{exp.user_name}</span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-bold text-gray-900 tabular-nums">${parseFloat(exp.amount).toFixed(2)}</td>
-                    <td className="px-3 py-2.5 text-center">
-                      {exp.is_reimbursable ? (
-                        <button onClick={() => handleReimburse(exp)} className={`text-[10px] font-bold px-2 py-0.5 rounded-md cursor-pointer transition-colors ${exp.reimbursed_at ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>
-                          {exp.reimbursed_at ? 'Reimbursed' : 'Pending'}
-                        </button>
-                      ) : <span className="text-gray-200 text-[10px]">—</span>}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => handleEdit(exp)} className="p-1.5 text-gray-300 hover:text-[#115997] rounded-lg hover:bg-gray-50 transition-all"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                        <button onClick={() => handleDelete(exp.id)} className="p-1.5 text-gray-300 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className="bg-gray-50/80 border-t-2 border-gray-200 font-bold text-xs">
-                  <td className="px-3 py-2.5 text-gray-500" colSpan={5}>TOTAL ({expenses.length} expenses)</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums text-gray-900">${totalAmount.toFixed(2)}</td>
-                  <td colSpan={2}></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="sm:hidden divide-y divide-gray-50">
-            {expenses.map(exp => (
-              <div key={exp.id} className="p-4">
-                <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <div className="min-w-0">
-                    <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">
-                      {exp.receipt_url && (
-                        <a href={exp.receipt_url} target="_blank" rel="noopener noreferrer" title="View receipt" className="text-gray-300 flex-shrink-0">
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                        </a>
-                      )}
-                      {exp.title}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(exp.expense_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      {exp.job_address ? ` · ${exp.job_address}` : ''}
-                    </p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-extrabold text-gray-900 tabular-nums">${parseFloat(exp.amount).toFixed(2)}</p>
-                    <span className={`inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold ${getCatStyle(exp.category)}`}>{getCatLabel(exp.category)}</span>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center shadow-sm" style={{ backgroundColor: exp.user_color }}>
-                      <span className="text-white text-[7px] font-bold">{exp.user_name?.charAt(0)}</span>
-                    </div>
-                    <span className="text-xs text-gray-400">{exp.user_name}</span>
-                    {exp.is_reimbursable && (
-                      <button onClick={() => handleReimburse(exp)} className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${exp.reimbursed_at ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
-                        {exp.reimbursed_at ? 'Reimbursed' : 'Pending'}
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button onClick={() => handleEdit(exp)} className="p-1.5 text-gray-300 hover:text-[#115997] rounded transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
-                    <button onClick={() => handleDelete(exp.id)} className="p-1.5 text-gray-300 hover:text-red-600 rounded transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
-  )
+  );
+}
+
+export default function AgencyClientDetailPage() {
+  const params = useParams();
+  const clientId = params.id as string;
+  const { agency, loading: contextLoading, demoMode } = useAgency();
+  const theme = useTheme();
+
+  // ── FIX: Derive dark mode for colorScheme on native <select> popups ──
+  const isDark = agency?.website_theme !== 'light';
+
+  const [client, setClient] = useState<Client | null>(null);
+  const [recentCalls, setRecentCalls] = useState<Call[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [promptLoading, setPromptLoading] = useState(true);
+  const [promptSaving, setPromptSaving] = useState(false);
+  const [promptResetting, setPromptResetting] = useState(false);
+  const [promptSaved, setPromptSaved] = useState(false);
+  const [promptError, setPromptError] = useState<string | null>(null);
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [originalPrompt, setOriginalPrompt] = useState('');
+  const [kbModalOpen, setKbModalOpen] = useState(false);
+  const [kbContent, setKbContent] = useState('');
+  const [kbOriginalContent, setKbOriginalContent] = useState('');
+  const [kbLoading, setKbLoading] = useState(false);
+  const [kbSaving, setKbSaving] = useState(false);
+  const [kbResetting, setKbResetting] = useState(false);
+  const [kbEditing, setKbEditing] = useState(false);
+  const [kbSaved, setKbSaved] = useState(false);
+  const [kbError, setKbError] = useState<string | null>(null);
+  const [industryValue, setIndustryValue] = useState('');
+  const [industrySaving, setIndustrySaving] = useState(false);
+  const [industrySaved, setIndustrySaved] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // ── Client login credentials (view + agency-initiated reset) ───────
+  const [credPwVisible, setCredPwVisible] = useState(false);
+  const [credResetting, setCredResetting] = useState(false);
+  const [credError, setCredError] = useState<string | null>(null);
+  const [credCopied, setCredCopied] = useState<'user' | 'pass' | null>(null);
+
+  // ── Inline-editable fields in Business Details ─────────────────────
+  const [businessName, setBusinessName] = useState('');
+  const [ownerPhone, setOwnerPhone] = useState('');
+  const [savingField, setSavingField] = useState<string | null>(null);
+  const [savedField, setSavedField] = useState<string | null>(null);
+
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const isFreePlan = agency?.plan_type === 'free' || agency?.plan_type === 'starter';
+
+  useEffect(() => { if (client?.industry) setIndustryValue(client.industry); }, [client?.industry]);
+  useEffect(() => { if (client) { setBusinessName(client.business_name || ''); setOwnerPhone(client.owner_phone || ''); } }, [client?.business_name, client?.owner_phone]);
+
+  const handleSaveIndustry = async (newIndustry: string) => { if (!agency || !clientId || !newIndustry) return; setIndustrySaving(true); setIndustrySaved(false); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/industry`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ industry: newIndustry }) }); if (!res.ok) throw new Error('Failed to update industry'); setIndustryValue(newIndustry); setIndustrySaved(true); setTimeout(() => setIndustrySaved(false), 3000); fetchClientData(); } catch (err) { console.error('Failed to save industry:', err); } finally { setIndustrySaving(false); } };
+
+  const handleSaveField = async (field: 'business_name' | 'owner_phone', value: string) => {
+    if (!agency || !clientId || !client) return;
+    const currentValue = (field === 'business_name' ? client.business_name : client.owner_phone) || '';
+    const newValue = (value || '').trim();
+    if (newValue === currentValue) return;
+    setSavingField(field);
+    setSavedField(null);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ [field]: newValue }),
+      });
+      if (!res.ok) throw new Error('Failed to save');
+      setSavedField(field);
+      setTimeout(() => setSavedField(null), 2500);
+      fetchClientData();
+      // If the business name changed, refetch the prompt so the UI reflects
+      // any name-dependent content the next time the prompt is generated.
+      if (field === 'business_name' && client.vapi_assistant_id) fetchPrompt();
+    } catch (err) {
+      console.error(`Failed to save ${field}:`, err);
+      // Revert local state on error
+      if (field === 'business_name') setBusinessName(currentValue);
+      if (field === 'owner_phone') setOwnerPhone(currentValue);
+    } finally {
+      setSavingField(null);
+    }
+  };
+
+  useEffect(() => { if (!agency || !clientId) return; if (demoMode) { const demoData = getDemoClientDetail(clientId); setClient(demoData.client as Client); setRecentCalls(demoData.calls as Call[]); setLoading(false); setPromptLoading(false); setSystemPrompt('You are the phone assistant for Demo Business...'); setOriginalPrompt('You are the phone assistant for Demo Business...'); return; } fetchClientData(); }, [agency, clientId, demoMode]);
+  useEffect(() => { if (client?.vapi_assistant_id && agency && !demoMode) { fetchPrompt(); } }, [client?.id, client?.vapi_assistant_id]);
+
+  const fetchClientData = async () => { if (!agency || !clientId) return; try { const token = localStorage.getItem('auth_token'); const clientRes = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}`, { headers: { 'Authorization': `Bearer ${token}` } }); if (!clientRes.ok) { setError('Client not found'); return; } const clientData = await clientRes.json(); setClient(clientData.client); const callsRes = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/calls`, { headers: { 'Authorization': `Bearer ${token}` } }); if (callsRes.ok) { const callsData = await callsRes.json(); setRecentCalls((callsData.calls || []).slice(0, 5)); } } catch (e) { console.error('Failed to fetch client:', e); setError('Failed to load client'); } finally { setLoading(false); } };
+  const fetchPrompt = async () => { if (!agency || !clientId) return; setPromptLoading(true); setPromptError(null); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/prompt`, { headers: { 'Authorization': `Bearer ${token}` } }); if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Failed to load prompt'); } const data = await res.json(); setSystemPrompt(data.system_prompt || ''); setOriginalPrompt(data.system_prompt || ''); } catch (err) { console.error('Failed to fetch prompt:', err); setPromptError(err instanceof Error ? err.message : 'Failed to load prompt'); } finally { setPromptLoading(false); } };
+  const handleSavePrompt = async () => { if (!agency || !clientId) return; setPromptSaving(true); setPromptError(null); setPromptSaved(false); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/prompt`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ system_prompt: systemPrompt }) }); if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Failed to save prompt'); } const data = await res.json(); setOriginalPrompt(data.system_prompt); setSystemPrompt(data.system_prompt); setPromptSaved(true); setTimeout(() => setPromptSaved(false), 3000); } catch (err) { setPromptError(err instanceof Error ? err.message : 'Failed to save'); } finally { setPromptSaving(false); } };
+  const handleResetPrompt = async () => { if (!agency || !clientId) return; if (!confirm('Reset to the default industry prompt? Your custom changes will be lost.')) return; setPromptResetting(true); setPromptError(null); setPromptSaved(false); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/prompt/reset`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Failed to reset prompt'); } const data = await res.json(); setSystemPrompt(data.system_prompt); setOriginalPrompt(data.system_prompt); setPromptSaved(true); setTimeout(() => setPromptSaved(false), 3000); } catch (err) { setPromptError(err instanceof Error ? err.message : 'Failed to reset'); } finally { setPromptResetting(false); } };
+  const promptHasChanges = systemPrompt !== originalPrompt;
+  const fetchKnowledgeBase = async () => { if (!agency || !clientId) return; setKbLoading(true); setKbError(null); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/knowledge-base`, { headers: { 'Authorization': `Bearer ${token}` } }); if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Failed to load knowledge base'); } const data = await res.json(); setKbContent(data.content || ''); setKbOriginalContent(data.content || ''); } catch (err) { setKbError(err instanceof Error ? err.message : 'Failed to load knowledge base'); } finally { setKbLoading(false); } };
+  const handleOpenKbModal = () => { setKbModalOpen(true); setKbEditing(false); setKbSaved(false); setKbError(null); fetchKnowledgeBase(); };
+  const handleSaveKb = async () => { if (!agency || !clientId) return; setKbSaving(true); setKbError(null); setKbSaved(false); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/knowledge-base`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ content: kbContent }) }); if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Failed to save'); } const data = await res.json(); setKbOriginalContent(data.content); setKbContent(data.content); setKbEditing(false); setKbSaved(true); setTimeout(() => setKbSaved(false), 3000); } catch (err) { setKbError(err instanceof Error ? err.message : 'Failed to save'); } finally { setKbSaving(false); } };
+  const handleResetKb = async () => { if (!agency || !clientId) return; if (!confirm('Reset to the default industry knowledge base? Your custom changes will be lost.')) return; setKbResetting(true); setKbError(null); setKbSaved(false); try { const token = localStorage.getItem('auth_token'); const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/knowledge-base/reset`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } }); if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Failed to reset'); } const data = await res.json(); setKbContent(data.content); setKbOriginalContent(data.content); setKbEditing(false); setKbSaved(true); setTimeout(() => setKbSaved(false), 3000); } catch (err) { setKbError(err instanceof Error ? err.message : 'Failed to reset'); } finally { setKbResetting(false); } };
+  const kbHasChanges = kbContent !== kbOriginalContent;
+  const copyPhoneNumber = () => { if (!client?.vapi_phone_number) return; navigator.clipboard.writeText(client.vapi_phone_number); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+
+  const handlePreviewAsClient = async () => {
+    if (!agency || !clientId) return;
+    setPreviewLoading(true);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/preview-token`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || 'Failed to generate preview token');
+        return;
+      }
+      const data = await res.json();
+      if (data.token) {
+        window.open(`/client/preview?token=${data.token}`, '_blank');
+      }
+    } catch (e) {
+      console.error('Preview failed:', e);
+      alert('Failed to open client preview');
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const copyCred = (value: string, which: 'user' | 'pass') => { if (!value) return; navigator.clipboard.writeText(value); setCredCopied(which); setTimeout(() => setCredCopied(null), 2000); };
+
+  const handleResetClientPassword = async () => {
+    if (!agency || !clientId) return;
+    if (!confirm("Reset this client's password? Their current password stops working immediately and they'll need the new one to log in.")) return;
+    setCredResetting(true);
+    setCredError(null);
+    try {
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch(`${backendUrl}/api/agency/${agency.id}/clients/${clientId}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Failed to reset password'); }
+      setCredPwVisible(true);
+      await fetchClientData();
+    } catch (err: any) {
+      setCredError(err.message || 'Failed to reset password');
+    } finally {
+      setCredResetting(false);
+    }
+  };
+
+  const formatPhone = (phone: string) => { if (!phone) return '—'; const digits = phone.replace(/\D/g, ''); if (digits.length === 11 && digits.startsWith('1')) return `(${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7)}`; if (digits.length === 10) return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`; return phone; };
+  const getPlanLabel = (plan: string) => { switch (plan) { case 'starter': return 'Starter'; case 'pro': return 'Professional'; case 'growth': return 'Growth'; default: return plan || 'Starter'; } };
+  const getPlanPrice = (planType: string) => { if (!agency) return 0; switch (planType) { case 'starter': return agency.price_starter || 9900; case 'pro': return agency.price_pro || 14900; case 'growth': return agency.price_growth || 29900; default: return 0; } };
+  const getStatusStyle = (status: string) => { switch (status) { case 'active': return { bg: theme.primary15, text: theme.primary, border: theme.primary30 }; case 'trial': case 'trialing': return { bg: theme.warningBg, text: theme.warningText, border: theme.warningBorder }; case 'past_due': return { bg: theme.warningBg, text: theme.warningText, border: theme.warningBorder }; case 'suspended': case 'cancelled': return { bg: theme.errorBg, text: theme.errorText, border: theme.errorBorder }; default: return { bg: theme.hover, text: theme.textMuted, border: theme.border }; } };
+
+  const industryKey = client?.industry ? (INDUSTRY_KEY_MAP[client.industry] || 'professional_services') : null;
+  const intelligence = industryKey ? INDUSTRY_INTELLIGENCE[industryKey] : null;
+
+  if (contextLoading || loading) { return <div className="flex items-center justify-center min-h-[50vh]"><Loader2 className="h-8 w-8 animate-spin" style={{ color: theme.primary }} /></div>; }
+  if (error || !client) { return (<div className="p-4 sm:p-6 lg:p-8"><Link href="/agency/clients" className="inline-flex items-center gap-2 text-sm transition-colors mb-6 hover:opacity-80" style={{ color: theme.textMuted }}><ArrowLeft className="h-4 w-4" /> Back to Clients</Link><div className="text-center py-20"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: theme.errorBg }}><Building2 className="h-8 w-8" style={{ color: theme.errorText, opacity: 0.5 }} /></div><p className="mt-4 font-medium" style={{ color: theme.textMuted }}>{error || 'Client not found'}</p><Link href="/agency/clients" className="mt-4 inline-flex items-center gap-2 text-sm hover:opacity-80" style={{ color: theme.primary }}><ArrowLeft className="h-4 w-4" /> Return to clients</Link></div></div>); }
+
+  const statusStyle = getStatusStyle(client.subscription_status || client.status);
+  const callsUsed = client.calls_this_month || 0;
+  const callLimit = client.monthly_call_limit;
+  const callPercent = callLimit ? Math.min(100, (callsUsed / callLimit) * 100) : 0;
+
+  // ── Reusable status indicator for the inline-editable rows ────────
+  const FieldStatus = ({ field }: { field: string }) => {
+    if (savingField === field) return <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" style={{ color: theme.primary }} />;
+    if (savedField === field) return <Check className="h-4 w-4 flex-shrink-0" style={{ color: theme.primary }} />;
+    return <div className="h-4 w-4 flex-shrink-0" />;
+  };
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8">
+      <Link href="/agency/clients" className="inline-flex items-center gap-2 text-sm transition-colors mb-4 sm:mb-6 hover:opacity-80" style={{ color: theme.textMuted }}><ArrowLeft className="h-4 w-4" /> Back to Clients</Link>
+
+      <div className="mb-6 sm:mb-8"><div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4"><div className="flex items-center gap-4"><div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-xl flex-shrink-0" style={{ backgroundColor: theme.primary15 }}>{client.logo_url ? (<img src={client.logo_url} alt={client.business_name} className="h-10 w-10 sm:h-12 sm:w-12 object-contain rounded-lg" />) : (<span className="text-xl sm:text-2xl font-medium" style={{ color: theme.primary }}>{client.business_name?.charAt(0) || '?'}</span>)}</div><div className="min-w-0"><h1 className="text-xl sm:text-2xl font-semibold tracking-tight truncate">{client.business_name}</h1><div className="flex items-center gap-2 mt-1 flex-wrap"><span className="inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize" style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}>{client.subscription_status || client.status}</span><span className="text-sm" style={{ color: theme.textMuted }}>{getPlanLabel(client.plan_type)} — ${(getPlanPrice(client.plan_type) / 100).toFixed(0)}/mo</span></div></div></div></div></div>
+
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {/* AI Phone Number */}
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}><div className="p-4 sm:p-6"><div className="flex items-center gap-2 mb-4"><Phone className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">AI Phone Number</h2></div><div className="flex items-center justify-between gap-3"><div><p className="text-xl sm:text-2xl font-bold" style={{ color: theme.primary }}>{client.vapi_phone_number ? formatPhone(client.vapi_phone_number) : 'Not provisioned'}</p></div>{client.vapi_phone_number && (<button onClick={copyPhoneNumber} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors" style={{ backgroundColor: theme.hover, color: theme.textMuted }}>{copied ? <Check className="h-4 w-4" style={{ color: theme.primary }} /> : <Copy className="h-4 w-4" />}{copied ? 'Copied!' : 'Copy'}</button>)}</div></div></div>
+
+          {/* Business Details — Name & Phone inline-editable, matches Industry pattern */}
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}>
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="h-4 w-4" style={{ color: theme.primary }} />
+                <h2 className="font-semibold text-sm sm:text-base">Business Details</h2>
+              </div>
+
+              <div className="space-y-4">
+                {/* Business Name — editable */}
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 mt-5" style={{ backgroundColor: theme.hover }}>
+                    <Building2 className="h-4 w-4" style={{ color: theme.textMuted }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs mb-1.5" style={{ color: theme.textMuted }}>Business Name</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={businessName}
+                        onChange={(e) => setBusinessName(e.target.value)}
+                        onBlur={() => handleSaveField('business_name', businessName)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                        disabled={savingField === 'business_name'}
+                        placeholder="Business name"
+                        className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 transition-colors"
+                        style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text }}
+                      />
+                      <FieldStatus field="business_name" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Owner Phone — editable */}
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 mt-5" style={{ backgroundColor: theme.hover }}>
+                    <Phone className="h-4 w-4" style={{ color: theme.textMuted }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs mb-1.5" style={{ color: theme.textMuted }}>Phone</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="tel"
+                        value={ownerPhone}
+                        onChange={(e) => setOwnerPhone(e.target.value)}
+                        onBlur={() => handleSaveField('owner_phone', ownerPhone)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                        disabled={savingField === 'owner_phone'}
+                        placeholder="(555) 555-5555"
+                        className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none disabled:opacity-50 transition-colors"
+                        style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text }}
+                      />
+                      <FieldStatus field="owner_phone" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Read-only row: Email | Location */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0" style={{ backgroundColor: theme.hover }}>
+                      <Mail className="h-4 w-4" style={{ color: theme.textMuted }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs" style={{ color: theme.textMuted }}>Email</p>
+                      <p className="text-sm truncate">{client.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0" style={{ backgroundColor: theme.hover }}>
+                      <MapPin className="h-4 w-4" style={{ color: theme.textMuted }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs" style={{ color: theme.textMuted }}>Location</p>
+                      <p className="text-sm truncate">{client.business_city && client.business_state ? `${client.business_city}, ${client.business_state}` : '—'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Industry — existing dropdown */}
+                <div className="flex items-start gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 mt-5" style={{ backgroundColor: theme.hover }}>
+                    <Building2 className="h-4 w-4" style={{ color: theme.textMuted }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs mb-1.5" style={{ color: theme.textMuted }}>Industry</p>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <select value={industryValue || client.industry || ''} onChange={(e) => { setIndustryValue(e.target.value); handleSaveIndustry(e.target.value); }} disabled={industrySaving} className="w-full appearance-none rounded-lg px-3 py-2 pr-8 text-sm transition-colors focus:outline-none disabled:opacity-50" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text, colorScheme: isDark ? 'dark' : 'light' }}>
+                          <option value="">Select industry...</option>
+                          {INDUSTRY_OPTIONS.map(opt => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}
+                        </select>
+                        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none" style={{ color: theme.textMuted }} />
+                      </div>
+                      {industrySaving && <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" style={{ color: theme.primary }} />}
+                      {industrySaved && <Check className="h-4 w-4 flex-shrink-0" style={{ color: theme.primary }} />}
+                      {!industrySaving && !industrySaved && <div className="h-4 w-4 flex-shrink-0" />}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Website — conditional read-only */}
+                {client.business_website && (
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0" style={{ backgroundColor: theme.hover }}>
+                      <Globe className="h-4 w-4" style={{ color: theme.textMuted }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs" style={{ color: theme.textMuted }}>Website</p>
+                      <a href={client.business_website} target="_blank" rel="noopener noreferrer" className="text-sm truncate block hover:underline" style={{ color: theme.primary }}>{client.business_website.replace(/^https?:\/\//, '')}</a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* AI Prompt */}
+          {client.vapi_assistant_id && (<div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}><div className="p-4 sm:p-6"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2"><Bot className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">AI Receptionist Prompt</h2></div>{promptHasChanges && <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: theme.warningBg, color: theme.warningText }}>Unsaved changes</span>}</div><p className="text-xs mb-4" style={{ color: theme.textMuted }}>This is the system prompt that controls how this client&apos;s AI receptionist behaves on calls. Changes take effect immediately on the next call.</p>{promptError && <div className="mb-4 rounded-lg p-3 flex items-center gap-2" style={{ backgroundColor: theme.errorBg, border: `1px solid ${theme.errorBorder}` }}><AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: theme.errorText }} /><p className="text-xs" style={{ color: theme.errorText }}>{promptError}</p></div>}{promptSaved && <div className="mb-4 rounded-lg p-3 flex items-center gap-2" style={{ backgroundColor: theme.primary15, border: `1px solid ${theme.primary30}` }}><Check className="h-4 w-4" style={{ color: theme.primary }} /><p className="text-xs" style={{ color: theme.primary }}>Prompt updated — changes are live on the next call.</p></div>}{promptLoading ? (<div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin" style={{ color: theme.primary }} /></div>) : (<><textarea value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)} rows={14} className="w-full rounded-xl px-4 py-3 text-sm font-mono transition-colors resize-y focus:outline-none" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text, minHeight: '200px' }} placeholder="Enter system prompt..." /><div className="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3"><button onClick={handleResetPrompt} disabled={promptResetting || promptSaving} className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.textMuted }}>{promptResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Reset to Default</button><button onClick={handleSavePrompt} disabled={promptSaving || promptResetting || !promptHasChanges} className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-medium transition-colors disabled:opacity-50" style={{ backgroundColor: theme.primary, color: theme.primaryText }}>{promptSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : <><Save className="h-4 w-4" /> Save Prompt</>}</button></div></>)}</div></div>)}
+
+          {/* Recent Calls */}
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}><div className="p-4 sm:p-6 flex items-center justify-between"><div className="flex items-center gap-2"><PhoneCall className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">Recent Calls</h2></div><Link href={`/agency/clients/${clientId}/calls`} className="inline-flex items-center gap-1 text-sm font-medium hover:opacity-80 transition-colors" style={{ color: theme.primary }}>View All<ChevronRight className="h-4 w-4" /></Link></div>{recentCalls.length === 0 ? (<div className="px-4 sm:px-6 pb-6 text-center py-8"><PhoneCall className="h-8 w-8 mx-auto mb-2" style={{ color: theme.textMuted, opacity: 0.4 }} /><p className="text-sm" style={{ color: theme.textMuted }}>No calls yet</p></div>) : (<div>{recentCalls.map((call) => (<Link key={call.id} href={`/agency/clients/${clientId}/calls/${call.id}`} className="flex items-center justify-between px-4 sm:px-6 py-3 transition-colors" style={{ borderTop: `1px solid ${theme.borderSubtle}` }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme.hover} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}><div className="flex items-center gap-3 min-w-0"><PhoneCall className="h-4 w-4 flex-shrink-0" style={{ color: theme.textMuted }} /><div className="min-w-0"><p className="text-sm font-medium truncate">{call.customer_name || 'Unknown Caller'}</p><p className="text-xs" style={{ color: theme.textMuted }}>{call.service_requested || 'General inquiry'}</p></div></div><div className="flex items-center gap-3 flex-shrink-0"><span className="text-xs" style={{ color: theme.textMuted }}>{new Date(call.created_at).toLocaleDateString()}</span><ChevronRight className="h-4 w-4" style={{ color: theme.textMuted }} /></div></Link>))}</div>)}</div>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-4 sm:space-y-6">
+          {/* Knowledge Base */}
+          {client.vapi_assistant_id && (<div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}><div className="p-4 sm:p-6"><div className="flex items-center gap-2 mb-1"><BookOpen className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">Knowledge Base</h2></div><p className="text-xs mb-4" style={{ color: theme.textMuted }}>{intelligence ? `Pre-loaded ${intelligence.label} knowledge` : 'AI receptionist knowledge base'}</p>{intelligence && (<div className="flex flex-wrap gap-1.5 mb-4">{intelligence.features.map((feature) => (<span key={feature} className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: theme.primary + '12', color: theme.primary }}><Zap className="h-3 w-3" />{feature}</span>))}{client.business_website && <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium" style={{ backgroundColor: theme.primary + '12', color: theme.primary }}><Globe className="h-3 w-3" />Website Integrated</span>}</div>)}<button onClick={handleOpenKbModal} className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors" style={{ backgroundColor: theme.hover, color: theme.text, border: `1px solid ${theme.border}` }}><BookOpen className="h-4 w-4" /> View / Edit Knowledge Base</button></div></div>)}
+
+          {/* Client Login Credentials */}
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}>
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-2 mb-1"><Lock className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">Client Login</h2></div>
+              <p className="text-xs mb-4" style={{ color: theme.textMuted }}>The credentials this client uses to sign in to their dashboard.</p>
+
+              {credError && (<div className="rounded-lg p-3 mb-3 flex items-center gap-2" style={{ backgroundColor: theme.errorBg, border: `1px solid ${theme.errorBorder}` }}><AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: theme.errorText }} /><p className="text-xs" style={{ color: theme.errorText }}>{credError}</p></div>)}
+
+              <div className="mb-3">
+                <p className="text-xs mb-1" style={{ color: theme.textMuted }}>Username</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 rounded-lg px-3 py-2 text-sm font-mono truncate" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text }}>{client.login_email || client.email || '—'}</div>
+                  <button onClick={() => copyCred(client.login_email || client.email || '', 'user')} className="p-2 rounded-lg" style={{ backgroundColor: theme.hover, color: theme.textMuted }}>{credCopied === 'user' ? <Check className="h-4 w-4" style={{ color: theme.primary }} /> : <Copy className="h-4 w-4" />}</button>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <p className="text-xs mb-1" style={{ color: theme.textMuted }}>Password</p>
+                {client.login_password ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 rounded-lg px-3 py-2 text-sm font-mono truncate" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text }}>{credPwVisible ? client.login_password : '\u2022'.repeat(Math.min(12, (client.login_password || '').length))}</div>
+                    <button onClick={() => setCredPwVisible(v => !v)} className="px-2.5 py-2 rounded-lg text-xs font-medium" style={{ backgroundColor: theme.hover, color: theme.textMuted }}>{credPwVisible ? 'Hide' : 'Show'}</button>
+                    <button onClick={() => copyCred(client.login_password || '', 'pass')} className="p-2 rounded-lg" style={{ backgroundColor: theme.hover, color: theme.textMuted }}>{credCopied === 'pass' ? <Check className="h-4 w-4" style={{ color: theme.primary }} /> : <Copy className="h-4 w-4" />}</button>
+                  </div>
+                ) : (
+                  <div className="rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.textMuted }}>The client set their own password, so it can&apos;t be shown. Reset it below to generate a new one you can share.</div>
+                )}
+              </div>
+
+              <button onClick={handleResetClientPassword} disabled={credResetting} className="w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50" style={{ backgroundColor: theme.primary, color: theme.primaryText }}>{credResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}{credResetting ? 'Resetting...' : 'Reset Password'}</button>
+            </div>
+          </div>
+
+          {/* Client Branding */}
+          <div>
+            {isFreePlan && (<div className="rounded-xl p-4 mb-4 flex items-center gap-3" style={{ backgroundColor: theme.infoBg, border: `1px solid ${theme.infoBorder}` }}><Lock className="h-4 w-4 flex-shrink-0" style={{ color: theme.infoText }} /><div><p className="text-sm font-medium" style={{ color: theme.infoText }}>Upgrade to Pro</p><p className="text-xs mt-0.5" style={{ color: theme.textMuted }}>Client branding requires Pro or Scale.</p></div></div>)}
+            <div style={isFreePlan ? { opacity: 0.4, pointerEvents: 'none' as const } : {}}><ClientBrandingCard client={client} agencyId={agency?.id} theme={theme} backendUrl={backendUrl} onUpdate={fetchClientData} /></div>
+          </div>
+
+          {/* Subscription */}
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}><div className="p-4 sm:p-6"><div className="flex items-center gap-2 mb-4"><CreditCard className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">Subscription</h2></div><div className="space-y-3"><div className="flex items-center justify-between"><span className="text-sm" style={{ color: theme.textMuted }}>Plan</span><span className="text-sm font-medium">{getPlanLabel(client.plan_type)}</span></div><div className="flex items-center justify-between"><span className="text-sm" style={{ color: theme.textMuted }}>Price</span><span className="text-sm font-medium">${(getPlanPrice(client.plan_type) / 100).toFixed(0)}/mo</span></div><div className="flex items-center justify-between"><span className="text-sm" style={{ color: theme.textMuted }}>Status</span><span className="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium capitalize" style={{ backgroundColor: statusStyle.bg, color: statusStyle.text }}>{client.subscription_status || client.status}</span></div>{client.trial_ends_at && <div className="flex items-center justify-between"><span className="text-sm" style={{ color: theme.textMuted }}>Trial Ends</span><span className="text-sm">{new Date(client.trial_ends_at).toLocaleDateString()}</span></div>}</div></div></div>
+
+          {/* Call Usage */}
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}><div className="p-4 sm:p-6"><div className="flex items-center gap-2 mb-4"><PhoneCall className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">Call Usage</h2></div><div className="text-center mb-4"><p className="text-3xl font-bold" style={{ color: theme.primary }}>{callsUsed}</p><p className="text-sm" style={{ color: theme.textMuted }}>calls this month{callLimit ? ` of ${callLimit}` : ''}</p></div>{callLimit && (<div><div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: theme.hover }}><div className="h-full rounded-full transition-all" style={{ width: `${callPercent}%`, backgroundColor: callPercent > 90 ? '#ef4444' : callPercent > 70 ? '#f59e0b' : theme.primary }} /></div><p className="text-xs mt-2 text-right" style={{ color: theme.textMuted }}>{Math.max(0, callLimit - callsUsed)} remaining</p></div>)}</div></div>
+
+          {/* Quick Info */}
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.card, border: `1px solid ${theme.border}` }}><div className="p-4 sm:p-6"><div className="flex items-center gap-2 mb-4"><Calendar className="h-4 w-4" style={{ color: theme.primary }} /><h2 className="font-semibold text-sm sm:text-base">Quick Info</h2></div><div className="space-y-3"><div className="flex items-center justify-between"><span className="text-sm" style={{ color: theme.textMuted }}>Client Since</span><span className="text-sm">{new Date(client.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div></div></div></div>
+
+          {/* Actions */}
+          <div className="space-y-2">
+            <Link href={`/agency/clients/${clientId}/calls`} className="flex items-center justify-center gap-2 w-full rounded-xl px-4 py-2.5 text-sm font-medium transition-colors" style={{ backgroundColor: theme.primary, color: theme.primaryText }}><PhoneCall className="h-4 w-4" /> View Call History</Link>
+            <button
+              onClick={handlePreviewAsClient}
+              disabled={previewLoading}
+              className="flex items-center justify-center gap-2 w-full rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50"
+              style={{ backgroundColor: theme.hover, color: theme.text, border: `1px solid ${theme.border}` }}
+            >
+              {previewLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+              {previewLoading ? 'Opening...' : 'Login as Client'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Knowledge Base Modal */}
+      {kbModalOpen && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }} onClick={(e) => { if (e.target === e.currentTarget && !kbHasChanges) setKbModalOpen(false); }}><div className="w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl" style={{ backgroundColor: theme.card, border: `2px solid ${theme.border}` }}><div className="flex items-center justify-between px-6 py-4 flex-shrink-0" style={{ borderBottom: `1px solid ${theme.border}` }}><div><div className="flex items-center gap-2"><BookOpen className="h-5 w-5" style={{ color: theme.primary }} /><h2 className="text-lg font-semibold">Knowledge Base</h2></div><p className="text-xs mt-0.5" style={{ color: theme.textMuted }}>{client.business_name} — {intelligence?.label || 'Custom'}</p></div><div className="flex items-center gap-2">{!kbEditing && !kbLoading && <button onClick={() => setKbEditing(true)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors" style={{ backgroundColor: theme.hover, color: theme.text }}><Brain className="h-4 w-4" />Edit</button>}<button onClick={() => { if (kbHasChanges) { if (confirm('You have unsaved changes. Close anyway?')) { setKbModalOpen(false); setKbEditing(false); } } else { setKbModalOpen(false); setKbEditing(false); } }} className="flex items-center justify-center h-9 w-9 rounded-lg transition-colors" style={{ backgroundColor: theme.hover }}><X className="h-5 w-5" style={{ color: theme.textMuted }} /></button></div></div><div className="flex-1 overflow-y-auto p-6">{kbError && <div className="mb-4 rounded-lg p-3 flex items-center gap-2" style={{ backgroundColor: theme.errorBg, border: `1px solid ${theme.errorBorder}` }}><AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: theme.errorText }} /><p className="text-xs" style={{ color: theme.errorText }}>{kbError}</p></div>}{kbSaved && <div className="mb-4 rounded-lg p-3 flex items-center gap-2" style={{ backgroundColor: theme.primary15, border: `1px solid ${theme.primary30}` }}><Check className="h-4 w-4" style={{ color: theme.primary }} /><p className="text-xs" style={{ color: theme.primary }}>Knowledge base updated — changes are live on the next call.</p></div>}{kbLoading ? (<div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin" style={{ color: theme.primary }} /></div>) : kbEditing ? (<textarea value={kbContent} onChange={(e) => setKbContent(e.target.value)} className="w-full h-full min-h-[50vh] rounded-xl px-4 py-3 text-sm font-mono transition-colors resize-y focus:outline-none" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text }} />) : (<div className="rounded-xl px-5 py-4 text-sm font-mono whitespace-pre-wrap leading-relaxed overflow-auto" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.text, minHeight: '50vh' }}>{kbContent || 'No knowledge base content found.'}</div>)}</div>{kbEditing && !kbLoading && (<div className="flex items-center justify-between px-6 py-4 flex-shrink-0" style={{ borderTop: `1px solid ${theme.border}` }}><button onClick={handleResetKb} disabled={kbResetting || kbSaving} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.textMuted }}>{kbResetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Reset to Default</button><div className="flex items-center gap-2"><button onClick={() => { setKbContent(kbOriginalContent); setKbEditing(false); }} disabled={kbSaving} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50" style={{ backgroundColor: theme.input, border: `1px solid ${theme.inputBorder}`, color: theme.textMuted }}>Cancel</button><button onClick={handleSaveKb} disabled={kbSaving || kbResetting || !kbHasChanges} className="inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-medium transition-colors disabled:opacity-50" style={{ backgroundColor: theme.primary, color: theme.primaryText }}>{kbSaving ? <><Loader2 className="h-4 w-4 animate-spin" /> Saving...</> : <><Save className="h-4 w-4" /> Save Changes</>}</button></div></div>)}</div></div>)}
+    </div>
+  );
 }
