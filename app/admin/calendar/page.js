@@ -6,14 +6,14 @@ import { useAdminAuth } from '../layout'
 
 const STATUS_COLORS = {
   estimate_sent: { bg: 'bg-indigo-50', text: 'text-indigo-700', dot: 'bg-indigo-500' },
-  booked: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+  booked: { bg: 'bg-purple-50', text: 'text-purple-700', dot: 'bg-purple-500' },
   in_progress: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
   done: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500' },
   new: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
   contacted: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
   lost: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
 }
-const STATUS_LABELS = { estimate_sent: 'Estimate', booked: 'In Progress', in_progress: 'In Progress', done: 'Done', new: 'New', contacted: 'New', lost: 'Lost' }
+const STATUS_LABELS = { estimate_sent: 'Estimate', booked: 'Scheduled', in_progress: 'In Progress', done: 'Done', new: 'New', contacted: 'New', lost: 'Lost' }
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const SERVICE_OPTIONS = ['Basement Waterproofing', 'Crawl Space Encapsulation', 'Crawl Space Repair', 'Crawl Space Waterproofing', 'Concrete Repair', 'Drainage', 'Foundation Repair', 'Other']
@@ -195,7 +195,7 @@ export default function CalendarPage() {
                 <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Date *</label><input type="date" value={newEvent.scheduled_date} onChange={(e) => setNewEvent(p => ({ ...p, scheduled_date: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
                 <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Time</label><select value={newEvent.scheduled_time} onChange={(e) => setNewEvent(p => ({ ...p, scheduled_time: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#115997]/20 outline-none bg-white transition-all">{TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
               </div>
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Type</label><select value={newEvent.status} onChange={(e) => setNewEvent(p => ({ ...p, status: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none bg-white transition-all"><option value="estimate_sent">Estimate</option><option value="in_progress">Job</option></select></div>
+              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Type</label><select value={newEvent.status} onChange={(e) => setNewEvent(p => ({ ...p, status: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none bg-white transition-all"><option value="estimate_sent">Estimate</option><option value="booked">Scheduled Job</option><option value="in_progress">Active Job</option></select></div>
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Name *</label><input type="text" value={newEvent.name} onChange={(e) => setNewEvent(p => ({ ...p, name: e.target.value }))} placeholder="Customer name" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Phone</label><input type="tel" value={newEvent.phone} onChange={(e) => setNewEvent(p => ({ ...p, phone: e.target.value }))} placeholder="(770) 000-0000" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
               <div>
@@ -217,7 +217,7 @@ export default function CalendarPage() {
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-5 border-b border-gray-100"><div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" /><div className="flex items-center justify-between"><h3 className="text-lg font-bold text-gray-900">Calendar Help</h3><button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div></div>
             <div className="p-5 space-y-5">
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">What shows up here?</h4><p className="text-sm text-gray-500 leading-relaxed">Any contact with a scheduled date appears on the calendar. This includes estimates, inspections, and jobs.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">What shows up here?</h4><p className="text-sm text-gray-500 leading-relaxed">Any contact with a scheduled date appears on the calendar. This includes estimates, scheduled jobs, and active jobs.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Month vs Week view</h4><p className="text-sm text-gray-500 leading-relaxed">Month shows the full month with dots on busy days. Week shows a vertical agenda starting with today.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Tap an event</h4><p className="text-sm text-gray-500 leading-relaxed">Opens the contact detail page where you can call, text, reschedule, or update status.</p></div>
             </div>

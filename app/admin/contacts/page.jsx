@@ -8,6 +8,7 @@ const statuses = [
   { value: 'all', label: 'All' },
   { value: 'new', label: 'New', bg: 'bg-blue-100 text-blue-700' },
   { value: 'estimate_sent', label: 'Estimate Sent', bg: 'bg-indigo-100 text-indigo-700' },
+  { value: 'booked', label: 'Scheduled', bg: 'bg-purple-100 text-purple-700' },
   { value: 'in_progress', label: 'In Progress', bg: 'bg-emerald-100 text-emerald-700' },
   { value: 'done', label: 'Done', bg: 'bg-green-100 text-green-700' },
   { value: 'lost', label: 'Lost', bg: 'bg-red-100 text-red-700' },
@@ -32,9 +33,9 @@ export default function ContactsPage() {
     finally { setLoading(false) }
   }
 
+  // Only "contacted" gets remapped now; "booked" stands on its own as Scheduled
   const getDisplayStatus = (status) => {
     if (status === 'contacted') return 'new'
-    if (status === 'booked') return 'in_progress'
     return status
   }
 
@@ -81,7 +82,8 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mb-6 animate-[fadeUp_0.35s_ease-out]">
+      {/* 4-card stats grid: New / Estimates / Scheduled / In Progress */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 animate-[fadeUp_0.35s_ease-out]">
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-400 rounded-r" />
           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">New</p>
@@ -91,6 +93,11 @@ export default function ContactsPage() {
           <div className="absolute top-0 left-0 w-1 h-full bg-indigo-400 rounded-r" />
           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Estimates</p>
           <p className="text-2xl font-extrabold text-indigo-600 ml-2 mt-0.5 tabular-nums">{getStatusCount('estimate_sent')}</p>
+        </div>
+        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-purple-400 rounded-r" />
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Scheduled</p>
+          <p className="text-2xl font-extrabold text-purple-600 ml-2 mt-0.5 tabular-nums">{getStatusCount('booked')}</p>
         </div>
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-emerald-400 rounded-r" />
@@ -157,7 +164,7 @@ export default function ContactsPage() {
             </div>
             <div className="p-5 space-y-5">
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">What is this page?</h4><p className="text-sm text-gray-500 leading-relaxed">Every person who fills out the form on the website shows up here. This is your list of all incoming requests.</p></div>
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Pipeline stages</h4><p className="text-sm text-gray-500 leading-relaxed">New → Estimate Sent → In Progress → Done. Use the Board View for drag-and-drop.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Pipeline stages</h4><p className="text-sm text-gray-500 leading-relaxed">New → Estimate Sent → Scheduled → In Progress → Done. Use the Board View for drag-and-drop.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Tap a contact</h4><p className="text-sm text-gray-500 leading-relaxed">Open their detail page to call, text, email, change status, create a job, schedule a date, and see activity history.</p></div>
             </div>
             <div className="p-5 border-t border-gray-100"><button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#0d4a7a] transition-colors">Got it</button></div>

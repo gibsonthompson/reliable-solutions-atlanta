@@ -12,10 +12,9 @@ export default function DashboardPage() {
   const [recentRequests, setRecentRequests] = useState([])
   const [upcomingCalendar, setUpcomingCalendar] = useState([])
   const [actionItems, setActionItems] = useState([])
-  const [stats, setStats] = useState({ totalCrew: 0, clockedIn: 0, jobsActive: 0, requestsNew: 0, requestsTotal: 0, revenue: 0, profit: 0, estimatesPending: 0, jobsMissingCrew: 0, timesheetsPending: 0 })
+  const [stats, setStats] = useState({ totalCrew: 0, clockedIn: 0, jobsActive: 0, requestsNew: 0, requestsTotal: 0, revenue: 0, profit: 0, estimatesPending: 0, scheduledThisWeek: 0, jobsMissingCrew: 0, timesheetsPending: 0 })
 
   useEffect(() => {
-    // Load DM Sans
     if (!document.querySelector('link[href*="DM+Sans"]')) {
       const link = document.createElement('link')
       link.rel = 'stylesheet'
@@ -71,12 +70,12 @@ export default function DashboardPage() {
       // Recent requests
       setRecentRequests(contacts.slice(0, 8))
 
-      // Upcoming
+      // Upcoming this week
       const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7)
       const weekEndStr = weekEnd.toISOString().split('T')[0]
       setUpcomingCalendar(contacts.filter(c => c.scheduled_date && c.scheduled_date >= today && c.scheduled_date <= weekEndStr).sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date)).slice(0, 6))
 
-      // Action Items (Jobber-style workflow)
+      // Action Items
       const items = []
       const newRequests = contacts.filter(c => c.status === 'new')
       const urgentLeads = newRequests.filter(c => (Date.now() - new Date(c.created_at)) / 36e5 > 2)
@@ -85,6 +84,10 @@ export default function DashboardPage() {
 
       const estimatePending = contacts.filter(c => c.status === 'estimate_sent')
       if (estimatePending.length > 0) items.push({ type: 'estimate', icon: '📋', label: `${estimatePending.length} estimate${estimatePending.length > 1 ? 's' : ''} awaiting response`, href: '/admin/pipeline', color: 'from-indigo-500 to-purple-500', count: estimatePending.length })
+
+      // Scheduled work this week (status=booked, scheduled date in next 7 days)
+      const scheduledThisWeek = contacts.filter(c => c.status === 'booked' && c.scheduled_date && c.scheduled_date >= today && c.scheduled_date <= weekEndStr)
+      if (scheduledThisWeek.length > 0) items.push({ type: 'scheduled', icon: '📅', label: `${scheduledThisWeek.length} job${scheduledThisWeek.length > 1 ? 's' : ''} scheduled this week`, href: '/admin/pipeline', color: 'from-purple-500 to-fuchsia-500', count: scheduledThisWeek.length })
 
       const jobsMissingCrew = allJobs.filter(j => (j.status === 'active' || !j.status) && j.date_start && j.date_start >= today && !(crewData.by_job || {})[j.id]?.length)
       if (jobsMissingCrew.length > 0) items.push({ type: 'crew', icon: '👷', label: `${jobsMissingCrew.length} job${jobsMissingCrew.length > 1 ? 's' : ''} need crew assigned`, href: '/admin/schedule', color: 'from-amber-500 to-yellow-500', count: jobsMissingCrew.length })
@@ -110,6 +113,7 @@ export default function DashboardPage() {
         revenue: totalRevenue,
         profit: totalRevenue - totalExpense,
         estimatesPending: estimatePending.length,
+        scheduledThisWeek: scheduledThisWeek.length,
         jobsMissingCrew: jobsMissingCrew.length,
         timesheetsPending: pendingTimesheets.length,
       })
@@ -124,11 +128,11 @@ export default function DashboardPage() {
   const fmtMoney = (v) => '$' + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 
   const statusBadge = (status) => {
-    const map = { new: 'bg-blue-100 text-blue-700', contacted: 'bg-blue-100 text-blue-700', estimate_sent: 'bg-indigo-100 text-indigo-700', in_progress: 'bg-emerald-100 text-emerald-700', booked: 'bg-emerald-100 text-emerald-700', done: 'bg-green-100 text-green-700', lost: 'bg-red-100 text-red-700' }
+    const map = { new: 'bg-blue-100 text-blue-700', contacted: 'bg-blue-100 text-blue-700', estimate_sent: 'bg-indigo-100 text-indigo-700', booked: 'bg-purple-100 text-purple-700', in_progress: 'bg-emerald-100 text-emerald-700', done: 'bg-green-100 text-green-700', lost: 'bg-red-100 text-red-700' }
     return map[status] || 'bg-gray-100 text-gray-600'
   }
   const statusLabel = (status) => {
-    const map = { new: 'New', contacted: 'New', estimate_sent: 'Estimate', in_progress: 'In Progress', booked: 'In Progress', done: 'Done', lost: 'Lost' }
+    const map = { new: 'New', contacted: 'New', estimate_sent: 'Estimate', booked: 'Scheduled', in_progress: 'In Progress', done: 'Done', lost: 'Lost' }
     return map[status] || status
   }
 
@@ -154,7 +158,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Action Items — Jobber-style workflow */}
+      {/* Action Items */}
       {actionItems.length > 0 && (
         <div className="mb-6 space-y-2 animate-[fadeUp_0.35s_ease-out]">
           {actionItems.map((item, i) => (

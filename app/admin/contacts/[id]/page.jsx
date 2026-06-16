@@ -9,6 +9,7 @@ import { useAdminAuth } from '../../layout'
 const STATUS_OPTIONS = [
   { value: 'new', label: 'New', color: 'bg-blue-100 text-blue-700 border-blue-200' },
   { value: 'estimate_sent', label: 'Estimate Sent', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+  { value: 'booked', label: 'Scheduled', color: 'bg-purple-100 text-purple-700 border-purple-200' },
   { value: 'in_progress', label: 'In Progress', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
   { value: 'done', label: 'Done', color: 'bg-green-100 text-green-700 border-green-200' },
   { value: 'lost', label: 'Lost', color: 'bg-red-100 text-red-700 border-red-200' },
@@ -135,7 +136,25 @@ export default function ContactDetailPage() {
   const formatPhone = (p) => { if (!p) return ''; const c = p.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return p }
   const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' })
   const timeAgo = (d) => { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; if (s < 604800) return Math.floor(s/86400) + 'd ago'; return formatDate(d) }
-  const getRecommendedAction = () => { if (!contact) return null; const h = (Date.now() - new Date(contact.created_at)) / 36e5; if (formData.status === 'new' && h > 0.5) return { text: 'Call this lead ASAP — ' + Math.floor(h) + 'h old', urgency: h > 24 ? 'high' : 'medium' }; if (formData.status === 'contacted') return { text: 'Schedule a free inspection for this lead', urgency: h > 72 ? 'high' : 'medium' }; if (formData.status === 'estimate_sent') return { text: 'Follow up — waiting on their decision', urgency: 'medium' }; if (formData.status === 'done') return { text: 'Send a review request from the SMS templates', urgency: 'low' }; return null }
+  const getRecommendedAction = () => {
+    if (!contact) return null
+    const h = (Date.now() - new Date(contact.created_at)) / 36e5
+    if (formData.status === 'new' && h > 0.5) return { text: 'Call this lead ASAP — ' + Math.floor(h) + 'h old', urgency: h > 24 ? 'high' : 'medium' }
+    if (formData.status === 'contacted') return { text: 'Schedule a free inspection for this lead', urgency: h > 72 ? 'high' : 'medium' }
+    if (formData.status === 'estimate_sent') return { text: 'Follow up — waiting on their decision', urgency: 'medium' }
+    if (formData.status === 'booked') {
+      if (formData.scheduled_date) {
+        const days = Math.floor((new Date(formData.scheduled_date) - Date.now()) / 864e5)
+        if (days < 0) return { text: 'Scheduled date has passed — confirm if job started or update status', urgency: 'high' }
+        if (days === 0) return { text: 'Job is today — confirm crew is dispatched', urgency: 'high' }
+        if (days <= 2) return { text: `Job in ${days} day${days === 1 ? '' : 's'} — send reminder text and confirm crew/materials`, urgency: 'medium' }
+        return { text: 'Job scheduled — verify crew assignment and material prep', urgency: 'low' }
+      }
+      return { text: 'Marked Scheduled but no date set — add a scheduled date below', urgency: 'medium' }
+    }
+    if (formData.status === 'done') return { text: 'Send a review request from the SMS templates', urgency: 'low' }
+    return null
+  }
   const rec = getRecommendedAction()
 
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="flex flex-col items-center gap-3"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /><p className="text-sm text-gray-400 animate-pulse">Loading contact...</p></div></div>
@@ -282,8 +301,8 @@ export default function ContactDetailPage() {
             </div>
             <div className="p-5 space-y-5">
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Quick actions</h4><p className="text-sm text-gray-500 leading-relaxed">Call the customer, create a job from this contact, send a text using templates, or compose an email. Each opens right from this page.</p></div>
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Create Job</h4><p className="text-sm text-gray-500 leading-relaxed">Tap the amber Job button to create a job pre-filled with this contact{"'"}s address, name, and service type. You can assign crew directly in the modal.</p></div>
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Status</h4><p className="text-sm text-gray-500 leading-relaxed">Change the pipeline status using the pills. Moving to "Lost" asks for a reason. The recommended action updates based on status.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Create Job</h4><p className="text-sm text-gray-500 leading-relaxed">Tap the amber Job button to create a job pre-filled with this contact{"'"}s address, name, and service type. You can assign crew directly in the modal. Note: moving status to Scheduled or In Progress also auto-creates a job if one does not already exist.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Status</h4><p className="text-sm text-gray-500 leading-relaxed">Change the pipeline status using the pills: New, Estimate Sent, Scheduled, In Progress, Done, Lost. Moving to "Lost" asks for a reason. The recommended action banner updates based on status.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Scheduling</h4><p className="text-sm text-gray-500 leading-relaxed">Set a date and time for estimates or jobs. This makes the contact show up on the Calendar.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Remember to save</h4><p className="text-sm text-gray-500 leading-relaxed">After editing fields, tap the blue Save button at the top right.</p></div>
             </div>

@@ -7,7 +7,8 @@ import { useAdminAuth } from '../layout'
 const COLUMNS = [
   { key: 'new', label: 'New', gradient: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', help: 'New leads from the website. They got an auto-confirmation text. Call them ASAP.' },
   { key: 'estimate_sent', label: 'Estimate Sent', gradient: 'from-indigo-500 to-indigo-600', bg: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700', dot: 'bg-indigo-500', help: 'You visited and sent the estimate. Follow up if no response in 3 days.' },
-  { key: 'in_progress', label: 'In Progress', gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', help: 'They said yes. Job is scheduled or underway.' },
+  { key: 'booked', label: 'Scheduled', gradient: 'from-purple-500 to-purple-600', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500', help: 'They said yes and the job is on the calendar. Confirm crew and materials. A Job record gets auto-created.' },
+  { key: 'in_progress', label: 'In Progress', gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', help: 'Crew is actively working. Move to Done when finished.' },
   { key: 'done', label: 'Done', gradient: 'from-green-500 to-green-600', bg: 'bg-green-50', badge: 'bg-green-100 text-green-700', dot: 'bg-green-500', help: 'Job complete. Send review request.' },
   { key: 'lost', label: 'Lost', gradient: 'from-red-400 to-red-500', bg: 'bg-red-50', badge: 'bg-red-100 text-red-700', dot: 'bg-red-400', help: 'They decided not to move forward.' },
 ]
@@ -41,14 +42,15 @@ export default function PipelinePage() {
       const r = await fetch('/api/contact', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: contactId, status: newStatus }) })
       const result = await r.json()
       await fetch('/api/admin/activity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contact_id: contactId, action: 'status_change', old_value: oldStatus, new_value: newStatus, user_id: user?.id }) })
+      const colLabel = COLUMNS.find(c => c.key === newStatus)?.label || newStatus
       if (result.autoJob?.created) {
-        setSuccessMsg('Moved to In Progress — Job created automatically')
+        setSuccessMsg(`Moved to ${colLabel} — Job created automatically`)
       } else if (result.autoJob?.reason === 'already_exists') {
-        setSuccessMsg('Moved to In Progress — Job already exists')
+        setSuccessMsg(`Moved to ${colLabel} — Job already exists`)
       } else if (result.autoJob?.error) {
-        setSuccessMsg('Moved to In Progress — Job creation failed: ' + result.autoJob.error)
+        setSuccessMsg(`Moved to ${colLabel} — Job creation failed: ` + result.autoJob.error)
       } else {
-        setSuccessMsg('Moved to ' + (COLUMNS.find(c => c.key === newStatus)?.label || newStatus))
+        setSuccessMsg('Moved to ' + colLabel)
       }
       setTimeout(() => setSuccessMsg(''), 4000)
     } catch (err) { setSubmissions(prev => prev.map(s => s.id === contactId ? { ...s, status: oldStatus } : s)) }
@@ -76,7 +78,8 @@ export default function PipelinePage() {
   const formatPhone = (phone) => { if (!phone) return ''; const c = phone.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return phone }
   const timeAgo = (d) => { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 3600) return Math.floor(s/60) + 'm'; if (s < 86400) return Math.floor(s/3600) + 'h'; return Math.floor(s/86400) + 'd' }
   const getUrgencyDot = (c) => { if (c.status !== 'new') return null; const h = (Date.now() - new Date(c.created_at)) / 36e5; if (h > 24) return 'bg-red-500'; if (h > 1) return 'bg-yellow-500'; return 'bg-green-500' }
-  const getDisplayStatus = (status) => { if (status === 'contacted') return 'new'; if (status === 'booked') return 'in_progress'; return status }
+  // Only "contacted" gets remapped now; "booked" stands on its own as the Scheduled column
+  const getDisplayStatus = (status) => { if (status === 'contacted') return 'new'; return status }
   const getCardsForColumn = (colKey) => submissions.filter(s => getDisplayStatus(s.status) === colKey)
 
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="flex flex-col items-center gap-3"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /><p className="text-sm text-gray-400 animate-pulse">Loading pipeline...</p></div></div>
@@ -98,8 +101,8 @@ export default function PipelinePage() {
 
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
 
-      {/* Desktop Columns */}
-      <div className="hidden sm:grid grid-cols-5 gap-3 animate-[fadeUp_0.35s_ease-out]">
+      {/* Desktop Columns - 6 across */}
+      <div className="hidden sm:grid grid-cols-6 gap-2.5 animate-[fadeUp_0.35s_ease-out]">
         {COLUMNS.map((col) => {
           const cards = getCardsForColumn(col.key)
           return (
@@ -107,7 +110,7 @@ export default function PipelinePage() {
               className={'flex flex-col rounded-xl transition-all duration-200 min-w-0 ' + (dragOverCol === col.key ? 'ring-2 ring-[#115997]/30 bg-[#115997]/[0.03] scale-[1.01]' : 'bg-white/60')}
               onDragOver={(e) => handleDragOver(e, col.key)} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, col.key)}>
               {/* Column Header */}
-              <div className={`px-3 py-2.5 rounded-t-xl bg-gradient-to-r ${col.gradient} flex items-center justify-between`}>
+              <div className={`px-2.5 py-2.5 rounded-t-xl bg-gradient-to-r ${col.gradient} flex items-center justify-between`}>
                 <h3 className="text-[11px] font-bold text-white uppercase tracking-wider truncate">{col.label}</h3>
                 <span className="text-[10px] font-bold text-white/70 bg-white/20 px-1.5 py-0.5 rounded-md min-w-[20px] text-center">{cards.length}</span>
               </div>
@@ -188,7 +191,7 @@ export default function PipelinePage() {
       {showCloseModal && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowCloseModal(null)}><div className="bg-white rounded-2xl p-6 max-w-sm w-full animate-[fadeUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}><h3 className="text-lg font-bold text-gray-900 mb-4">Why was this lead lost?</h3><div className="space-y-2 mb-6">{CLOSE_REASONS.map((r) => <button key={r} onClick={() => setCloseReason(r)} className={'w-full text-left px-4 py-3 rounded-xl border text-sm font-medium transition-all ' + (closeReason === r ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50')}>{r}</button>)}</div><div className="flex gap-3"><button onClick={() => setShowCloseModal(null)} className="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200">Cancel</button><button onClick={handleCloseLost} disabled={!closeReason} className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-red-500 rounded-xl disabled:opacity-40 hover:bg-red-600">Mark Lost</button></div></div></div>}
 
       {/* Help Modal */}
-      {showHelp && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}><div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}><div className="p-5 border-b border-gray-100"><div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" /><div className="flex items-center justify-between"><h3 className="text-lg font-bold text-gray-900">How the Pipeline Works</h3><button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div></div><div className="p-5 space-y-5"><div><h4 className="text-sm font-bold text-gray-800 mb-1">The basics</h4><p className="text-sm text-gray-500 leading-relaxed">Every lead moves left to right through 4 stages. New leads appear automatically when someone fills out the form.</p></div><div><h4 className="text-sm font-bold text-gray-800 mb-1">How to move a lead</h4><p className="text-sm text-gray-500 leading-relaxed">On desktop, drag and drop. On mobile, tap the card and pick the new stage.</p></div><div><h4 className="text-sm font-bold text-gray-800 mb-2">Stages</h4><div className="space-y-3">{COLUMNS.map((col) => <div key={col.key} className="flex gap-3 items-start"><div className={'w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ' + col.dot} /><div><p className="text-sm font-semibold text-gray-800">{col.label}</p><p className="text-xs text-gray-400">{col.help}</p></div></div>)}</div></div></div><div className="p-5 border-t border-gray-100"><button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#0d4a7a] transition-colors">Got it</button></div></div></div>}
+      {showHelp && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}><div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto animate-[slideUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}><div className="p-5 border-b border-gray-100"><div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" /><div className="flex items-center justify-between"><h3 className="text-lg font-bold text-gray-900">How the Pipeline Works</h3><button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div></div><div className="p-5 space-y-5"><div><h4 className="text-sm font-bold text-gray-800 mb-1">The basics</h4><p className="text-sm text-gray-500 leading-relaxed">Every lead moves left to right through 6 stages. New leads appear automatically when someone fills out the form.</p></div><div><h4 className="text-sm font-bold text-gray-800 mb-1">How to move a lead</h4><p className="text-sm text-gray-500 leading-relaxed">On desktop, drag and drop. On mobile, tap the card and pick the new stage.</p></div><div><h4 className="text-sm font-bold text-gray-800 mb-2">Stages</h4><div className="space-y-3">{COLUMNS.map((col) => <div key={col.key} className="flex gap-3 items-start"><div className={'w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ' + col.dot} /><div><p className="text-sm font-semibold text-gray-800">{col.label}</p><p className="text-xs text-gray-400">{col.help}</p></div></div>)}</div></div></div><div className="p-5 border-t border-gray-100"><button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#0d4a7a] transition-colors">Got it</button></div></div></div>}
 
       <style jsx>{`
         @keyframes slideUp {

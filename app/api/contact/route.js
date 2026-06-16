@@ -58,6 +58,57 @@ function isSpam({ name, email, message }) {
   return null
 }
 
+// Triggers auto-job creation only on in_progress (per Gibson's preference).
+// Idempotent via existingJob duplicate check on address+client.
+const AUTO_JOB_STATUSES = ['in_progress']
+
+async function createAutoJob(contactRow) {
+  try {
+    const jobAddress = contactRow.address || contactRow.name || 'No address'
+    const jobClient = contactRow.name || ''
+
+    const { data: existingJob } = await supabase
+      .from('rsa_jobs')
+      .select('id')
+      .eq('address', jobAddress)
+      .eq('client', jobClient)
+      .limit(1)
+      .maybeSingle()
+
+    if (existingJob) {
+      return { created: false, reason: 'already_exists', job_id: existingJob.id }
+    }
+
+    const { data: newJob, error: jobError } = await supabase.from('rsa_jobs').insert([{
+      address: jobAddress,
+      client: jobClient,
+      notes: contactRow.service_type || null,
+      description: contactRow.service_type || null,
+      date_start: contactRow.scheduled_date || null,
+      date_end: null,
+      status: 'active',
+      labor: 0,
+      material: 0,
+      gas: 0,
+      misc: 0,
+      revenue: 0,
+      taxes: 0,
+      payment_method: null,
+    }]).select().single()
+
+    if (jobError) {
+      console.error('[AUTO-JOB] Failed:', jobError.message)
+      return { created: false, error: jobError.message }
+    }
+
+    console.log(`[AUTO-JOB] Created job ${newJob.id} for ${jobClient} at ${jobAddress}`)
+    return { created: true, job_id: newJob.id }
+  } catch (jobErr) {
+    console.error('[AUTO-JOB] Error:', jobErr)
+    return { created: false, error: jobErr.message }
+  }
+}
+
 export async function POST(request) {
   try {
     const body = await request.json()
@@ -70,7 +121,6 @@ export async function POST(request) {
       if (spamReason) { console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`); return NextResponse.json({ success: true }) }
     }
 
-    // Insert into contact_submissions with address
     const insertData = { name, email, phone, service_type, message: message || null, source: source || 'website' }
     if (address) insertData.address = address
     if (referral_source) insertData.referral_source = referral_source
@@ -78,7 +128,6 @@ export async function POST(request) {
     const { data, error } = await supabase.from('contact_submissions').insert([insertData]).select().single()
     if (error) { console.error('Supabase error:', error); return NextResponse.json({ error: 'Failed to submit form' }, { status: 500 }) }
 
-    // Auto-create a contact in rsa_prospects
     try {
       let isDuplicate = false
       if (email && email !== 'noemail@placeholder.com') {
@@ -150,74 +199,20 @@ export async function PATCH(request) {
     if (assigned_to !== undefined) updateData.assigned_to = assigned_to || null
 
     const { data, error } = await supabase.from('contact_submissions').update(updateData).eq('id', id).select('*, assigned_user:rsa_users!contact_submissions_assigned_to_fkey(id, name, username)').single()
+
     if (error) {
-      // Update might have succeeded even if select failed — try fetching separately
       const { data: fallbackData } = await supabase.from('contact_submissions').select('*').eq('id', id).single()
       if (!fallbackData) return NextResponse.json({ error: error.message }, { status: 500 })
-      // Continue with fallbackData for auto-job
       let autoJobResult = null
-      if (status === 'in_progress') {
-        try {
-          const jobAddress = fallbackData.address || fallbackData.name || 'No address'
-          const jobClient = fallbackData.name || ''
-          const { data: existingJob } = await supabase.from('rsa_jobs').select('id').eq('address', jobAddress).eq('client', jobClient).limit(1).maybeSingle()
-          if (!existingJob) {
-            const { data: newJob, error: jobError } = await supabase.from('rsa_jobs').insert([{ address: jobAddress, client: jobClient, notes: fallbackData.service_type || null, description: fallbackData.service_type || null, date_start: fallbackData.scheduled_date || null, date_end: null, status: 'active', labor: 0, material: 0, gas: 0, misc: 0, revenue: 0, taxes: 0, payment_method: null }]).select().single()
-            if (jobError) { autoJobResult = { created: false, error: jobError.message } }
-            else { autoJobResult = { created: true, job_id: newJob.id } }
-          } else { autoJobResult = { created: false, reason: 'already_exists', job_id: existingJob.id } }
-        } catch (jobErr) { autoJobResult = { created: false, error: jobErr.message } }
+      if (AUTO_JOB_STATUSES.includes(status)) {
+        autoJobResult = await createAutoJob(fallbackData)
       }
       return NextResponse.json({ success: true, data: fallbackData, autoJob: autoJobResult })
     }
 
-    // Auto-create job when moved to in_progress
     let autoJobResult = null
-    if (status === 'in_progress' && data) {
-      try {
-        const jobAddress = data.address || data.name || 'No address'
-        const jobClient = data.name || ''
-
-        const { data: existingJob } = await supabase
-          .from('rsa_jobs')
-          .select('id')
-          .eq('address', jobAddress)
-          .eq('client', jobClient)
-          .limit(1)
-          .maybeSingle()
-
-        if (!existingJob) {
-          const { data: newJob, error: jobError } = await supabase.from('rsa_jobs').insert([{
-            address: jobAddress,
-            client: jobClient,
-            notes: data.service_type || null,
-            description: data.service_type || null,
-            date_start: data.scheduled_date || null,
-            date_end: null,
-            status: 'active',
-            labor: 0,
-            material: 0,
-            gas: 0,
-            misc: 0,
-            revenue: 0,
-            taxes: 0,
-            payment_method: null,
-          }]).select().single()
-
-          if (jobError) {
-            console.error('[AUTO-JOB] Failed:', jobError.message)
-            autoJobResult = { created: false, error: jobError.message }
-          } else {
-            console.log(`[AUTO-JOB] Created job ${newJob.id} for ${jobClient} at ${jobAddress}`)
-            autoJobResult = { created: true, job_id: newJob.id }
-          }
-        } else {
-          autoJobResult = { created: false, reason: 'already_exists', job_id: existingJob.id }
-        }
-      } catch (jobErr) {
-        console.error('[AUTO-JOB] Error:', jobErr)
-        autoJobResult = { created: false, error: jobErr.message }
-      }
+    if (AUTO_JOB_STATUSES.includes(status) && data) {
+      autoJobResult = await createAutoJob(data)
     }
 
     return NextResponse.json({ success: true, data, autoJob: autoJobResult })
