@@ -21,7 +21,7 @@ export default function AdminLayout({ children }) {
   const [loggingIn, setLoggingIn] = useState(false)
 
   useEffect(() => {
-    // Viewport
+    // Viewport - prevents pinch zoom in installed PWA mode (iOS respects this in standalone only)
     const meta = document.querySelector('meta[name="viewport"]')
     if (meta) meta.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover')
     else { const m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover'; document.head.appendChild(m) }
@@ -30,6 +30,28 @@ export default function AdminLayout({ children }) {
       const link = document.createElement('link'); link.rel = 'stylesheet'
       link.href = 'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap'
       document.head.appendChild(link)
+    }
+  }, [])
+
+  // Native PWA feel - kill bounce, block pinch zoom in Safari browser too
+  useEffect(() => {
+    const prevBodyOverscroll = document.body.style.overscrollBehavior
+    const prevHtmlOverscroll = document.documentElement.style.overscrollBehavior
+    document.body.style.overscrollBehavior = 'none'
+    document.documentElement.style.overscrollBehavior = 'none'
+
+    // iOS Safari ignores user-scalable=no in browser mode. These gesture handlers catch it.
+    const preventGesture = (e) => e.preventDefault()
+    document.addEventListener('gesturestart', preventGesture)
+    document.addEventListener('gesturechange', preventGesture)
+    document.addEventListener('gestureend', preventGesture)
+
+    return () => {
+      document.body.style.overscrollBehavior = prevBodyOverscroll
+      document.documentElement.style.overscrollBehavior = prevHtmlOverscroll
+      document.removeEventListener('gesturestart', preventGesture)
+      document.removeEventListener('gesturechange', preventGesture)
+      document.removeEventListener('gestureend', preventGesture)
     }
   }, [])
 
@@ -196,14 +218,15 @@ export default function AdminLayout({ children }) {
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, user, hasPermission }}>
-      <div className="min-h-screen bg-[#F5F6F8] flex desktop-zoom" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="admin-root desktop-zoom min-h-screen bg-[#F5F6F8] flex" style={{ fontFamily: "'DM Sans', sans-serif" }}>
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200/80 w-[220px]">
+        <aside className="admin-chrome hidden lg:flex flex-col fixed inset-y-0 left-0 z-30 bg-white border-r border-gray-200/80 w-[220px]">
           <SidebarContent />
         </aside>
 
-        {/* Mobile Header */}
-        <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200/80">
+        {/* Mobile Header - safe-area-inset-top so iPhone notch doesn't eat content */}
+        <header className="admin-chrome lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200/80"
+          style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <div className="px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button onClick={() => setSidebarOpen(true)} className="text-gray-500 hover:text-gray-700 p-1 -ml-1">
@@ -221,7 +244,7 @@ export default function AdminLayout({ children }) {
         {sidebarOpen && (
           <div className="fixed inset-0 z-50 lg:hidden" onClick={() => setSidebarOpen(false)}>
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-            <div className="absolute inset-y-0 left-0 w-[260px] bg-white shadow-2xl animate-[slideIn_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-chrome absolute inset-y-0 left-0 w-[260px] bg-white shadow-2xl animate-[slideIn_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
               <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 z-10">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -230,8 +253,8 @@ export default function AdminLayout({ children }) {
           </div>
         )}
 
-        {/* Main Content */}
-        <main className="flex-1 lg:ml-[220px] mt-[56px] lg:mt-0 min-h-screen">
+        {/* Main Content - margin tracks both header height and safe area on mobile */}
+        <main className="admin-main flex-1 lg:ml-[220px] min-h-screen">
           <div className="max-w-[1400px] mx-auto">
             {children}
           </div>
@@ -246,8 +269,29 @@ export default function AdminLayout({ children }) {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        /* Mobile main margin tracks the safe-area-inset-top + 56px header */
+        .admin-main { margin-top: calc(56px + env(safe-area-inset-top)); }
         @media (min-width: 1024px) {
-          .desktop-zoom { zoom: 0.8; }
+          .admin-main { margin-top: 0; }
+          .desktop-zoom { zoom: 0.9; }
+        }
+        /* Native app feel - kill tap highlights, callouts, selection on chrome */
+        .admin-root {
+          -webkit-tap-highlight-color: transparent;
+          -webkit-text-size-adjust: 100%;
+          touch-action: manipulation;
+        }
+        .admin-chrome,
+        .admin-chrome * {
+          -webkit-user-select: none;
+          user-select: none;
+          -webkit-touch-callout: none;
+        }
+        /* But still allow text selection / callout inside inputs and editable content */
+        input, textarea, [contenteditable] {
+          -webkit-user-select: text;
+          user-select: text;
+          -webkit-touch-callout: default;
         }
         /* Scrollbar */
         .scrollbar-hide::-webkit-scrollbar { display: none; }

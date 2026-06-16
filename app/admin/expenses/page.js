@@ -66,8 +66,8 @@ export default function ExpensesPage() {
   const [editing, setEditing] = useState(null)
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
-  const [filterJob, setFilterJob] = useState('')
-  const [filterUser, setFilterUser] = useState('')
+  const [filterCategory, setFilterCategory] = useState('all')
+  const [pdfMenuOpen, setPdfMenuOpen] = useState(false)
   const [formData, setFormData] = useState(blankForm())
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState('')
@@ -86,19 +86,17 @@ export default function ExpensesPage() {
     setLoading(true)
     try {
       const params = new URLSearchParams()
-      if (filterJob) params.set('job_id', filterJob)
-      if (filterUser) params.set('user_id', filterUser)
       if (range.start) params.set('start', range.start)
       if (range.end) params.set('end', range.end)
       const r = await fetch(`/api/admin/expenses?${params.toString()}`); const data = await r.json()
       setExpenses(data.expenses || []); setJobs(data.jobs || []); setUsers(data.users || [])
     } catch (e) {}
     finally { setLoading(false) }
-  }, [filterJob, filterUser, range.start, range.end])
+  }, [range.start, range.end])
 
   useEffect(() => { fetchExpenses() }, [fetchExpenses])
 
-  const handleNew = () => { setAdding(true); setEditing(null); setScanConfidence(null); setScanError(''); setFormData({ ...blankForm(), job_id: filterJob || '', user_id: adminUser?.id || '' }) }
+  const handleNew = () => { setAdding(true); setEditing(null); setScanConfidence(null); setScanError(''); setFormData({ ...blankForm(), user_id: adminUser?.id || '', category: filterCategory !== 'all' ? filterCategory : 'materials' }) }
   const handleEdit = (e) => { setEditing(e.id); setAdding(false); setExpandedId(null); setScanConfidence(null); setScanError(''); setFormData({ job_id: e.job_id || '', user_id: e.user_id, title: e.title, description: e.description || '', amount: e.amount, category: e.category, expense_date: e.expense_date, is_reimbursable: e.is_reimbursable, receipt_url: e.receipt_url || '', miles: e.miles || '' }) }
   const closeForm = () => { setAdding(false); setEditing(null); setScanConfidence(null); setScanError('') }
 
@@ -151,7 +149,6 @@ export default function ExpensesPage() {
       setEditing(null); setAdding(true); setScanConfidence(x.confidence ?? null)
       setFormData({
         ...blankForm(),
-        job_id: filterJob || '',
         user_id: adminUser?.id || '',
         title: x.title || '',
         description: x.description || '',
@@ -199,8 +196,13 @@ export default function ExpensesPage() {
   const getCatStyle = (cat) => CATEGORIES.find(c => c.value === cat)?.color || 'bg-gray-100 text-gray-600'
   const getCatLabel = (cat) => CATEGORIES.find(c => c.value === cat)?.label || cat
 
+  const filteredExpenses = useMemo(() =>
+    filterCategory === 'all' ? expenses : expenses.filter(e => e.category === filterCategory),
+    [expenses, filterCategory]
+  )
+
   const sortedExpenses = useMemo(() => {
-    const arr = [...expenses]
+    const arr = [...filteredExpenses]
     arr.sort((a, b) => {
       let v = 0
       if (sortBy === 'date') v = (a.expense_date || '').localeCompare(b.expense_date || '')
@@ -210,17 +212,43 @@ export default function ExpensesPage() {
       return sortDir === 'asc' ? v : -v
     })
     return arr
-  }, [expenses, sortBy, sortDir])
+  }, [filteredExpenses, sortBy, sortDir])
 
-  const totalAmount = expenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-  const totalMiles = expenses.reduce((s, e) => s + parseFloat(e.miles || 0), 0)
-  const reimbursableTotal = expenses.filter(e => e.is_reimbursable && !e.reimbursed_at).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+  const totalAmount = filteredExpenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+  const totalMiles = filteredExpenses.reduce((s, e) => s + parseFloat(e.miles || 0), 0)
+  const reimbursableTotal = filteredExpenses.filter(e => e.is_reimbursable && !e.reimbursed_at).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
 
   const confTone = scanConfidence == null ? null : scanConfidence >= 0.8 ? 'bg-green-50 text-green-700 border-green-200' : scanConfidence >= 0.6 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-red-50 text-red-700 border-red-200'
 
-  const exportPDF = async () => {
+  const exportPDF = async (periodOverride = null) => {
     setExporting(true)
     try {
+      const exportRange = periodOverride ? getPeriodRange(periodOverride, '', '') : range
+
+      // Fetch fresh expenses for export range if it differs from current view
+      let exportSource = sortedExpenses
+      if (periodOverride && (exportRange.start !== range.start || exportRange.end !== range.end)) {
+        const params = new URLSearchParams()
+        if (exportRange.start) params.set('start', exportRange.start)
+        if (exportRange.end) params.set('end', exportRange.end)
+        const r = await fetch(`/api/admin/expenses?${params.toString()}`)
+        const data = await r.json()
+        let pulled = data.expenses || []
+        if (filterCategory !== 'all') pulled = pulled.filter(e => e.category === filterCategory)
+        pulled.sort((a, b) => {
+          let v = 0
+          if (sortBy === 'date') v = (a.expense_date || '').localeCompare(b.expense_date || '')
+          else if (sortBy === 'amount') v = parseFloat(a.amount || 0) - parseFloat(b.amount || 0)
+          else if (sortBy === 'title') v = (a.title || '').localeCompare(b.title || '')
+          else if (sortBy === 'category') v = (a.category || '').localeCompare(b.category || '')
+          return sortDir === 'asc' ? v : -v
+        })
+        exportSource = pulled
+      }
+
+      const exportTotal = exportSource.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+      const exportMiles = exportSource.reduce((s, e) => s + parseFloat(e.miles || 0), 0)
+
       const { default: jsPDF } = await import('jspdf')
       const autoTableMod = await import('jspdf-autotable')
       const autoTable = autoTableMod.default || autoTableMod.autoTable
@@ -237,13 +265,15 @@ export default function ExpensesPage() {
       doc.text('Expense Report', 14, 17)
 
       doc.setTextColor(60, 60, 60); doc.setFontSize(10)
-      doc.text(`Period:  ${range.label}`, 14, 30)
-      doc.text(`Generated:  ${new Date().toLocaleString('en-US')}`, 14, 35)
+      doc.text(`Period:  ${exportRange.label}`, 14, 30)
+      if (filterCategory !== 'all') doc.text(`Category:  ${getCatLabel(filterCategory)}`, 14, 35)
+      const genY = filterCategory !== 'all' ? 40 : 35
+      doc.text(`Generated:  ${new Date().toLocaleString('en-US')}`, 14, genY)
       doc.setFont('helvetica', 'bold')
-      doc.text(`${expenses.length} expenses     Total $${totalAmount.toFixed(2)}${totalMiles > 0 ? `     ${totalMiles.toFixed(1)} mi` : ''}`, 14, 41)
+      doc.text(`${exportSource.length} expenses     Total $${exportTotal.toFixed(2)}${exportMiles > 0 ? `     ${exportMiles.toFixed(1)} mi` : ''}`, 14, genY + 6)
       doc.setFont('helvetica', 'normal')
 
-      const rows = sortedExpenses.map(e => [
+      const rows = exportSource.map(e => [
         e.expense_date,
         e.title,
         getCatLabel(e.category),
@@ -254,10 +284,10 @@ export default function ExpensesPage() {
       ])
 
       autoTable(doc, {
-        startY: 48,
+        startY: genY + 13,
         head: [['Date', 'Vendor', 'Category', 'Job', 'Crew', 'Miles', 'Amount']],
         body: rows,
-        foot: [['', '', '', '', '', 'TOTAL', `$${totalAmount.toFixed(2)}`]],
+        foot: [['', '', '', '', '', 'TOTAL', `$${exportTotal.toFixed(2)}`]],
         theme: 'striped',
         headStyles: { fillColor: [17, 89, 151], textColor: 255, fontStyle: 'bold' },
         footStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold' },
@@ -272,7 +302,7 @@ export default function ExpensesPage() {
       doc.text('Breakdown by Category', 14, y)
 
       const breakdown = CATEGORIES.map(c => {
-        const sub = sortedExpenses.filter(e => e.category === c.value)
+        const sub = exportSource.filter(e => e.category === c.value)
         const subTotal = sub.reduce((s, e) => s + parseFloat(e.amount || 0), 0)
         return sub.length > 0 ? [c.label, String(sub.length), `$${subTotal.toFixed(2)}`] : null
       }).filter(Boolean)
@@ -289,7 +319,7 @@ export default function ExpensesPage() {
         tableWidth: 110,
       })
 
-      const safeLabel = range.label.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
+      const safeLabel = exportRange.label.replace(/[^\w]+/g, '-').replace(/^-|-$/g, '')
       doc.save(`RSA-Expenses-${safeLabel}-${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (e) {
       console.error('PDF export error:', e)
@@ -334,12 +364,31 @@ export default function ExpensesPage() {
           <button onClick={handleNew} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-[0.97]">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg><span className="hidden sm:inline">Manual</span>
           </button>
-          <button onClick={exportPDF} disabled={exporting || expenses.length === 0} title="Export PDF" className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-[0.97] disabled:opacity-40">
-            {exporting
-              ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
-            <span className="hidden sm:inline">PDF</span>
-          </button>
+          <div className="relative">
+            <button onClick={() => setPdfMenuOpen(o => !o)} disabled={exporting || expenses.length === 0} title="Export PDF" className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-all active:scale-[0.97] disabled:opacity-40">
+              {exporting
+                ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
+              <span className="hidden sm:inline">PDF</span>
+              {!exporting && <svg className={`w-3 h-3 transition-transform ${pdfMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>}
+            </button>
+            {pdfMenuOpen && (
+              <>
+                <div onClick={() => setPdfMenuOpen(false)} className="fixed inset-0 z-30" />
+                <div className="absolute right-0 top-full mt-1.5 z-40 bg-white rounded-xl shadow-lg border border-gray-100 py-1 w-52 animate-[fadeUp_0.15s_ease-out]">
+                  <p className="px-4 py-1.5 text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Export for</p>
+                  <button onClick={() => { setPdfMenuOpen(false); exportPDF('month') }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors">This Month</button>
+                  <button onClick={() => { setPdfMenuOpen(false); exportPDF('quarter') }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors">This Quarter</button>
+                  <button onClick={() => { setPdfMenuOpen(false); exportPDF('year') }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors">This Year</button>
+                  <div className="border-t border-gray-100 my-1" />
+                  <button onClick={() => { setPdfMenuOpen(false); exportPDF(null) }} className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    Current view
+                    <span className="block text-[10px] text-gray-400 mt-0.5">{range.label}</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -366,34 +415,32 @@ export default function ExpensesPage() {
         )}
       </div>
 
-      {/* Job / Crew filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4 animate-[fadeUp_0.35s_ease-out]">
-        <select value={filterJob} onChange={(e) => setFilterJob(e.target.value)} className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all">
-          <option value="">All jobs</option>
-          {jobs.map(j => <option key={j.id} value={j.id}>{j.address}{j.client ? ` (${j.client})` : ''}</option>)}
-        </select>
-        <select value={filterUser} onChange={(e) => setFilterUser(e.target.value)} className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all">
-          <option value="">All crew</option>
-          {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+      {/* Category filter */}
+      <div className="flex gap-3 mb-4 animate-[fadeUp_0.35s_ease-out]">
+        <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all">
+          <option value="all">All categories</option>
+          {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </div>
 
       {/* Category Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 animate-[fadeUp_0.4s_ease-out]">
-        {CATEGORIES.filter(c => expenses.some(e => e.category === c.value)).map(cat => {
-          const catTotal = expenses.filter(e => e.category === cat.value).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
-          const catCount = expenses.filter(e => e.category === cat.value).length
-          return (
-            <div key={cat.value} className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-0.5">
-                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">{cat.label}</p>
-                <span className="text-[10px] text-gray-300 font-medium">{catCount}</span>
+      {filterCategory === 'all' && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 animate-[fadeUp_0.4s_ease-out]">
+          {CATEGORIES.filter(c => expenses.some(e => e.category === c.value)).map(cat => {
+            const catTotal = expenses.filter(e => e.category === cat.value).reduce((s, e) => s + parseFloat(e.amount || 0), 0)
+            const catCount = expenses.filter(e => e.category === cat.value).length
+            return (
+              <div key={cat.value} className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-0.5">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">{cat.label}</p>
+                  <span className="text-[10px] text-gray-300 font-medium">{catCount}</span>
+                </div>
+                <p className="text-lg font-extrabold text-gray-900 tabular-nums">${catTotal.toFixed(2)}</p>
               </div>
-              <p className="text-lg font-extrabold text-gray-900 tabular-nums">${catTotal.toFixed(2)}</p>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Add/Edit Form */}
       {(adding || editing) && (
@@ -412,12 +459,12 @@ export default function ExpensesPage() {
           )}
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Category</label><select value={formData.category} onChange={(e) => updateField('category', e.target.value)} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all">{CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Title *</label><input type="text" value={formData.title} onChange={(e) => updateField('title', e.target.value)} placeholder="e.g. Concrete mix, gas fill-up" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
               <div>
                 <label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Amount *{formData.category === 'mileage' && formData.miles ? <span className="text-teal-600 normal-case tracking-normal ml-1">(@ ${MILEAGE_RATE}/mi)</span> : null}</label>
                 <input type="number" step="0.01" value={formData.amount} onChange={(e) => updateField('amount', e.target.value)} placeholder="0.00" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" />
               </div>
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Category</label><select value={formData.category} onChange={(e) => updateField('category', e.target.value)} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all">{CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Job</label><select value={formData.job_id} onChange={(e) => updateField('job_id', e.target.value)} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all"><option value="">No job (general)</option>{jobs.map(j => <option key={j.id} value={j.id}>{j.address}</option>)}</select></div>
