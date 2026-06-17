@@ -3,16 +3,10 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAdminAuth } from '../layout'
+import { PIPELINE_STAGES, STAGE_BY_KEY } from '../../../lib/pipeline'
 
-const statuses = [
-  { value: 'all', label: 'All' },
-  { value: 'new', label: 'New', bg: 'bg-blue-100 text-blue-700' },
-  { value: 'estimate_sent', label: 'Estimate Sent', bg: 'bg-indigo-100 text-indigo-700' },
-  { value: 'booked', label: 'Scheduled', bg: 'bg-purple-100 text-purple-700' },
-  { value: 'in_progress', label: 'In Progress', bg: 'bg-emerald-100 text-emerald-700' },
-  { value: 'done', label: 'Done', bg: 'bg-green-100 text-green-700' },
-  { value: 'lost', label: 'Lost', bg: 'bg-red-100 text-red-700' },
-]
+// Filter chips: "All" + every pipeline stage
+const statuses = [{ value: 'all', label: 'All' }, ...PIPELINE_STAGES.map(s => ({ value: s.key, label: s.label, bg: s.badge }))]
 
 export default function ContactsPage() {
   const { user } = useAdminAuth()
@@ -33,15 +27,9 @@ export default function ContactsPage() {
     finally { setLoading(false) }
   }
 
-  // Only "contacted" gets remapped now; "booked" stands on its own as Scheduled
-  const getDisplayStatus = (status) => {
-    if (status === 'contacted') return 'new'
-    return status
-  }
-
   const filtered = submissions
     .filter(s => {
-      if (filter !== 'all' && getDisplayStatus(s.status) !== filter) return false
+      if (filter !== 'all' && (s.status || 'new') !== filter) return false
       if (search) { const q = search.toLowerCase(); return s.name?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q) || s.phone?.includes(q) || s.service_type?.toLowerCase().includes(q) }
       return true
     })
@@ -55,17 +43,11 @@ export default function ContactsPage() {
   const formatPhone = (phone) => { if (!phone) return ''; const c = phone.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return phone }
   const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   const formatDateTime = (d) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
-  const getStatusBadge = (status) => {
-    const mapped = getDisplayStatus(status)
-    return statuses.find(s => s.value === mapped)?.bg || 'bg-gray-100 text-gray-700'
-  }
-  const getStatusLabel = (status) => {
-    const mapped = getDisplayStatus(status)
-    return statuses.find(s => s.value === mapped)?.label || status
-  }
-  const getStatusCount = (status) => status === 'all' ? submissions.length : submissions.filter(s => getDisplayStatus(s.status) === status).length
+  const getStatusBadge = (status) => STAGE_BY_KEY[status]?.badge || 'bg-gray-100 text-gray-700'
+  const getStatusLabel = (status) => STAGE_BY_KEY[status]?.label || status
+  const getStatusCount = (status) => status === 'all' ? submissions.length : submissions.filter(s => (s.status || 'new') === status).length
   const timeAgo = (d) => { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; if (s < 604800) return Math.floor(s/86400) + 'd ago'; return formatDate(d) }
-  const getUrgencyColor = (contact) => { if (!['new', 'contacted'].includes(contact.status)) return ''; const h = (Date.now() - new Date(contact.created_at)) / 36e5; if (h < 1) return 'border-l-4 border-l-green-400'; if (h < 24) return 'border-l-4 border-l-yellow-400'; return 'border-l-4 border-l-red-400' }
+  const getUrgencyColor = (contact) => { if (!['new', 'contacting'].includes(contact.status)) return ''; const h = (Date.now() - new Date(contact.created_at)) / 36e5; if (h < 1) return 'border-l-4 border-l-green-400'; if (h < 24) return 'border-l-4 border-l-yellow-400'; return 'border-l-4 border-l-red-400' }
 
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="flex flex-col items-center gap-3"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /><p className="text-sm text-gray-400 animate-pulse">Loading requests...</p></div></div>
 
@@ -82,7 +64,7 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      {/* 4-card stats grid: New / Estimates / Scheduled / In Progress */}
+      {/* 4-tile KPIs: New / Estimates Out / Won (Job Scheduled) / Awaiting Payment */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 animate-[fadeUp_0.35s_ease-out]">
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-400 rounded-r" />
@@ -91,18 +73,18 @@ export default function ContactsPage() {
         </div>
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-indigo-400 rounded-r" />
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Estimates</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Estimates Out</p>
           <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('estimate_sent')}</p>
         </div>
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-purple-400 rounded-r" />
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Scheduled</p>
-          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('booked')}</p>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Won</p>
+          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('job_scheduled')}</p>
         </div>
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-400 rounded-r" />
-          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">In Progress</p>
-          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('in_progress')}</p>
+          <div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-r" />
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Awaiting Pay</p>
+          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('awaiting_payment')}</p>
         </div>
       </div>
 
@@ -127,8 +109,8 @@ export default function ContactsPage() {
                       <td className="px-6 py-4"><p className="font-semibold text-gray-900 text-sm">{contact.name}</p><p className="text-xs text-gray-400 mt-0.5">{formatPhone(contact.phone)}</p></td>
                       <td className="px-6 py-4 text-sm text-gray-600">{contact.service_type}</td>
                       <td className="px-6 py-4"><span className={'inline-flex px-2.5 py-1 rounded-md text-[10px] font-semibold ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span></td>
-                      {user?.role === 'admin' && <td className="px-6 py-4 text-sm text-gray-400">{contact.assigned_user?.name || <span className="text-gray-300">—</span>}</td>}
-                      <td className="px-6 py-4 text-sm text-gray-400">{contact.scheduled_date ? formatDate(contact.scheduled_date) : '—'}</td>
+                      {user?.role === 'admin' && <td className="px-6 py-4 text-sm text-gray-400">{contact.assigned_user?.name || <span className="text-gray-300">-</span>}</td>}
+                      <td className="px-6 py-4 text-sm text-gray-400">{contact.scheduled_date ? formatDate(contact.scheduled_date) : '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-400"><p>{formatDateTime(contact.created_at)}</p><p className="text-[10px] text-gray-300 mt-0.5">{timeAgo(contact.created_at)}</p></td>
                       <td className="px-6 py-4"><Link href={'/admin/contacts/' + contact.id} className="text-[#115997] hover:text-[#0d4a7a] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity">View →</Link></td>
                     </tr>
@@ -164,7 +146,7 @@ export default function ContactsPage() {
             </div>
             <div className="p-5 space-y-5">
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">What is this page?</h4><p className="text-sm text-gray-500 leading-relaxed">Every person who fills out the form on the website shows up here. This is your list of all incoming requests.</p></div>
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Pipeline stages</h4><p className="text-sm text-gray-500 leading-relaxed">New → Estimate Sent → Scheduled → In Progress → Done. Use the Board View for drag-and-drop.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Pipeline stages</h4><p className="text-sm text-gray-500 leading-relaxed">Leads move through 9 stages from New to Complete (or Lost). Use Board View for the visual pipeline with drag-and-drop.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Tap a contact</h4><p className="text-sm text-gray-500 leading-relaxed">Open their detail page to call, text, email, change status, create a job, schedule a date, and see activity history.</p></div>
             </div>
             <div className="p-5 border-t border-gray-100"><button onClick={() => setShowHelp(false)} className="w-full py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#0d4a7a] transition-colors">Got it</button></div>

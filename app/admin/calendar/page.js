@@ -32,7 +32,7 @@ export default function CalendarPage() {
   const [saving, setSaving] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [showHelp, setShowHelp] = useState(false)
-  const [newEvent, setNewEvent] = useState({ name: '', phone: '', service_type: '', custom_service: '', scheduled_date: '', scheduled_time: '', status: 'estimate_sent', address: '', notes: '' })
+  const [newEvent, setNewEvent] = useState({ name: '', phone: '', service_type: '', custom_service: '', scheduled_date: '', scheduled_time: '', status: 'estimate_scheduled', address: '', notes: '' })
 
   useEffect(() => { if (user) fetchSubmissions() }, [user])
 
@@ -45,7 +45,7 @@ export default function CalendarPage() {
 
   const openAddModal = (date) => {
     const dateStr = date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
-    setNewEvent({ name: '', phone: '', service_type: '', custom_service: '', scheduled_date: dateStr, scheduled_time: '', status: 'estimate_sent', address: '', notes: '' }); setShowAddModal(true)
+    setNewEvent({ name: '', phone: '', service_type: '', custom_service: '', scheduled_date: dateStr, scheduled_time: '', status: 'estimate_scheduled', address: '', notes: '' }); setShowAddModal(true)
   }
 
   const handleAddEvent = async () => {
@@ -195,7 +195,7 @@ export default function CalendarPage() {
                 <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Date *</label><input type="date" value={newEvent.scheduled_date} onChange={(e) => setNewEvent(p => ({ ...p, scheduled_date: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
                 <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Time</label><select value={newEvent.scheduled_time} onChange={(e) => setNewEvent(p => ({ ...p, scheduled_time: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#115997]/20 outline-none bg-white transition-all">{TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
               </div>
-              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Type</label><select value={newEvent.status} onChange={(e) => setNewEvent(p => ({ ...p, status: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none bg-white transition-all"><option value="estimate_sent">Estimate</option><option value="booked">Scheduled Job</option><option value="in_progress">Active Job</option></select></div>
+              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Type</label><select value={newEvent.status} onChange={(e) => setNewEvent(p => ({ ...p, status: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none bg-white transition-all"><option value="estimate_scheduled">Estimate</option><option value="job_scheduled">Scheduled Job</option><option value="in_progress">Active Job</option></select></div>
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Name *</label><input type="text" value={newEvent.name} onChange={(e) => setNewEvent(p => ({ ...p, name: e.target.value }))} placeholder="Customer name" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Phone</label><input type="tel" value={newEvent.phone} onChange={(e) => setNewEvent(p => ({ ...p, phone: e.target.value }))} placeholder="(770) 000-0000" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
               <div>

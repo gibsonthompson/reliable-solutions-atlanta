@@ -5,16 +5,10 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import EmailComposer from '../../components/EmailComposer'
 import { useAdminAuth } from '../../layout'
+import { PIPELINE_STAGES, STAGE_BY_KEY, CLOSE_REASONS, getRecommendedAction } from '../../../../lib/pipeline'
 
-const STATUS_OPTIONS = [
-  { value: 'new', label: 'New', color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { value: 'estimate_sent', label: 'Estimate Sent', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
-  { value: 'booked', label: 'Scheduled', color: 'bg-purple-100 text-purple-700 border-purple-200' },
-  { value: 'in_progress', label: 'In Progress', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  { value: 'done', label: 'Done', color: 'bg-green-100 text-green-700 border-green-200' },
-  { value: 'lost', label: 'Lost', color: 'bg-red-100 text-red-700 border-red-200' },
-]
-const CLOSE_REASONS = ['Too expensive', 'Went with competitor', 'No response', 'Not ready yet', 'DIY', 'Other']
+const STATUS_OPTIONS = PIPELINE_STAGES.map(s => ({ value: s.key, label: s.label, color: s.pillActive }))
+
 const SMS_TEMPLATES = [
   { label: 'New lead intro', text: "Hey {name}, this is Alex from Reliable Solutions Atlanta. We got your request for {service} and wanted to reach out. We offer free same-week inspections. Give us a call at 770-895-2039 or reply to this text to get scheduled. - RSA Team" },
   { label: 'Follow up', text: "Hey {name}, just checking in on your {service} project. Still interested in moving forward? Happy to answer any questions. 770-895-2039 - RSA Team" },
@@ -76,9 +70,9 @@ export default function ContactDetailPage() {
       const result = await r.json()
       await fetch('/api/admin/activity', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ contact_id:contactId, action:'status_change', old_value:old, new_value:newStatus, user_id:user?.id }) })
       if (result.autoJob?.created) {
-        setSuccessMsg('Status updated — Job created automatically')
+        setSuccessMsg('Status updated - Job created automatically')
       } else if (result.autoJob?.error) {
-        setSuccessMsg('Status updated — Job creation failed: ' + result.autoJob.error)
+        setSuccessMsg('Status updated - Job creation failed: ' + result.autoJob.error)
       } else {
         setSuccessMsg('Status updated')
       }
@@ -122,7 +116,7 @@ export default function ContactDetailPage() {
         }
       }
       setShowJobModal(false)
-      setSuccessMsg(`Job created${jobForm.crew.length > 0 ? ` with ${jobForm.crew.length} crew assigned` : ' — assign crew on Jobs or Schedule page'}`)
+      setSuccessMsg(`Job created${jobForm.crew.length > 0 ? ` with ${jobForm.crew.length} crew assigned` : ' - assign crew on Jobs or Schedule page'}`)
       setTimeout(() => setSuccessMsg(''), 4000)
     } catch (e) {}
     finally { setJobSaving(false) }
@@ -136,33 +130,13 @@ export default function ContactDetailPage() {
   const formatPhone = (p) => { if (!p) return ''; const c = p.replace(/\D/g, ''); if (c.length === 10) return '(' + c.slice(0,3) + ') ' + c.slice(3,6) + '-' + c.slice(6); if (c.length === 11 && c[0] === '1') return '(' + c.slice(1,4) + ') ' + c.slice(4,7) + '-' + c.slice(7); return p }
   const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' })
   const timeAgo = (d) => { const s = Math.floor((Date.now() - new Date(d)) / 1000); if (s < 60) return 'just now'; if (s < 3600) return Math.floor(s/60) + 'm ago'; if (s < 86400) return Math.floor(s/3600) + 'h ago'; if (s < 604800) return Math.floor(s/86400) + 'd ago'; return formatDate(d) }
-  const getRecommendedAction = () => {
-    if (!contact) return null
-    const h = (Date.now() - new Date(contact.created_at)) / 36e5
-    if (formData.status === 'new' && h > 0.5) return { text: 'Call this lead ASAP — ' + Math.floor(h) + 'h old', urgency: h > 24 ? 'high' : 'medium' }
-    if (formData.status === 'contacted') return { text: 'Schedule a free inspection for this lead', urgency: h > 72 ? 'high' : 'medium' }
-    if (formData.status === 'estimate_sent') return { text: 'Follow up — waiting on their decision', urgency: 'medium' }
-    if (formData.status === 'booked') {
-      if (formData.scheduled_date) {
-        const days = Math.floor((new Date(formData.scheduled_date) - Date.now()) / 864e5)
-        if (days < 0) return { text: 'Scheduled date has passed — confirm if job started or update status', urgency: 'high' }
-        if (days === 0) return { text: 'Job is today — confirm crew is dispatched', urgency: 'high' }
-        if (days <= 2) return { text: `Job in ${days} day${days === 1 ? '' : 's'} — send reminder text and confirm crew/materials`, urgency: 'medium' }
-        return { text: 'Job scheduled — verify crew assignment and material prep', urgency: 'low' }
-      }
-      return { text: 'Marked Scheduled but no date set — add a scheduled date below', urgency: 'medium' }
-    }
-    if (formData.status === 'done') return { text: 'Send a review request from the SMS templates', urgency: 'low' }
-    return null
-  }
-  const rec = getRecommendedAction()
+  const rec = contact ? getRecommendedAction(formData.status, { ...contact, scheduled_date: formData.scheduled_date }) : null
 
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="flex flex-col items-center gap-3"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /><p className="text-sm text-gray-400 animate-pulse">Loading contact...</p></div></div>
   if (error && !contact) return <div className="px-4 py-8 text-center"><p className="text-gray-400 mb-4">{error}</p><Link href="/admin/contacts" className="text-[#115997] font-semibold text-sm">← Back</Link></div>
 
   return (
     <div className="px-4 py-5 sm:py-8">
-      {/* Header */}
       <div className="mb-6 animate-[fadeUp_0.3s_ease-out]">
         <Link href="/admin/contacts" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-[#115997] mb-4 transition-colors"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>Back</Link>
         <div className="flex items-start justify-between gap-3">
@@ -186,8 +160,15 @@ export default function ContactDetailPage() {
         {hasPermission('email') && <button onClick={() => setComposerOpen(true)} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-white text-gray-700 border border-gray-200 rounded-xl font-semibold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all active:scale-[0.97]"><svg className="w-4 h-4 text-[#115997]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>Email</button>}
       </div>
 
-      {/* Pipeline Stage */}
-      <div className="mb-6 animate-[fadeUp_0.45s_ease-out]"><p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">Pipeline Stage</p><div className="flex flex-wrap gap-2">{STATUS_OPTIONS.map((s) => <button key={s.value} onClick={() => handleStatusChange(s.value)} className={'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-95 border ' + (formData.status === s.value ? s.color + ' ring-1 ring-[#115997]' : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300')}>{s.label}</button>)}</div></div>
+      {/* Pipeline Stage - 9 stages, horizontal scroll on mobile */}
+      <div className="mb-6 animate-[fadeUp_0.45s_ease-out]">
+        <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">Pipeline Stage</p>
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+          {STATUS_OPTIONS.map((s) => (
+            <button key={s.value} onClick={() => handleStatusChange(s.value)} className={'flex-shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-95 border whitespace-nowrap ' + (formData.status === s.value ? s.color + ' ring-1 ring-[#115997]' : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300')}>{s.label}</button>
+          ))}
+        </div>
+      </div>
 
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-3 animate-[fadeUp_0.5s_ease-out]">
         <div className="lg:col-span-2 space-y-4">
@@ -220,7 +201,7 @@ export default function ContactDetailPage() {
             {(activityLog.length + outreachLog.length) === 0 ? <div className="p-8 text-center"><p className="text-gray-400 text-sm">No activity yet</p></div> : (
               <div className="divide-y divide-gray-50">
                 {[...activityLog.map(a => ({ ...a, type: 'activity' })), ...outreachLog.map(o => ({ ...o, type: 'outreach' }))].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((entry) => (
-                  <div key={entry.id} className="p-4 sm:px-6 hover:bg-gray-50/50 transition-colors"><div className="flex items-start gap-3"><div className={'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ' + (entry.type === 'outreach' ? 'bg-purple-100' : entry.action === 'sms_sent' ? 'bg-green-100' : entry.action === 'review_request_sent' ? 'bg-amber-100' : 'bg-blue-100')}><svg className={'w-3.5 h-3.5 ' + (entry.type === 'outreach' ? 'text-purple-600' : entry.action === 'sms_sent' ? 'text-green-600' : entry.action === 'review_request_sent' ? 'text-amber-600' : 'text-blue-600')} fill="none" stroke="currentColor" viewBox="0 0 24 24">{entry.type === 'outreach' ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /> : entry.action === 'review_request_sent' ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />}</svg></div><div className="flex-1 min-w-0">{entry.type === 'outreach' ? <><p className="text-sm font-semibold text-gray-900">Email: {entry.subject || 'No subject'}</p>{entry.body && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{entry.body.substring(0, 150)}...</p>}</> : entry.action === 'status_change' ? <><p className="text-sm text-gray-700">Status: <span className="font-semibold">{entry.old_value}</span> → <span className="font-semibold">{entry.new_value}</span></p>{entry.note && <p className="text-xs text-gray-400 mt-0.5">{entry.note}</p>}</> : entry.action === 'review_request_sent' ? <p className="text-sm font-semibold text-amber-700">Google review request sent</p> : entry.action === 'sms_sent' ? <><p className="text-sm font-semibold text-gray-900">SMS sent</p>{entry.note && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{entry.note}</p>}</> : <p className="text-sm text-gray-700">{entry.action}{entry.note ? ': ' + entry.note : ''}</p>}<p className="text-[10px] text-gray-300 mt-1">{timeAgo(entry.created_at)}</p></div></div></div>
+                  <div key={entry.id} className="p-4 sm:px-6 hover:bg-gray-50/50 transition-colors"><div className="flex items-start gap-3"><div className={'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ' + (entry.type === 'outreach' ? 'bg-purple-100' : entry.action === 'sms_sent' ? 'bg-green-100' : entry.action === 'review_request_sent' ? 'bg-amber-100' : 'bg-blue-100')}><svg className={'w-3.5 h-3.5 ' + (entry.type === 'outreach' ? 'text-purple-600' : entry.action === 'sms_sent' ? 'text-green-600' : entry.action === 'review_request_sent' ? 'text-amber-600' : 'text-blue-600')} fill="none" stroke="currentColor" viewBox="0 0 24 24">{entry.type === 'outreach' ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /> : entry.action === 'review_request_sent' ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />}</svg></div><div className="flex-1 min-w-0">{entry.type === 'outreach' ? <><p className="text-sm font-semibold text-gray-900">Email: {entry.subject || 'No subject'}</p>{entry.body && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{entry.body.substring(0, 150)}...</p>}</> : entry.action === 'status_change' ? <><p className="text-sm text-gray-700">Status: <span className="font-semibold">{STAGE_BY_KEY[entry.old_value]?.label || entry.old_value}</span> → <span className="font-semibold">{STAGE_BY_KEY[entry.new_value]?.label || entry.new_value}</span></p>{entry.note && <p className="text-xs text-gray-400 mt-0.5">{entry.note}</p>}</> : entry.action === 'review_request_sent' ? <p className="text-sm font-semibold text-amber-700">Google review request sent</p> : entry.action === 'sms_sent' ? <><p className="text-sm font-semibold text-gray-900">SMS sent</p>{entry.note && <p className="text-xs text-gray-400 mt-1 line-clamp-2">{entry.note}</p>}</> : <p className="text-sm text-gray-700">{entry.action}{entry.note ? ': ' + entry.note : ''}</p>}<p className="text-[10px] text-gray-300 mt-1">{timeAgo(entry.created_at)}</p></div></div></div>
                 ))}
               </div>
             )}
@@ -261,7 +242,6 @@ export default function ContactDetailPage() {
               </div>
               <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Service / Notes</label><input type="text" value={jobForm.notes} onChange={(e) => setJobForm(p => ({ ...p, notes: e.target.value }))} style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
 
-              {/* Crew assignment */}
               <div className="pt-3 border-t border-gray-100">
                 <label className="block text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">Assign Crew</label>
                 {jobForm.crew.length > 0 && <div className="space-y-1.5 mb-3">{jobForm.crew.map(c => (
@@ -269,7 +249,7 @@ export default function ContactDetailPage() {
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-lg flex items-center justify-center shadow-sm" style={{ backgroundColor: c.color || '#115997' }}><span className="text-white text-[8px] font-bold">{c.name?.charAt(0)}</span></div>
                       <span className="text-sm font-medium text-gray-700">{c.name}</span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${c.role === 'lead' ? 'bg-purple-100 text-purple-700' : c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-600'}`}>{c.role}</span>
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${c.role === 'lead' ? 'bg-purple-100 text-purple-700' : c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-600'}`}>{c.role}</span>
                     </div>
                     <button onClick={() => removeCrewFromJobForm(c.user_id)} className="p-1 text-gray-300 hover:text-red-500 rounded"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                   </div>
@@ -301,8 +281,8 @@ export default function ContactDetailPage() {
             </div>
             <div className="p-5 space-y-5">
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Quick actions</h4><p className="text-sm text-gray-500 leading-relaxed">Call the customer, create a job from this contact, send a text using templates, or compose an email. Each opens right from this page.</p></div>
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Create Job</h4><p className="text-sm text-gray-500 leading-relaxed">Tap the amber Job button to create a job pre-filled with this contact{"'"}s address, name, and service type. You can assign crew directly in the modal. Note: moving status to Scheduled or In Progress also auto-creates a job if one does not already exist.</p></div>
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Status</h4><p className="text-sm text-gray-500 leading-relaxed">Change the pipeline status using the pills: New, Estimate Sent, Scheduled, In Progress, Done, Lost. Moving to "Lost" asks for a reason. The recommended action banner updates based on status.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Create Job</h4><p className="text-sm text-gray-500 leading-relaxed">Tap the Job button to create a job pre-filled with this contact{"'"}s address, name, and service type. You can assign crew directly in the modal. Note: moving status to In Progress also auto-creates a job if one does not already exist.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">Status</h4><p className="text-sm text-gray-500 leading-relaxed">Change the pipeline stage using the pills. There are 9 stages from New through Complete or Lost. Moving to Lost asks for a reason. The recommended action banner updates based on the current stage and data.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Scheduling</h4><p className="text-sm text-gray-500 leading-relaxed">Set a date and time for estimates or jobs. This makes the contact show up on the Calendar.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Remember to save</h4><p className="text-sm text-gray-500 leading-relaxed">After editing fields, tap the blue Save button at the top right.</p></div>
             </div>

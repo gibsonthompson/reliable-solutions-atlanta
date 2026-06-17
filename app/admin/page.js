@@ -106,7 +106,17 @@ export default function DashboardPage() {
         count: estimatePending.length,
       })
 
-      const scheduledThisWeek = contacts.filter(c => c.status === 'booked' && c.scheduled_date && c.scheduled_date >= today && c.scheduled_date <= weekEndStr)
+      const inspectionsThisWeek = contacts.filter(c => c.status === 'estimate_scheduled' && c.scheduled_date && c.scheduled_date >= today && c.scheduled_date <= weekEndStr)
+      if (inspectionsThisWeek.length > 0) items.push({
+        type: 'inspection',
+        label: `${inspectionsThisWeek.length} inspection${inspectionsThisWeek.length > 1 ? 's' : ''} this week`,
+        href: '/admin/calendar',
+        bg: 'bg-cyan-50', text: 'text-cyan-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />,
+        count: inspectionsThisWeek.length,
+      })
+
+      const scheduledThisWeek = contacts.filter(c => c.status === 'job_scheduled' && c.scheduled_date && c.scheduled_date >= today && c.scheduled_date <= weekEndStr)
       if (scheduledThisWeek.length > 0) items.push({
         type: 'scheduled',
         label: `${scheduledThisWeek.length} job${scheduledThisWeek.length > 1 ? 's' : ''} scheduled this week`,
@@ -114,6 +124,16 @@ export default function DashboardPage() {
         bg: 'bg-purple-50', text: 'text-purple-600',
         icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />,
         count: scheduledThisWeek.length,
+      })
+
+      const awaitingPay = contacts.filter(c => c.status === 'awaiting_payment')
+      if (awaitingPay.length > 0) items.push({
+        type: 'payment',
+        label: `${awaitingPay.length} invoice${awaitingPay.length > 1 ? 's' : ''} awaiting payment`,
+        href: '/admin/pipeline',
+        bg: 'bg-amber-50', text: 'text-amber-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />,
+        count: awaitingPay.length,
       })
 
       const jobsMissingCrew = allJobs.filter(j => (j.status === 'active' || !j.status) && j.date_start && j.date_start >= today && !(crewData.by_job || {})[j.id]?.length)

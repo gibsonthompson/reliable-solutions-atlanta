@@ -92,6 +92,7 @@ export default function BookingCalendar({ leadId, leadName, onComplete, variant 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: leadId,
+          status: 'estimate_scheduled',
           scheduled_date: dateStr,
           scheduled_time: selectedTime,
         }),
