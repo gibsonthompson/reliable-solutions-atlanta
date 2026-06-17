@@ -165,7 +165,7 @@ export default function SchedulePage() {
                               <div key={j.id} className={`px-1.5 py-1 rounded-lg text-[10px] leading-tight border-l-2 ${j.status === 'completed' ? 'bg-green-50 border-green-400 text-green-700' : j.status === 'on_hold' ? 'bg-amber-50 border-amber-400 text-amber-700' : 'bg-blue-50 border-[#115997] text-gray-700'}`}>
                                 <p className="font-semibold truncate max-w-[110px]">{j.address}</p>
                                 {j.client && <p className="text-[8px] text-gray-300 truncate">{j.client}</p>}
-                                <span className={`text-[8px] font-bold ${j.crew_role === 'lead' ? 'text-purple-600' : 'text-gray-400'}`}>{j.crew_role}</span>
+                                <span className={`text-[8px] font-semibold ${j.crew_role === 'lead' ? 'text-purple-600' : 'text-gray-400'}`}>{j.crew_role}</span>
                               </div>
                             ))}
                             {isAdmin && !isPast && <button onClick={() => openAddModal(d, u.id)} className="w-full p-0.5 text-gray-200 hover:text-[#115997] hover:bg-[#115997]/5 rounded-lg transition-all flex items-center justify-center"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg></button>}
@@ -212,7 +212,7 @@ export default function SchedulePage() {
                               <div key={j.id} className="flex items-center gap-1.5 mt-0.5">
                                 <div className={`w-1 h-3 rounded-full flex-shrink-0 ${j.status === 'completed' ? 'bg-green-400' : j.status === 'on_hold' ? 'bg-amber-400' : 'bg-[#115997]'}`} />
                                 <span className="text-[11px] text-gray-500 truncate">{j.address}</span>
-                                <span className={`text-[9px] font-bold px-1 py-0.5 rounded-md ${j.crew_role === 'lead' ? 'bg-purple-50 text-purple-700' : 'bg-gray-100 text-gray-400'}`}>{j.crew_role}</span>
+                                <span className={`text-[9px] font-semibold px-1 py-0.5 rounded-md ${j.crew_role === 'lead' ? 'bg-purple-50 text-purple-700' : 'bg-gray-100 text-gray-400'}`}>{j.crew_role}</span>
                               </div>
                             ))}
                           </div>
@@ -250,7 +250,7 @@ export default function SchedulePage() {
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-lg flex items-center justify-center shadow-sm" style={{ backgroundColor: users.find(u => u.id === c.user_id)?.color || '#115997' }}><span className="text-white text-[8px] font-bold">{c.name?.charAt(0)}</span></div>
                       <span className="text-sm font-medium text-gray-700">{c.name}</span>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${c.role === 'lead' ? 'bg-purple-100 text-purple-700' : c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-600'}`}>{c.role}</span>
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${c.role === 'lead' ? 'bg-purple-100 text-purple-700' : c.role === 'subcontractor' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-600'}`}>{c.role}</span>
                     </div>
                     <button onClick={() => removeCrewFromForm(c.user_id)} className="p-1 text-gray-300 hover:text-red-500 rounded"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                   </div>

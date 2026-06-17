@@ -171,8 +171,8 @@ export default function TimesheetsPage() {
                     </div>
                     {view === 'week' && (
                       <div className="flex items-center gap-1">
-                        {weekApproval?.status === 'approved' ? <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-green-50 text-green-700">Approved</span>
-                        : weekApproval?.status === 'rejected' ? <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-red-50 text-red-700">Rejected</span>
+                        {weekApproval?.status === 'approved' ? <span className="text-[10px] font-semibold px-2 py-1 rounded-md bg-green-50 text-green-700">Approved</span>
+                        : weekApproval?.status === 'rejected' ? <span className="text-[10px] font-semibold px-2 py-1 rounded-md bg-red-50 text-red-700">Rejected</span>
                         : <>
                             <button onClick={() => handleApproveWeek(userId, 'approved')} className="p-1.5 text-gray-300 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all" title="Approve"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></button>
                             <button onClick={() => handleApproveWeek(userId, 'rejected')} className="p-1.5 text-gray-300 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all" title="Reject"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -192,7 +192,7 @@ export default function TimesheetsPage() {
                           <div className="min-w-0">
                             <p className="text-sm text-gray-700">
                               {formatTime(entry.clock_in)} — {entry.clock_out ? formatTime(entry.clock_out) : <span className="text-emerald-600 font-semibold">Active</span>}
-                              {entry.is_manual && <span className="text-[9px] text-amber-500 font-bold ml-1.5">MANUAL</span>}
+                              {entry.is_manual && <span className="text-[9px] text-amber-500 font-semibold ml-1.5">MANUAL</span>}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
                               {entry.job_address && <span className="text-[11px] text-gray-400 truncate max-w-[200px]">{entry.job_address}</span>}
@@ -201,7 +201,7 @@ export default function TimesheetsPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${entry.status === 'approved' ? 'bg-green-50 text-green-700' : entry.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-400'}`}>{entry.status}</span>
+                          <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${entry.status === 'approved' ? 'bg-green-50 text-green-700' : entry.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-400'}`}>{entry.status}</span>
                           <span className="text-sm font-bold text-gray-900 tabular-nums w-14 text-right">{entry.duration_minutes ? formatDuration(entry.duration_minutes) : '--'}</span>
                           <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                             {entry.status === 'pending' && <button onClick={() => handleApproveEntry(entry.id, 'approved')} className="p-1 text-gray-300 hover:text-green-600 rounded-lg hover:bg-green-50 transition-all"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></button>}

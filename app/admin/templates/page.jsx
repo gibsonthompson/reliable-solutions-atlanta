@@ -87,9 +87,9 @@ export default function TemplatesPage() {
                       <div className="p-3">
                         <div className="flex items-start justify-between gap-2 mb-1">
                           <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                            <span className={`inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold tracking-wider ${(t.type || 'email') === 'sms' ? 'bg-green-50 text-green-600' : 'bg-purple-50 text-purple-600'}`}>{(t.type || 'email') === 'sms' ? 'DM' : 'EMAIL'}</span>
-                            {stage && <span className="inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-blue-50 text-blue-500">{stage}</span>}
-                            <p className="font-bold text-gray-800 text-xs truncate">{t.name}</p>
+                            <span className={`inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold tracking-wider ${(t.type || 'email') === 'sms' ? 'bg-green-50 text-green-600' : 'bg-purple-50 text-purple-600'}`}>{(t.type || 'email') === 'sms' ? 'DM' : 'EMAIL'}</span>
+                            {stage && <span className="inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-blue-50 text-blue-500">{stage}</span>}
+                            <p className="font-semibold text-gray-800 text-xs truncate">{t.name}</p>
                           </div>
                           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                             <button onClick={(e) => handleCopy(t, e)} className={`p-1 rounded-lg ${copied === t.id ? 'text-green-500' : 'text-gray-200 hover:text-green-600'}`}>{copied === t.id ? <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg> : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>}</button>

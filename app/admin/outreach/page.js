@@ -132,7 +132,7 @@ export default function OutreachPage() {
                   return (
                     <div key={t.id} onClick={() => handleCopy(t)} className={`bg-white rounded-xl border p-3 transition-all cursor-pointer group hover:-translate-y-0.5 ${isCopied ? 'border-green-300 bg-green-50/50' : 'border-gray-100 hover:border-gray-200 hover:shadow-md active:scale-[0.98]'}`}>
                       <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <p className="font-bold text-gray-800 text-xs">{t.name}</p>
+                        <p className="font-semibold text-gray-800 text-xs">{t.name}</p>
                         <div className="flex items-center gap-0.5 flex-shrink-0">
                           <button onClick={(e) => handleStartEdit(t, e)} className="p-1 text-gray-200 hover:text-[#115997] rounded opacity-0 group-hover:opacity-100 transition-opacity"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
                           <button onClick={(e) => handleDelete(t.id, e)} className="p-1 text-gray-200 hover:text-red-500 rounded opacity-0 group-hover:opacity-100 transition-opacity"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>

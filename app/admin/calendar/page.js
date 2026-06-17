@@ -120,7 +120,7 @@ export default function CalendarPage() {
                         <Link key={event.id} href={'/admin/contacts/' + event.id} className="flex items-start gap-3 px-4 py-3 active:bg-gray-50 transition-colors">
                           <div className={'w-1 self-stretch rounded-full flex-shrink-0 ' + colors.dot} />
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5"><p className="font-bold text-gray-900 text-sm truncate">{event.name}</p><span className={'inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold ' + colors.bg + ' ' + colors.text}>{STATUS_LABELS[event.status] || event.status}</span></div>
+                            <div className="flex items-center gap-2 mb-0.5"><p className="font-semibold text-gray-900 text-sm truncate">{event.name}</p><span className={'inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold ' + colors.bg + ' ' + colors.text}>{STATUS_LABELS[event.status] || event.status}</span></div>
                             <p className="text-xs text-gray-400">{event.service_type}</p>
                             <div className="flex items-center gap-3 mt-1 text-xs text-gray-300">{event.scheduled_time && <span>{event.scheduled_time}</span>}{formatPhone(event.phone) && <span>{formatPhone(event.phone)}</span>}</div>
                           </div>
@@ -167,7 +167,7 @@ export default function CalendarPage() {
                 <Link key={event.id} href={'/admin/contacts/' + event.id} className="flex items-start gap-3 p-4 sm:px-6 hover:bg-gray-50/50 transition-colors">
                   <div className={'w-1 self-stretch rounded-full flex-shrink-0 ' + colors.dot} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5"><p className="font-bold text-gray-900 text-sm truncate">{event.name}</p><span className={'inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold ' + colors.bg + ' ' + colors.text}>{STATUS_LABELS[event.status] || event.status}</span></div>
+                    <div className="flex items-center gap-2 mb-0.5"><p className="font-semibold text-gray-900 text-sm truncate">{event.name}</p><span className={'inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold ' + colors.bg + ' ' + colors.text}>{STATUS_LABELS[event.status] || event.status}</span></div>
                     <p className="text-xs text-gray-400">{event.service_type}</p>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-300">{event.scheduled_time && <span>{event.scheduled_time}</span>}{formatPhone(event.phone) && <span>{formatPhone(event.phone)}</span>}</div>
                     {event.address && <p className="text-xs text-gray-300 mt-0.5">{event.address}</p>}

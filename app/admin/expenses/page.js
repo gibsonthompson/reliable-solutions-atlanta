@@ -553,10 +553,10 @@ export default function ExpensesPage() {
                               </span>
                             )}
                             <p className="font-semibold text-gray-900">{exp.title}</p>
-                            {exp.miles ? <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-50 text-teal-700">{parseFloat(exp.miles).toFixed(1)} mi</span> : null}
+                            {exp.miles ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-700">{parseFloat(exp.miles).toFixed(1)} mi</span> : null}
                           </div>
                         </td>
-                        <td className="px-3 py-2.5"><span className={`inline-flex px-1.5 py-0.5 rounded-md text-[10px] font-bold ${getCatStyle(exp.category)}`}>{getCatLabel(exp.category)}</span></td>
+                        <td className="px-3 py-2.5"><span className={`inline-flex px-1.5 py-0.5 rounded-md text-[10px] font-semibold ${getCatStyle(exp.category)}`}>{getCatLabel(exp.category)}</span></td>
                         <td className="px-3 py-2.5 text-gray-500 max-w-[150px] truncate">{exp.job_address || '—'}</td>
                         <td className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5">
@@ -569,7 +569,7 @@ export default function ExpensesPage() {
                         <td className="px-3 py-2.5 text-right font-bold text-gray-900 tabular-nums">${parseFloat(exp.amount).toFixed(2)}</td>
                         <td className="px-3 py-2.5 text-center">
                           {exp.is_reimbursable ? (
-                            <button onClick={(e) => { e.stopPropagation(); handleReimburse(exp) }} className={`text-[10px] font-bold px-2 py-0.5 rounded-md cursor-pointer transition-colors ${exp.reimbursed_at ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>
+                            <button onClick={(e) => { e.stopPropagation(); handleReimburse(exp) }} className={`text-[10px] font-semibold px-2 py-0.5 rounded-md cursor-pointer transition-colors ${exp.reimbursed_at ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700 hover:bg-amber-100'}`}>
                               {exp.reimbursed_at ? 'Reimbursed' : 'Pending'}
                             </button>
                           ) : <span className="text-gray-200 text-[10px]">—</span>}
@@ -646,7 +646,7 @@ export default function ExpensesPage() {
                             </span>
                           )}
                           {exp.title}
-                          {exp.miles ? <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-teal-50 text-teal-700">{parseFloat(exp.miles).toFixed(1)} mi</span> : null}
+                          {exp.miles ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-teal-50 text-teal-700">{parseFloat(exp.miles).toFixed(1)} mi</span> : null}
                         </p>
                         <p className="text-xs text-gray-400">
                           {new Date(exp.expense_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -655,7 +655,7 @@ export default function ExpensesPage() {
                       </div>
                       <div className="text-right flex-shrink-0">
                         <p className="font-extrabold text-gray-900 tabular-nums">${parseFloat(exp.amount).toFixed(2)}</p>
-                        <span className={`inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold ${getCatStyle(exp.category)}`}>{getCatLabel(exp.category)}</span>
+                        <span className={`inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold ${getCatStyle(exp.category)}`}>{getCatLabel(exp.category)}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mt-2">
@@ -665,7 +665,7 @@ export default function ExpensesPage() {
                         </div>
                         <span className="text-xs text-gray-400">{exp.user_name}</span>
                         {exp.is_reimbursable && (
-                          <button onClick={(e) => { e.stopPropagation(); handleReimburse(exp) }} className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${exp.reimbursed_at ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                          <button onClick={(e) => { e.stopPropagation(); handleReimburse(exp) }} className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${exp.reimbursed_at ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
                             {exp.reimbursed_at ? 'Reimbursed' : 'Pending'}
                           </button>
                         )}

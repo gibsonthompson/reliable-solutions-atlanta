@@ -103,7 +103,7 @@ export default function UsersPage() {
                 <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1.5">Emergency Contact</label><input type="text" value={formData.emergency_contact_name} onChange={(e) => setFormData(p => ({ ...p, emergency_contact_name: e.target.value }))} placeholder="Contact name" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
                 <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1.5">Emergency Phone</label><input type="tel" value={formData.emergency_contact_phone} onChange={(e) => setFormData(p => ({ ...p, emergency_contact_phone: e.target.value }))} placeholder="(770) 000-0000" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 outline-none transition-all" /></div>
               </div>
-              <div className="mt-3"><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1.5">Calendar Color</label><div className="flex items-center gap-2 flex-wrap">{CREW_COLORS.map(c => <button key={c} onClick={() => setFormData(p => ({ ...p, color: c }))} className={'w-8 h-8 rounded-lg border-2 transition-all shadow-sm ' + (formData.color === c ? 'border-gray-900 scale-110 ring-2 ring-offset-1 ring-gray-300' : 'border-transparent hover:scale-105')} style={{ backgroundColor: c }} />)}</div></div>
+              <div className="mt-3"><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1.5">Calendar Color</label><div className="flex items-center gap-2 flex-wrap">{CREW_COLORS.map(c => <button key={c} onClick={() => setFormData(p => ({ ...p, color: c }))} className={'w-8 h-8 rounded-lg border-2 transition-all shadow-sm ' + (formData.color === c ? 'border-gray-900 scale-110' : 'border-transparent hover:scale-105')} style={{ backgroundColor: c }} />)}</div></div>
             </div>
 
             {formData.role === 'member' && (
@@ -146,9 +146,9 @@ export default function UsersPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className={'font-bold text-sm ' + (u.is_active ? 'text-gray-900' : 'text-gray-400')}>{u.name}</p>
                         <span className="text-xs text-gray-300">@{u.username}</span>
-                        <span className={'inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold ' + (u.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-gray-100 text-gray-500')}>{u.role}</span>
-                        {!u.is_active && <span className="inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold bg-red-50 text-red-600">Disabled</span>}
-                        {u.id === currentUser?.id && <span className="inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold bg-blue-50 text-blue-600">You</span>}
+                        <span className={'inline-flex px-2 py-0.5 rounded-md text-[9px] font-semibold ' + (u.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-gray-100 text-gray-500')}>{u.role}</span>
+                        {!u.is_active && <span className="inline-flex px-2 py-0.5 rounded-md text-[9px] font-semibold bg-red-50 text-red-600">Disabled</span>}
+                        {u.id === currentUser?.id && <span className="inline-flex px-2 py-0.5 rounded-md text-[9px] font-semibold bg-blue-50 text-blue-600">You</span>}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
                         <p className="text-[10px] text-gray-300">Last login: {formatDate(u.last_login)}</p>
@@ -167,7 +167,7 @@ export default function UsersPage() {
                 </div>
                 {u.role === 'member' && u.permissions && (
                   <div className="flex flex-wrap gap-1 mt-2" style={{ marginLeft: '52px' }}>
-                    {PERMISSION_LABELS.filter(p => u.permissions[p.key]).map(p => <span key={p.key} className="inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-gray-100 text-gray-400">{p.label}</span>)}
+                    {PERMISSION_LABELS.filter(p => u.permissions[p.key]).map(p => <span key={p.key} className="inline-flex px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-gray-100 text-gray-400">{p.label}</span>)}
                   </div>
                 )}
               </div>

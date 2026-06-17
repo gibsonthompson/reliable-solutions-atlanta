@@ -138,11 +138,11 @@ export default function JobsPage() {
 
       {/* Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5 animate-[fadeUp_0.35s_ease-out]">
-        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-green-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Revenue</p><p className="text-lg font-extrabold text-green-600 ml-2 mt-0.5 tabular-nums">{fmtMoney(totals.revenue)}</p></div>
-        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-red-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Expenses</p><p className="text-lg font-extrabold text-red-500 ml-2 mt-0.5 tabular-nums">{fmtMoney(totals.totalExpense)}</p></div>
-        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-emerald-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Profit</p><p className={'text-lg font-extrabold ml-2 mt-0.5 tabular-nums ' + (totals.profit >= 0 ? 'text-emerald-600' : 'text-red-600')}>{totals.profit < 0 ? '-' : ''}{fmtMoney(totals.profit)}</p></div>
-        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-[#115997] rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Tracked Labor</p><p className="text-lg font-extrabold text-[#115997] ml-2 mt-0.5 tabular-nums">{trackedHoursTotal.toFixed(1)}h</p><p className="text-[10px] text-gray-300 ml-2">${trackedLaborTotal.toFixed(0)} cost</p></div>
-        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Taxes</p><p className="text-lg font-extrabold text-amber-600 ml-2 mt-0.5 tabular-nums">{fmtMoney(totals.taxes)}</p></div>
+        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-green-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Revenue</p><p className="text-lg font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{fmtMoney(totals.revenue)}</p></div>
+        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-red-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Expenses</p><p className="text-lg font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{fmtMoney(totals.totalExpense)}</p></div>
+        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-emerald-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Profit</p><p className={'text-lg font-extrabold ml-2 mt-0.5 tabular-nums ' + (totals.profit >= 0 ? 'text-gray-900' : 'text-red-600')}>{totals.profit < 0 ? '-' : ''}{fmtMoney(totals.profit)}</p></div>
+        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-[#115997] rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Tracked Labor</p><p className="text-lg font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{trackedHoursTotal.toFixed(1)}h</p><p className="text-[10px] text-gray-300 ml-2">${trackedLaborTotal.toFixed(0)} cost</p></div>
+        <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden"><div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-r" /><p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Taxes</p><p className="text-lg font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{fmtMoney(totals.taxes)}</p></div>
       </div>
 
       {/* Add/Edit Form */}
@@ -204,12 +204,12 @@ export default function JobsPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] text-gray-300 font-mono tabular-nums">#{i + 1}</span>
                     <h3 className="font-bold text-gray-900 text-sm">{j.address}</h3>
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${STATUS_STYLES[j.status] || 'bg-gray-100 text-gray-600'}`}>{(j.status || 'active').replace('_', ' ')}</span>
+                    <span className={`text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${STATUS_STYLES[j.status] || 'bg-gray-100 text-gray-600'}`}>{(j.status || 'active').replace('_', ' ')}</span>
                   </div>
                   <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-400">
                     <span>{dateRange(j)}</span>
                     {j.client && <span>· {j.client}</span>}
-                    <span className={'inline-flex px-1.5 py-0.5 rounded-md text-[10px] font-bold ' + (j.payment_method === 'ACH' ? 'bg-blue-50 text-blue-600' : j.payment_method === 'Check' ? 'bg-purple-50 text-purple-600' : j.payment_method === 'Cash' ? 'bg-green-50 text-green-600' : j.payment_method === 'Zelle' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-100 text-gray-500')}>{j.payment_method || '—'}</span>
+                    <span className={'inline-flex px-1.5 py-0.5 rounded-md text-[10px] font-semibold ' + (j.payment_method === 'ACH' ? 'bg-blue-50 text-blue-600' : j.payment_method === 'Check' ? 'bg-purple-50 text-purple-600' : j.payment_method === 'Cash' ? 'bg-green-50 text-green-600' : j.payment_method === 'Zelle' ? 'bg-indigo-50 text-indigo-600' : 'bg-gray-100 text-gray-500')}>{j.payment_method || '—'}</span>
                   </div>
                 </div>
                 {isAdmin && (
@@ -264,8 +264,8 @@ export default function JobsPage() {
                   <div className="flex items-center gap-1"><span className="text-gray-300">Misc:</span><span className="font-semibold text-gray-600 tabular-nums">${fmt(j.misc)}</span></div>
                   <div className="h-3 w-px bg-gray-200" />
                   <div className="flex items-center gap-1"><span className="text-gray-400 font-semibold">Exp:</span><span className="font-bold text-gray-700 tabular-nums">${fmt(te)}</span></div>
-                  <div className="flex items-center gap-1"><span className="text-green-500 font-semibold">Rev:</span><span className="font-bold text-green-600 tabular-nums">${fmt(j.revenue)}</span></div>
-                  <div className="flex items-center gap-1"><span className={pr >= 0 ? 'text-emerald-500' : 'text-red-500'}>Profit:</span><span className={'font-extrabold tabular-nums ' + (pr >= 0 ? 'text-emerald-600' : 'text-red-600')}>${fmt(pr)}</span></div>
+                  <div className="flex items-center gap-1"><span className="text-gray-400 font-semibold">Rev:</span><span className="font-bold text-gray-900 tabular-nums">${fmt(j.revenue)}</span></div>
+                  <div className="flex items-center gap-1"><span className={pr >= 0 ? 'text-gray-400' : 'text-red-500'}>Profit:</span><span className={'font-extrabold tabular-nums ' + (pr >= 0 ? 'text-gray-900' : 'text-red-600')}>${fmt(pr)}</span></div>
                   {cost && (
                     <>
                       <div className="h-3 w-px bg-gray-200" />
@@ -273,7 +273,7 @@ export default function JobsPage() {
                     </>
                   )}
                   {n(j.taxes) > 0 && (
-                    <div className="flex items-center gap-1"><span className="text-amber-500">Tax:</span><span className="font-semibold text-amber-600 tabular-nums">${fmt(j.taxes)}</span></div>
+                    <div className="flex items-center gap-1"><span className="text-gray-400">Tax:</span><span className="font-semibold text-gray-700 tabular-nums">${fmt(j.taxes)}</span></div>
                   )}
                 </div>
               </div>

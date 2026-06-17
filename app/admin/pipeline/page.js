@@ -5,12 +5,12 @@ import Link from 'next/link'
 import { useAdminAuth } from '../layout'
 
 const COLUMNS = [
-  { key: 'new', label: 'New', gradient: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', help: 'New leads from the website. They got an auto-confirmation text. Call them ASAP.' },
-  { key: 'estimate_sent', label: 'Estimate Sent', gradient: 'from-indigo-500 to-indigo-600', bg: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700', dot: 'bg-indigo-500', help: 'You visited and sent the estimate. Follow up if no response in 3 days.' },
-  { key: 'booked', label: 'Scheduled', gradient: 'from-purple-500 to-purple-600', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500', help: 'They said yes and the job is on the calendar. Confirm crew and materials. A Job record gets auto-created.' },
-  { key: 'in_progress', label: 'In Progress', gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', help: 'Crew is actively working. Move to Done when finished.' },
-  { key: 'done', label: 'Done', gradient: 'from-green-500 to-green-600', bg: 'bg-green-50', badge: 'bg-green-100 text-green-700', dot: 'bg-green-500', help: 'Job complete. Send review request.' },
-  { key: 'lost', label: 'Lost', gradient: 'from-red-400 to-red-500', bg: 'bg-red-50', badge: 'bg-red-100 text-red-700', dot: 'bg-red-400', help: 'They decided not to move forward.' },
+  { key: 'new', label: 'New', bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500', help: 'New leads from the website. They got an auto-confirmation text. Call them ASAP.' },
+  { key: 'estimate_sent', label: 'Estimate Sent', bg: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700', dot: 'bg-indigo-500', help: 'You visited and sent the estimate. Follow up if no response in 3 days.' },
+  { key: 'booked', label: 'Scheduled', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-700', dot: 'bg-purple-500', help: 'They said yes and the job is on the calendar. Confirm crew and materials. A Job record gets auto-created.' },
+  { key: 'in_progress', label: 'In Progress', bg: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500', help: 'Crew is actively working. Move to Done when finished.' },
+  { key: 'done', label: 'Done', bg: 'bg-green-50', badge: 'bg-green-100 text-green-700', dot: 'bg-green-500', help: 'Job complete. Send review request.' },
+  { key: 'lost', label: 'Lost', bg: 'bg-red-50', badge: 'bg-red-100 text-red-700', dot: 'bg-red-400', help: 'They decided not to move forward.' },
 ]
 
 export default function PipelinePage() {
@@ -110,9 +110,15 @@ export default function PipelinePage() {
               className={'flex flex-col rounded-xl transition-all duration-200 min-w-0 ' + (dragOverCol === col.key ? 'ring-2 ring-[#115997]/30 bg-[#115997]/[0.03] scale-[1.01]' : 'bg-white/60')}
               onDragOver={(e) => handleDragOver(e, col.key)} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, col.key)}>
               {/* Column Header */}
-              <div className={`px-2.5 py-2.5 rounded-t-xl bg-gradient-to-r ${col.gradient} flex items-center justify-between`}>
-                <h3 className="text-[11px] font-bold text-white uppercase tracking-wider truncate">{col.label}</h3>
-                <span className="text-[10px] font-bold text-white/70 bg-white/20 px-1.5 py-0.5 rounded-md min-w-[20px] text-center">{cards.length}</span>
+              <div className="bg-white rounded-t-xl border-b border-gray-100 overflow-hidden">
+                <div className={`h-[2px] ${col.dot}`} />
+                <div className="px-3 py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${col.dot}`} />
+                    <h3 className="text-[11px] font-semibold text-gray-700 truncate">{col.label}</h3>
+                  </div>
+                  <span className="text-[10px] font-semibold text-gray-400 tabular-nums">{cards.length}</span>
+                </div>
               </div>
               {/* Cards */}
               <div className="p-1.5 space-y-1.5 min-h-[80px] max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-hide">
@@ -155,9 +161,15 @@ export default function PipelinePage() {
           const cards = getCardsForColumn(col.key)
           return (
             <div key={col.key} className="rounded-xl overflow-hidden bg-white/60">
-              <div className={`px-4 py-2.5 bg-gradient-to-r ${col.gradient} flex items-center justify-between`}>
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider">{col.label}</h3>
-                <span className="text-[10px] font-bold text-white/70 bg-white/20 px-2 py-0.5 rounded-md">{cards.length}</span>
+              <div className="bg-white border-b border-gray-100">
+                <div className={`h-[2px] ${col.dot}`} />
+                <div className="px-4 py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${col.dot}`} />
+                    <h3 className="text-xs font-semibold text-gray-700">{col.label}</h3>
+                  </div>
+                  <span className="text-[10px] font-semibold text-gray-400 tabular-nums">{cards.length}</span>
+                </div>
               </div>
               {cards.length > 0 && (
                 <div className="p-2 space-y-2">

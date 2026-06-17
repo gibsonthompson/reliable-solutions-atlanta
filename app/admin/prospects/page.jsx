@@ -88,7 +88,7 @@ export default function ProspectsPage() {
                       <td className="px-6 py-4"><p className="font-semibold text-gray-900">{p.name}</p>{p.area && <p className="text-xs text-gray-400">{p.area}</p>}</td>
                       <td className="px-6 py-4 text-sm text-gray-500">{p.brokerage || '—'}</td>
                       <td className="px-6 py-4">{p.email && <p className="text-sm text-gray-400">{p.email}</p>}{p.phone && <p className="text-sm text-gray-400">{formatPhone(p.phone)}</p>}</td>
-                      <td className="px-6 py-4"><span className={'inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold ' + getStatusBadge(p.status)}>{getStatusLabel(p.status)}</span></td>
+                      <td className="px-6 py-4"><span className={'inline-flex px-2.5 py-1 rounded-md text-[10px] font-semibold ' + getStatusBadge(p.status)}>{getStatusLabel(p.status)}</span></td>
                       <td className="px-6 py-4 text-sm text-gray-400 tabular-nums">{p.outreach_count || 0} sent</td>
                       <td className="px-6 py-4"><Link href={'/admin/prospects/' + p.id} className="text-[#115997] hover:text-[#0d4a7a] font-semibold text-sm opacity-0 group-hover:opacity-100 transition-opacity">View →</Link></td>
                     </tr>
@@ -99,7 +99,7 @@ export default function ProspectsPage() {
             <div className="md:hidden divide-y divide-gray-50">
               {filtered.map((p) => (
                 <Link key={p.id} href={'/admin/prospects/' + p.id} className="block p-4 active:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-1.5"><div className="min-w-0 flex-1"><p className="font-bold text-gray-900 truncate">{p.name}</p><p className="text-sm text-gray-400">{p.brokerage || 'No company'}</p></div><div className="flex flex-col items-end ml-3"><span className={'inline-flex px-2 py-0.5 rounded-md text-[9px] font-bold ' + getStatusBadge(p.status)}>{getStatusLabel(p.status)}</span><p className="text-[10px] text-gray-300 mt-1">{timeAgo(p.created_at)}</p></div></div>
+                  <div className="flex items-start justify-between mb-1.5"><div className="min-w-0 flex-1"><p className="font-semibold text-gray-900 truncate">{p.name}</p><p className="text-sm text-gray-400">{p.brokerage || 'No company'}</p></div><div className="flex flex-col items-end ml-3"><span className={'inline-flex px-2 py-0.5 rounded-md text-[9px] font-semibold ' + getStatusBadge(p.status)}>{getStatusLabel(p.status)}</span><p className="text-[10px] text-gray-300 mt-1">{timeAgo(p.created_at)}</p></div></div>
                   {p.area && <p className="text-xs text-gray-300 mt-1">{p.area}</p>}
                   {p.phone && <p className="text-xs text-gray-300 mt-0.5">{formatPhone(p.phone)}</p>}
                 </Link>

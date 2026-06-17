@@ -87,22 +87,22 @@ export default function ContactsPage() {
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-400 rounded-r" />
           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">New</p>
-          <p className="text-2xl font-extrabold text-blue-600 ml-2 mt-0.5 tabular-nums">{getStatusCount('new')}</p>
+          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('new')}</p>
         </div>
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-indigo-400 rounded-r" />
           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Estimates</p>
-          <p className="text-2xl font-extrabold text-indigo-600 ml-2 mt-0.5 tabular-nums">{getStatusCount('estimate_sent')}</p>
+          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('estimate_sent')}</p>
         </div>
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-purple-400 rounded-r" />
           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">Scheduled</p>
-          <p className="text-2xl font-extrabold text-purple-600 ml-2 mt-0.5 tabular-nums">{getStatusCount('booked')}</p>
+          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('booked')}</p>
         </div>
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-emerald-400 rounded-r" />
           <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold ml-2">In Progress</p>
-          <p className="text-2xl font-extrabold text-emerald-600 ml-2 mt-0.5 tabular-nums">{getStatusCount('in_progress')}</p>
+          <p className="text-2xl font-extrabold text-gray-900 ml-2 mt-0.5 tabular-nums">{getStatusCount('in_progress')}</p>
         </div>
       </div>
 
@@ -126,7 +126,7 @@ export default function ContactsPage() {
                     <tr key={contact.id} className={'hover:bg-gray-50/50 transition-colors group ' + getUrgencyColor(contact)}>
                       <td className="px-6 py-4"><p className="font-semibold text-gray-900 text-sm">{contact.name}</p><p className="text-xs text-gray-400 mt-0.5">{formatPhone(contact.phone)}</p></td>
                       <td className="px-6 py-4 text-sm text-gray-600">{contact.service_type}</td>
-                      <td className="px-6 py-4"><span className={'inline-flex px-2.5 py-1 rounded-md text-[10px] font-bold ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span></td>
+                      <td className="px-6 py-4"><span className={'inline-flex px-2.5 py-1 rounded-md text-[10px] font-semibold ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span></td>
                       {user?.role === 'admin' && <td className="px-6 py-4 text-sm text-gray-400">{contact.assigned_user?.name || <span className="text-gray-300">—</span>}</td>}
                       <td className="px-6 py-4 text-sm text-gray-400">{contact.scheduled_date ? formatDate(contact.scheduled_date) : '—'}</td>
                       <td className="px-6 py-4 text-sm text-gray-400"><p>{formatDateTime(contact.created_at)}</p><p className="text-[10px] text-gray-300 mt-0.5">{timeAgo(contact.created_at)}</p></td>
@@ -141,7 +141,7 @@ export default function ContactsPage() {
                 <Link key={contact.id} href={'/admin/contacts/' + contact.id} className={'block p-4 active:bg-gray-50 transition-colors ' + getUrgencyColor(contact)}>
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="min-w-0 flex-1"><p className="font-semibold text-gray-900 truncate">{contact.name}</p><p className="text-sm text-gray-400">{contact.service_type}</p></div>
-                    <div className="flex flex-col items-end ml-3"><span className={'inline-flex px-2 py-0.5 rounded-md text-[10px] font-bold ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span><p className="text-[10px] text-gray-300 mt-1">{formatDateTime(contact.created_at)}</p></div>
+                    <div className="flex flex-col items-end ml-3"><span className={'inline-flex px-2 py-0.5 rounded-md text-[10px] font-semibold ' + getStatusBadge(contact.status)}>{getStatusLabel(contact.status)}</span><p className="text-[10px] text-gray-300 mt-1">{formatDateTime(contact.created_at)}</p></div>
                   </div>
                   <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
                     <span className="flex items-center gap-1"><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>{formatPhone(contact.phone)}</span>
