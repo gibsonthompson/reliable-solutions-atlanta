@@ -11,7 +11,7 @@ const supabase = createClient(
 const TELNYX_MSG_PROFILE = '40019bc3-6345-42ca-84bd-a9a2ed3bd66f'
 
 async function sendSms(to, text) {
-  if (!process.env.TELNYX_API_KEY) return false
+  if (!process.env.TELNYX_API_KEY || !to) return false
   try {
     const res = await fetch('https://api.telnyx.com/v2/messages', {
       method: 'POST',
@@ -22,6 +22,25 @@ async function sendSms(to, text) {
     console.log('[SMS]', res.status, JSON.stringify(data).substring(0, 200))
     return res.ok
   } catch (err) { console.error('SMS failed:', err); return false }
+}
+
+// Query enabled recipients subscribed to the given notification type.
+async function getRecipientPhones(type) {
+  try {
+    const { data, error } = await supabase
+      .from('rsa_notification_recipients')
+      .select('phone')
+      .eq('enabled', true)
+      .contains('notification_types', [type])
+    if (error) {
+      console.error('[NOTIFY] Failed to load recipients:', error.message)
+      return []
+    }
+    return (data || []).map(r => r.phone).filter(Boolean)
+  } catch (e) {
+    console.error('[NOTIFY] Recipients query error:', e)
+    return []
+  }
 }
 
 function formatPhoneForSms(phone) {
@@ -52,19 +71,35 @@ export async function POST(request) {
     const { id, type } = await request.json()
     if (!id || !type) return NextResponse.json({ error: 'Missing id or type' }, { status: 400 })
 
-    // Wait 60 seconds server-side before sending
+    // Wait 60 seconds server-side before sending (lets customer complete booking flow)
     await sleep(60000)
 
-    const { data, error } = await supabase.from('contact_submissions').select('name, phone, service_type, scheduled_date, scheduled_time').eq('id', id).single()
+    const { data, error } = await supabase
+      .from('contact_submissions')
+      .select('name, phone, email, service_type, scheduled_date, scheduled_time, address, message, referral_source')
+      .eq('id', id)
+      .single()
     if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const firstName = data.name?.split(' ')[0] || ''
     const leadPhone = formatPhoneForSms(data.phone)
 
     if (type === 'new_lead') {
-      const smsBody = ['New Lead - RSA', data.name, formatPhoneDisplay(data.phone), data.service_type].filter(Boolean).join('\n')
-      await sendSms(process.env.RSA_NOTIFICATION_PHONE, smsBody)
-      await sendSms('+16783161454', smsBody)
+      // Body includes everything actionable: contact info, what they need, where, where they came from, what they said
+      const lines = [
+        'New Lead - RSA',
+        data.name,
+        formatPhoneDisplay(data.phone),
+        data.service_type,
+      ]
+      if (data.address) lines.push(data.address)
+      if (data.referral_source) lines.push(`Source: ${data.referral_source}`)
+      if (data.message) lines.push('', data.message) // blank line then the message
+      const smsBody = lines.filter(l => l !== undefined && l !== null).join('\n')
+
+      const recipients = await getRecipientPhones('new_lead')
+      console.log(`[NOTIFY] new_lead dispatching to ${recipients.length} recipient(s)`)
+      for (const phone of recipients) await sendSms(phone, smsBody)
     }
 
     if (type === 'booked') {
@@ -75,7 +110,19 @@ export async function POST(request) {
         await sendSms(leadPhone, `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! Your free estimate for ${data.service_type} is scheduled for ${dateFormatted}${timeStr}. If you need to reschedule, call or text 770-895-2039. - RSA Team`)
       }
 
-      await sendSms(process.env.RSA_NOTIFICATION_PHONE, `📅 Estimate Booked\n${data.name}\n${formatPhoneDisplay(data.phone)}\n${data.service_type}\n${dateFormatted}${timeStr}`)
+      const adminLines = [
+        '📅 Estimate Booked',
+        data.name,
+        formatPhoneDisplay(data.phone),
+        data.service_type,
+      ]
+      if (data.address) adminLines.push(data.address)
+      adminLines.push(`${dateFormatted}${timeStr}`)
+      const adminBody = adminLines.join('\n')
+
+      const recipients = await getRecipientPhones('booked')
+      console.log(`[NOTIFY] booked dispatching to ${recipients.length} recipient(s)`)
+      for (const phone of recipients) await sendSms(phone, adminBody)
     }
 
     if (type === 'skipped') {

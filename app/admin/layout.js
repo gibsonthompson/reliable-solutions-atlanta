@@ -96,10 +96,11 @@ export default function AdminLayout({ children }) {
       { href: '/admin/timesheets', label: 'Timesheets', perm: 'timesheets', icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> },
       { href: '/admin/expenses', label: 'Expenses', perm: 'jobs', icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg> },
     ]},
-    { label: 'Settings', items: [
+    { label: 'System', items: [
       { href: '/admin/templates', label: 'Templates', perm: 'templates', icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg> },
       { href: '/admin/photos', label: 'Photos', perm: 'photos', icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
       { href: '/admin/users', label: 'Users', perm: 'users', icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg> },
+      { href: '/admin/settings', label: 'Settings', perm: 'users', icon: <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> },
     ]},
   ]
 
@@ -224,7 +225,7 @@ export default function AdminLayout({ children }) {
           <SidebarContent />
         </aside>
 
-        {/* Mobile Header - safe-area-inset-top so iPhone notch doesn't eat content */}
+        {/* Mobile Header */}
         <header className="admin-chrome lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200/80"
           style={{ paddingTop: 'env(safe-area-inset-top)' }}>
           <div className="px-4 py-3 flex items-center justify-between">
@@ -253,7 +254,7 @@ export default function AdminLayout({ children }) {
           </div>
         )}
 
-        {/* Main Content - margin tracks both header height and safe area on mobile */}
+        {/* Main Content */}
         <main className="admin-main flex-1 lg:ml-[220px] min-h-screen">
           <div className="max-w-[1400px] mx-auto">
             {children}
@@ -269,13 +270,11 @@ export default function AdminLayout({ children }) {
           from { opacity: 0; transform: translateY(12px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        /* Mobile main margin tracks the safe-area-inset-top + 56px header */
         .admin-main { margin-top: calc(56px + env(safe-area-inset-top)); }
         @media (min-width: 1024px) {
           .admin-main { margin-top: 0; }
           .desktop-zoom { zoom: 0.9; }
         }
-        /* Native app feel - kill tap highlights, callouts, selection on chrome */
         .admin-root {
           -webkit-tap-highlight-color: transparent;
           -webkit-text-size-adjust: 100%;
@@ -287,13 +286,11 @@ export default function AdminLayout({ children }) {
           user-select: none;
           -webkit-touch-callout: none;
         }
-        /* But still allow text selection / callout inside inputs and editable content */
         input, textarea, [contenteditable] {
           -webkit-user-select: text;
           user-select: text;
           -webkit-touch-callout: default;
         }
-        /* Scrollbar */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>

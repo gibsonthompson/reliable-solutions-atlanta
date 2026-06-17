@@ -75,28 +75,76 @@ export default function DashboardPage() {
       const weekEndStr = weekEnd.toISOString().split('T')[0]
       setUpcomingCalendar(contacts.filter(c => c.scheduled_date && c.scheduled_date >= today && c.scheduled_date <= weekEndStr).sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date)).slice(0, 6))
 
-      // Action Items
+      // Action Items - flat tinted circles with SVG icons (no gradients, no emoji)
       const items = []
       const newRequests = contacts.filter(c => c.status === 'new')
       const urgentLeads = newRequests.filter(c => (Date.now() - new Date(c.created_at)) / 36e5 > 2)
-      if (urgentLeads.length > 0) items.push({ type: 'urgent', icon: '🔥', label: `${urgentLeads.length} lead${urgentLeads.length > 1 ? 's' : ''} waiting over 2 hours`, href: '/admin/contacts', color: 'from-red-500 to-orange-500', count: urgentLeads.length })
-      else if (newRequests.length > 0) items.push({ type: 'new', icon: '📥', label: `${newRequests.length} new request${newRequests.length > 1 ? 's' : ''} to review`, href: '/admin/contacts', color: 'from-blue-500 to-cyan-500', count: newRequests.length })
+      if (urgentLeads.length > 0) items.push({
+        type: 'urgent',
+        label: `${urgentLeads.length} lead${urgentLeads.length > 1 ? 's' : ''} waiting over 2 hours`,
+        href: '/admin/contacts',
+        bg: 'bg-red-50', text: 'text-red-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />,
+        count: urgentLeads.length,
+      })
+      else if (newRequests.length > 0) items.push({
+        type: 'new',
+        label: `${newRequests.length} new request${newRequests.length > 1 ? 's' : ''} to review`,
+        href: '/admin/contacts',
+        bg: 'bg-blue-50', text: 'text-blue-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />,
+        count: newRequests.length,
+      })
 
       const estimatePending = contacts.filter(c => c.status === 'estimate_sent')
-      if (estimatePending.length > 0) items.push({ type: 'estimate', icon: '📋', label: `${estimatePending.length} estimate${estimatePending.length > 1 ? 's' : ''} awaiting response`, href: '/admin/pipeline', color: 'from-indigo-500 to-purple-500', count: estimatePending.length })
+      if (estimatePending.length > 0) items.push({
+        type: 'estimate',
+        label: `${estimatePending.length} estimate${estimatePending.length > 1 ? 's' : ''} awaiting response`,
+        href: '/admin/pipeline',
+        bg: 'bg-indigo-50', text: 'text-indigo-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />,
+        count: estimatePending.length,
+      })
 
-      // Scheduled work this week (status=booked, scheduled date in next 7 days)
       const scheduledThisWeek = contacts.filter(c => c.status === 'booked' && c.scheduled_date && c.scheduled_date >= today && c.scheduled_date <= weekEndStr)
-      if (scheduledThisWeek.length > 0) items.push({ type: 'scheduled', icon: '📅', label: `${scheduledThisWeek.length} job${scheduledThisWeek.length > 1 ? 's' : ''} scheduled this week`, href: '/admin/pipeline', color: 'from-purple-500 to-fuchsia-500', count: scheduledThisWeek.length })
+      if (scheduledThisWeek.length > 0) items.push({
+        type: 'scheduled',
+        label: `${scheduledThisWeek.length} job${scheduledThisWeek.length > 1 ? 's' : ''} scheduled this week`,
+        href: '/admin/pipeline',
+        bg: 'bg-purple-50', text: 'text-purple-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />,
+        count: scheduledThisWeek.length,
+      })
 
       const jobsMissingCrew = allJobs.filter(j => (j.status === 'active' || !j.status) && j.date_start && j.date_start >= today && !(crewData.by_job || {})[j.id]?.length)
-      if (jobsMissingCrew.length > 0) items.push({ type: 'crew', icon: '👷', label: `${jobsMissingCrew.length} job${jobsMissingCrew.length > 1 ? 's' : ''} need crew assigned`, href: '/admin/schedule', color: 'from-amber-500 to-yellow-500', count: jobsMissingCrew.length })
+      if (jobsMissingCrew.length > 0) items.push({
+        type: 'crew',
+        label: `${jobsMissingCrew.length} job${jobsMissingCrew.length > 1 ? 's' : ''} need crew assigned`,
+        href: '/admin/schedule',
+        bg: 'bg-amber-50', text: 'text-amber-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />,
+        count: jobsMissingCrew.length,
+      })
 
       const pendingTimesheets = todayEntries.filter(e => e.status === 'pending' && e.clock_out)
-      if (pendingTimesheets.length > 0) items.push({ type: 'timesheets', icon: '⏱', label: `${pendingTimesheets.length} timesheet${pendingTimesheets.length > 1 ? 's' : ''} to approve`, href: '/admin/timesheets', color: 'from-emerald-500 to-teal-500', count: pendingTimesheets.length })
+      if (pendingTimesheets.length > 0) items.push({
+        type: 'timesheets',
+        label: `${pendingTimesheets.length} timesheet${pendingTimesheets.length > 1 ? 's' : ''} to approve`,
+        href: '/admin/timesheets',
+        bg: 'bg-emerald-50', text: 'text-emerald-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />,
+        count: pendingTimesheets.length,
+      })
 
       const followUps = contacts.filter(c => c.next_follow_up && c.next_follow_up <= today)
-      if (followUps.length > 0) items.push({ type: 'followup', icon: '📞', label: `${followUps.length} follow-up${followUps.length > 1 ? 's' : ''} due today`, href: '/admin/contacts', color: 'from-violet-500 to-fuchsia-500', count: followUps.length })
+      if (followUps.length > 0) items.push({
+        type: 'followup',
+        label: `${followUps.length} follow-up${followUps.length > 1 ? 's' : ''} due today`,
+        href: '/admin/contacts',
+        bg: 'bg-violet-50', text: 'text-violet-600',
+        icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />,
+        count: followUps.length,
+      })
 
       setActionItems(items)
 
@@ -165,14 +213,14 @@ export default function DashboardPage() {
             <Link key={item.type} href={item.href}
               className="group flex items-center gap-3 bg-white rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 hover:border-gray-200 active:scale-[0.995]"
               style={{ animationDelay: `${i * 60}ms` }}>
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                <span className="text-lg">{item.icon}</span>
+              <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center flex-shrink-0`}>
+                <svg className={`w-5 h-5 ${item.text}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800 group-hover:text-gray-900">{item.label}</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className={`text-lg font-bold bg-gradient-to-br ${item.color} bg-clip-text text-transparent`}>{item.count}</span>
+                <span className={`text-lg font-bold tabular-nums ${item.text}`}>{item.count}</span>
                 <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </div>
             </Link>
@@ -236,7 +284,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="bg-emerald-50 px-2.5 py-1 rounded-lg">
-                    <span className="text-sm font-bold text-emerald-600 tabular-nums">{elapsed(u.entry?.clock_in)}</span>
+                    <span className="text-sm font-semibold text-emerald-600 tabular-nums">{elapsed(u.entry?.clock_in)}</span>
                   </div>
                 </div>
               ))}
@@ -250,7 +298,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2.5">
               <div className="w-2.5 h-2.5 bg-[#115997] rounded-full" />
               <h3 className="font-bold text-gray-900 text-sm tracking-tight">Today&apos;s Jobs</h3>
-              {todayJobs.length > 0 && <span className="text-[10px] font-bold bg-[#115997]/10 text-[#115997] px-1.5 py-0.5 rounded-md">{todayJobs.length}</span>}
+              {todayJobs.length > 0 && <span className="text-[10px] font-semibold bg-[#115997]/10 text-[#115997] px-1.5 py-0.5 rounded-md">{todayJobs.length}</span>}
             </div>
             <Link href="/admin/schedule" className="text-xs text-gray-400 hover:text-[#115997] font-medium transition-colors">Schedule →</Link>
           </div>
@@ -271,7 +319,7 @@ export default function DashboardPage() {
                       <p className="text-sm font-semibold text-gray-900 truncate">{j.address}</p>
                       {j.client && <p className="text-xs text-gray-400 mt-0.5">{j.client}</p>}
                     </div>
-                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${j.status === 'on_hold' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>{(j.status || 'active').replace('_', ' ')}</span>
+                    <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-md ${j.status === 'on_hold' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>{(j.status || 'active').replace('_', ' ')}</span>
                   </div>
                   {j.crew && j.crew.length > 0 ? (
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -314,7 +362,7 @@ export default function DashboardPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-[#115997] transition-colors">{req.name}</p>
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${statusBadge(req.status)}`}>{statusLabel(req.status)}</span>
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${statusBadge(req.status)}`}>{statusLabel(req.status)}</span>
                     </div>
                     <p className="text-xs text-gray-400 mt-0.5 truncate">{req.service_type}{formatPhone(req.phone) ? ' · ' + formatPhone(req.phone) : ''}</p>
                   </div>
@@ -358,9 +406,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end flex-shrink-0 ml-2">
-                      {isToday && <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">TODAY</span>}
-                      {isTomorrow && <span className="text-[9px] font-bold text-[#115997] bg-blue-50 px-1.5 py-0.5 rounded-md">TOMORROW</span>}
-                      <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md mt-0.5 ${statusBadge(est.status)}`}>{statusLabel(est.status)}</span>
+                      {isToday && <span className="text-[9px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md">TODAY</span>}
+                      {isTomorrow && <span className="text-[9px] font-semibold text-[#115997] bg-blue-50 px-1.5 py-0.5 rounded-md">TOMORROW</span>}
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md mt-0.5 ${statusBadge(est.status)}`}>{statusLabel(est.status)}</span>
                     </div>
                   </Link>
                 )
