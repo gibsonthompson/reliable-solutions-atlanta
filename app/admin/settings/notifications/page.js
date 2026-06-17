@@ -130,7 +130,7 @@ export default function NotificationsPage() {
   if (!hasPermission('users')) return <div className="px-4 py-16 text-center"><p className="text-gray-400 font-medium">You don{"'"}t have permission to manage notifications</p></div>
   if (loading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="flex flex-col items-center gap-3"><div className="w-10 h-10 border-4 border-[#115997] border-t-transparent rounded-full animate-spin" /><p className="text-sm text-gray-400 animate-pulse">Loading recipients...</p></div></div>
 
-  const FormBody = ({ isNew }) => (
+  const formBody = (isNew) => (
     <div className="space-y-4">
       {error && <div className="rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700">{error}</div>}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -200,7 +200,7 @@ export default function NotificationsPage() {
       {expanded === 'new' && (
         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 mb-3 border-2 border-[#115997]/20 animate-[fadeUp_0.2s_ease-out]">
           <h3 className="font-bold text-gray-900 mb-4 text-sm">Add Recipient</h3>
-          <FormBody isNew />
+          {formBody(true)}
         </div>
       )}
 
@@ -253,7 +253,7 @@ export default function NotificationsPage() {
                   {/* Expanded edit form */}
                   {isOpen && (
                     <div className="px-4 sm:px-6 pb-5 pt-1 border-t border-gray-100 animate-[fadeUp_0.2s_ease-out]">
-                      <FormBody isNew={false} />
+                      {formBody(false)}
                     </div>
                   )}
                 </div>
