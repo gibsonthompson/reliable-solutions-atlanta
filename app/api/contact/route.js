@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { STAGE_KEYS } from '../../../lib/pipeline'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -112,16 +113,20 @@ async function createAutoJob(contactRow) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { name, email, phone, service_type, message, source, address, referral_source } = body
-    if (!name || !email || !phone || !service_type) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    const { name, email, phone, service_type, message, source, address, referral_source, initial_status } = body
+    if (!name || !phone || !service_type) return NextResponse.json({ error: 'Missing required fields (name, phone, service type)' }, { status: 400 })
 
-    const isManualEntry = source === 'calendar' || source === 'manual'
+    const isManualEntry = source === 'calendar' || source === 'manual' || source === 'admin'
     if (!isManualEntry) {
+      if (!email) return NextResponse.json({ error: 'Missing email' }, { status: 400 })
       const spamReason = isSpam({ name, email, message })
       if (spamReason) { console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`); return NextResponse.json({ success: true }) }
     }
 
-    const insertData = { name, email, phone, service_type, message: message || null, source: source || 'website' }
+    // Validate initial_status against the pipeline single source of truth. Only admin/manual sources can set this.
+    const status = (isManualEntry && initial_status && STAGE_KEYS.includes(initial_status)) ? initial_status : 'new'
+
+    const insertData = { name, email: email || null, phone, service_type, message: message || null, source: source || 'website', status }
     if (address) insertData.address = address
     if (referral_source) insertData.referral_source = referral_source
 
@@ -143,16 +148,16 @@ export async function POST(request) {
       if (!isDuplicate) {
         const prospectData = {
           name,
-          email: email !== 'noemail@placeholder.com' ? email : null,
+          email: (email && email !== 'noemail@placeholder.com') ? email : null,
           phone: phone !== '0000000000' ? phone : null,
           source: source || 'website',
           status: 'new',
-          notes: service_type + (address ? ' — ' + address : '') + (message ? ' — ' + message : ''),
+          notes: service_type + (address ? ' - ' + address : '') + (message ? ' - ' + message : ''),
           area: service_type,
         }
         const { error: prospectError } = await supabase.from('rsa_prospects').insert([prospectData])
         if (prospectError) console.error('Auto-create contact error:', prospectError.message)
-        else console.log(`[AUTO-CONTACT] Created contact for ${name} (${email}) from ${source || 'website'}`)
+        else console.log(`[AUTO-CONTACT] Created contact for ${name} (${email || 'no email'}) from ${source || 'website'}`)
       } else {
         console.log(`[AUTO-CONTACT] Skipped duplicate for ${email}`)
       }

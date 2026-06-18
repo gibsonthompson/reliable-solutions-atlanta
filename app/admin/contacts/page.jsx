@@ -1,23 +1,41 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAdminAuth } from '../layout'
-import { PIPELINE_STAGES, STAGE_BY_KEY } from '../../../lib/pipeline'
+import { PIPELINE_STAGES, STAGE_BY_KEY, SERVICE_OPTIONS } from '../../../lib/pipeline'
 
-// Filter chips: "All" + every pipeline stage
 const statuses = [{ value: 'all', label: 'All' }, ...PIPELINE_STAGES.map(s => ({ value: s.key, label: s.label, bg: s.badge }))]
+
+const EMPTY_NEW_CONTACT = { name: '', phone: '', email: '', service_type: '', custom_service: '', initial_status: 'new', address: '', message: '' }
 
 export default function ContactsPage() {
   const { user } = useAdminAuth()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [submissions, setSubmissions] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [showHelp, setShowHelp] = useState(false)
+  const [showAdd, setShowAdd] = useState(false)
+  const [newContact, setNewContact] = useState(EMPTY_NEW_CONTACT)
+  const [saving, setSaving] = useState(false)
+  const [addError, setAddError] = useState('')
 
   useEffect(() => { if (user) fetchSubmissions() }, [user])
+
+  // Auto-open Add modal when arriving with ?new=1 (e.g. from the pipeline page)
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowAdd(true)
+      setNewContact(EMPTY_NEW_CONTACT)
+      // Clean the URL so refreshing doesn't re-open it
+      router.replace('/admin/contacts')
+    }
+  }, [searchParams, router])
 
   const fetchSubmissions = async () => {
     try {
@@ -25,6 +43,37 @@ export default function ContactsPage() {
       const r = await fetch('/api/contact' + params); const res = await r.json(); if (res.data) setSubmissions(res.data)
     } catch (e) { console.error('Failed to fetch:', e) }
     finally { setLoading(false) }
+  }
+
+  const resolveServiceType = () => newContact.service_type === 'Other' ? (newContact.custom_service.trim() || 'Other') : newContact.service_type
+  const isAddValid = newContact.name.trim() && newContact.phone.trim() && (newContact.service_type && (newContact.service_type !== 'Other' || newContact.custom_service.trim()))
+
+  const handleAddContact = async () => {
+    if (!isAddValid) return
+    setSaving(true); setAddError('')
+    try {
+      const r = await fetch('/api/contact', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newContact.name.trim(),
+          phone: newContact.phone.trim(),
+          email: newContact.email.trim() || null,
+          service_type: resolveServiceType(),
+          address: newContact.address.trim() || null,
+          message: newContact.message.trim() || null,
+          source: 'admin',
+          initial_status: newContact.initial_status,
+        })
+      })
+      const res = await r.json()
+      if (!r.ok) { setAddError(res.error || 'Failed to create contact'); return }
+      // Navigate to the new contact's detail page
+      const newId = res.data?.id
+      setShowAdd(false); setNewContact(EMPTY_NEW_CONTACT)
+      if (newId) router.push('/admin/contacts/' + newId)
+      else fetchSubmissions()
+    } catch (e) { setAddError('Failed to create contact') }
+    finally { setSaving(false) }
   }
 
   const filtered = submissions
@@ -59,12 +108,12 @@ export default function ContactsPage() {
           <p className="text-gray-400 text-sm mt-0.5">{submissions.length} total</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowHelp(true)} className="px-3 py-2 text-xs font-medium text-gray-400 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-600 transition-all flex items-center gap-1.5"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Help</button>
+          <button onClick={() => setShowHelp(true)} className="px-2.5 py-2 text-xs font-medium text-gray-400 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-gray-600 transition-all"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.065 2.05-1.37 2.772-1.153.508.153.942.535 1.025 1.059.108.685-.378 1.232-.816 1.627-.39.354-.816.659-.816 1.267V13m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
           <Link href="/admin/pipeline" className="px-3 py-2 text-xs font-semibold text-[#115997] bg-[#115997]/[0.06] rounded-lg hover:bg-[#115997]/[0.1] transition-all">Board View</Link>
+          <button onClick={() => { setNewContact(EMPTY_NEW_CONTACT); setAddError(''); setShowAdd(true) }} className="px-3 py-2 text-xs font-semibold text-white bg-[#115997] rounded-lg hover:bg-[#0d4a7a] shadow-sm shadow-[#115997]/20 transition-all flex items-center gap-1"><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>Add</button>
         </div>
       </div>
 
-      {/* 4-tile KPIs: New / Estimates Out / Won (Job Scheduled) / Awaiting Payment */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 animate-[fadeUp_0.35s_ease-out]">
         <div className="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-blue-400 rounded-r" />
@@ -137,6 +186,58 @@ export default function ContactsPage() {
         )}
       </div>
 
+      {/* Add Contact Modal */}
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowAdd(false)}>
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[90vh] overflow-y-auto animate-[fadeUp_0.2s_ease-out]" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 sm:p-5 border-b border-gray-100">
+              <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-3 sm:hidden" />
+              <div className="flex items-center justify-between">
+                <div><h3 className="text-lg font-bold text-gray-900">Add Contact</h3><p className="text-xs text-gray-400 mt-0.5">Manual entry for phone-in leads or referrals</p></div>
+                <button onClick={() => setShowAdd(false)} className="text-gray-400 hover:text-gray-600 p-1"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-5 space-y-3">
+              {addError && <div className="rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700">{addError}</div>}
+
+              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Name *</label><input type="text" value={newContact.name} onChange={(e) => setNewContact(p => ({ ...p, name: e.target.value }))} placeholder="Customer name" autoFocus style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Phone *</label><input type="tel" value={newContact.phone} onChange={(e) => setNewContact(p => ({ ...p, phone: e.target.value }))} placeholder="(770) 000-0000" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
+                <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Email</label><input type="email" value={newContact.email} onChange={(e) => setNewContact(p => ({ ...p, email: e.target.value }))} placeholder="Optional" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Service *</label>
+                <select value={newContact.service_type} onChange={(e) => setNewContact(p => ({ ...p, service_type: e.target.value, custom_service: '' }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none bg-white transition-all">
+                  <option value="">Select service...</option>
+                  {SERVICE_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                {newContact.service_type === 'Other' && <input type="text" value={newContact.custom_service} onChange={(e) => setNewContact(p => ({ ...p, custom_service: e.target.value }))} placeholder="Describe the service..." style={{ fontSize: '16px' }} className="w-full mt-2 px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" />}
+              </div>
+
+              <div>
+                <label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Initial Stage</label>
+                <select value={newContact.initial_status} onChange={(e) => setNewContact(p => ({ ...p, initial_status: e.target.value }))} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none bg-white transition-all">
+                  {PIPELINE_STAGES.map(s => <option key={s.key} value={s.key}>{s.label}</option>)}
+                </select>
+                <p className="text-[10px] text-gray-400 mt-1">Defaults to New. Skip ahead if they{"'"}re already past first contact.</p>
+              </div>
+
+              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Address</label><input type="text" value={newContact.address} onChange={(e) => setNewContact(p => ({ ...p, address: e.target.value }))} placeholder="Optional" style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none transition-all" /></div>
+
+              <div><label className="block text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-1">Notes</label><textarea value={newContact.message} onChange={(e) => setNewContact(p => ({ ...p, message: e.target.value }))} rows={2} placeholder="What they said, what they want..." style={{ fontSize: '16px' }} className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#115997]/20 focus:border-[#115997] outline-none resize-none transition-all" /></div>
+            </div>
+
+            <div className="p-4 sm:p-5 border-t border-gray-100 flex items-center gap-3">
+              <button onClick={() => setShowAdd(false)} className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors">Cancel</button>
+              <button onClick={handleAddContact} disabled={saving || !isAddValid} className="flex-1 py-3 bg-[#115997] text-white rounded-xl font-semibold hover:bg-[#0d4a7a] disabled:opacity-40 shadow-sm shadow-[#115997]/20 transition-all">{saving ? 'Adding...' : 'Add Contact'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showHelp && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={() => setShowHelp(false)}>
           <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -145,7 +246,7 @@ export default function ContactsPage() {
               <div className="flex items-center justify-between"><h3 className="text-lg font-bold text-gray-900">Requests Help</h3><button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-gray-600"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button></div>
             </div>
             <div className="p-5 space-y-5">
-              <div><h4 className="text-sm font-bold text-gray-800 mb-1">What is this page?</h4><p className="text-sm text-gray-500 leading-relaxed">Every person who fills out the form on the website shows up here. This is your list of all incoming requests.</p></div>
+              <div><h4 className="text-sm font-bold text-gray-800 mb-1">What is this page?</h4><p className="text-sm text-gray-500 leading-relaxed">Every person who fills out the form on the website shows up here. You can also tap Add to manually create a contact for phone-in leads or referrals.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Pipeline stages</h4><p className="text-sm text-gray-500 leading-relaxed">Leads move through 9 stages from New to Complete (or Lost). Use Board View for the visual pipeline with drag-and-drop.</p></div>
               <div><h4 className="text-sm font-bold text-gray-800 mb-1">Tap a contact</h4><p className="text-sm text-gray-500 leading-relaxed">Open their detail page to call, text, email, change status, create a job, schedule a date, and see activity history.</p></div>
             </div>

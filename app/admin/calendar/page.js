@@ -3,20 +3,13 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAdminAuth } from '../layout'
+import { PIPELINE_STAGES, STAGE_BY_KEY, SERVICE_OPTIONS } from '../../../lib/pipeline'
 
-const STATUS_COLORS = {
-  estimate_sent: { bg: 'bg-indigo-50', text: 'text-indigo-700', dot: 'bg-indigo-500' },
-  booked: { bg: 'bg-purple-50', text: 'text-purple-700', dot: 'bg-purple-500' },
-  in_progress: { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-  done: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500' },
-  new: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
-  contacted: { bg: 'bg-blue-50', text: 'text-blue-700', dot: 'bg-blue-500' },
-  lost: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
-}
-const STATUS_LABELS = { estimate_sent: 'Estimate', booked: 'Scheduled', in_progress: 'In Progress', done: 'Done', new: 'New', contacted: 'New', lost: 'Lost' }
+// Derive color/label maps from the pipeline single source of truth.
+const STATUS_COLORS = Object.fromEntries(PIPELINE_STAGES.map(s => [s.key, { bg: s.bg, text: s.text, dot: s.dot }]))
+const STATUS_LABELS = Object.fromEntries(PIPELINE_STAGES.map(s => [s.key, s.label]))
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const SERVICE_OPTIONS = ['Basement Waterproofing', 'Crawl Space Encapsulation', 'Crawl Space Repair', 'Crawl Space Waterproofing', 'Concrete Repair', 'Drainage', 'Foundation Repair', 'Other']
 const TIME_OPTIONS = ['8:00 AM - 9:00 AM', '9:00 AM - 10:00 AM', '10:00 AM - 11:00 AM', '11:00 AM - 12:00 PM', '12:00 PM - 1:00 PM', '1:00 PM - 2:00 PM', '2:00 PM - 3:00 PM', '3:00 PM - 4:00 PM', '4:00 PM - 5:00 PM']
 
 export default function CalendarPage() {
