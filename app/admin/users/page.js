@@ -14,6 +14,7 @@ const PERMISSION_LABELS = [
   { key: 'templates', label: 'Templates', desc: 'View and manage email/SMS templates' },
   { key: 'photos', label: 'Photos', desc: 'Upload and view job photos' },
   { key: 'sms', label: 'Send SMS', desc: 'Send text messages from contact pages' },
+  { key: 'messaging', label: 'Messaging', desc: 'Send broadcast SMS to crew and customers' },
   { key: 'email', label: 'Send Email', desc: 'Compose and send emails from contact pages' },
   { key: 'delete_contacts', label: 'Delete Contacts', desc: 'Permanently delete contacts' },
 ]
@@ -29,12 +30,12 @@ export default function UsersPage() {
   const [successMsg, setSuccessMsg] = useState('')
   const [error, setError] = useState('')
   const [showHelp, setShowHelp] = useState(false)
-  const [formData, setFormData] = useState({ username: '', name: '', phone: '', email: '', password: '', role: 'member', pay_rate: '', pay_type: 'hourly', hire_date: '', color: '#115997', emergency_contact_name: '', emergency_contact_phone: '', permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, jobs: false, timesheets: false, templates: false, photos: false, sms: false, email: false, delete_contacts: false } })
+  const [formData, setFormData] = useState({ username: '', name: '', phone: '', email: '', password: '', role: 'member', pay_rate: '', pay_type: 'hourly', hire_date: '', color: '#115997', emergency_contact_name: '', emergency_contact_phone: '', permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, jobs: false, timesheets: false, templates: false, photos: false, sms: false, messaging: false, email: false, delete_contacts: false } })
 
   useEffect(() => { fetchUsers() }, [])
   const fetchUsers = async () => { try { const r = await fetch('/api/admin/users'); const d = await r.json(); if (d.users) setUsers(d.users) } catch (e) {} finally { setLoading(false) } }
 
-  const handleNew = () => { setEditing('new'); setError(''); setFormData({ username: '', name: '', phone: '', email: '', password: '', role: 'member', pay_rate: '', pay_type: 'hourly', hire_date: '', color: CREW_COLORS[Math.floor(Math.random() * CREW_COLORS.length)], emergency_contact_name: '', emergency_contact_phone: '', permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, jobs: false, timesheets: false, templates: false, photos: false, sms: false, email: false, delete_contacts: false } }) }
+  const handleNew = () => { setEditing('new'); setError(''); setFormData({ username: '', name: '', phone: '', email: '', password: '', role: 'member', pay_rate: '', pay_type: 'hourly', hire_date: '', color: CREW_COLORS[Math.floor(Math.random() * CREW_COLORS.length)], emergency_contact_name: '', emergency_contact_phone: '', permissions: { dashboard: false, contacts: false, prospects: false, pipeline: false, calendar: true, jobs: false, timesheets: false, templates: false, photos: false, sms: false, messaging: false, email: false, delete_contacts: false } }) }
   const handleEdit = (u) => { setEditing(u.id); setError(''); setFormData({ username: u.username, name: u.name, phone: u.phone || '', email: u.email || '', password: '', role: u.role, pay_rate: u.pay_rate || '', pay_type: u.pay_type || 'hourly', hire_date: u.hire_date || '', color: u.color || '#115997', emergency_contact_name: u.emergency_contact_name || '', emergency_contact_phone: u.emergency_contact_phone || '', permissions: u.permissions || {} }) }
   const handleCancel = () => { setEditing(null); setError('') }
 
