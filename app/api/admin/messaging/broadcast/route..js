@@ -43,13 +43,17 @@ async function sendSms(to, text) {
 }
 
 // GET - list recent broadcasts with their recipients (for History view)
+// Note: sender name is looked up client-side from the users array rather than
+// using a Supabase implicit join. PostgREST sometimes can't resolve FK relationships
+// on freshly-created tables until its schema cache refreshes, and that failure used
+// to take down the whole page load.
 export async function GET(request) {
   try {
     const url = new URL(request.url)
     const limit = parseInt(url.searchParams.get('limit') || '20', 10)
     const { data: broadcasts, error: bErr } = await supabase
       .from('rsa_message_broadcasts')
-      .select('*, sent_by_user:sent_by(name, username)')
+      .select('*')
       .order('sent_at', { ascending: false })
       .limit(limit)
     if (bErr) return NextResponse.json({ error: bErr.message }, { status: 500 })

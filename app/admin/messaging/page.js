@@ -31,6 +31,8 @@ export default function MessagingPage() {
   const [showHelp, setShowHelp] = useState(false)
   const [expandedBroadcast, setExpandedBroadcast] = useState(null)
 
+  const [fetchErrors, setFetchErrors] = useState([])
+
   useEffect(() => {
     if (!hasPermission('messaging')) return
     fetchAll()
@@ -40,19 +42,36 @@ export default function MessagingPage() {
   useEffect(() => { setSelectedIds(new Set()); setSearch('') }, [mode])
 
   const fetchAll = async () => {
-    try {
-      const [u, c, t, b] = await Promise.all([
-        fetch('/api/admin/users').then(r => r.json()),
-        fetch('/api/contact').then(r => r.json()),
-        fetch('/api/admin/messaging/templates').then(r => r.json()),
-        fetch('/api/admin/messaging/broadcasts').then(r => r.json()),
-      ])
-      setUsers(u.users || [])
-      setContacts(c.data || [])
-      setTemplates(t.templates || [])
-      setBroadcasts(b.broadcasts || [])
-    } catch (e) { console.error('Fetch failed:', e) }
-    finally { setLoading(false) }
+    setLoading(true); setFetchErrors([])
+    // Promise.allSettled so one failure doesn't poison the rest.
+    // Each result is processed independently and errors are surfaced to the user.
+    const results = await Promise.allSettled([
+      fetch('/api/admin/users').then(async r => { if (!r.ok) throw new Error(`Users: HTTP ${r.status}`); return r.json() }),
+      fetch('/api/contact').then(async r => { if (!r.ok) throw new Error(`Contacts: HTTP ${r.status}`); return r.json() }),
+      fetch('/api/admin/messaging/templates').then(async r => { if (!r.ok) throw new Error(`Templates: HTTP ${r.status}`); return r.json() }),
+      fetch('/api/admin/messaging/broadcasts').then(async r => { if (!r.ok) throw new Error(`Broadcasts: HTTP ${r.status}`); return r.json() }),
+    ])
+
+    const labels = ['users', 'contacts', 'templates', 'broadcasts']
+    const errors = []
+
+    if (results[0].status === 'fulfilled') setUsers(results[0].value.users || [])
+    else errors.push(`Users: ${results[0].reason?.message || 'unknown'}`)
+
+    if (results[1].status === 'fulfilled') setContacts(results[1].value.data || [])
+    else errors.push(`Contacts: ${results[1].reason?.message || 'unknown'}`)
+
+    if (results[2].status === 'fulfilled') {
+      const tmpls = results[2].value.templates || []
+      setTemplates(tmpls)
+      console.log(`[Messaging] Loaded ${tmpls.length} templates:`, tmpls.map(t => `${t.name} (${t.category})`))
+    } else errors.push(`Templates: ${results[2].reason?.message || 'unknown'}`)
+
+    if (results[3].status === 'fulfilled') setBroadcasts(results[3].value.broadcasts || [])
+    else errors.push(`Broadcasts: ${results[3].reason?.message || 'unknown'}`)
+
+    if (errors.length) setFetchErrors(errors)
+    setLoading(false)
   }
 
   const fetchBroadcasts = async () => {
@@ -158,6 +177,20 @@ export default function MessagingPage() {
 
       {successMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-green-50 border border-green-200 text-green-700 flex items-center gap-2 animate-[fadeUp_0.2s_ease-out]"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>{successMsg}</div>}
       {errorMsg && <div className="mb-4 rounded-xl p-3 text-sm bg-red-50 border border-red-200 text-red-700">{errorMsg}</div>}
+      {fetchErrors.length > 0 && (
+        <div className="mb-4 rounded-xl p-3 bg-amber-50 border border-amber-200">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-amber-800 mb-1">Some data failed to load</p>
+              <ul className="text-xs text-amber-700 space-y-0.5">
+                {fetchErrors.map((e, i) => <li key={i}>· {e}</li>)}
+              </ul>
+              <p className="text-[11px] text-amber-600 mt-2">Most likely the API route was not deployed yet or PostgREST has a stale schema cache. Try a hard refresh (Cmd+Shift+R) or redeploy.</p>
+            </div>
+            <button onClick={fetchAll} className="px-3 py-1.5 text-xs font-semibold text-amber-800 bg-white border border-amber-200 rounded-lg hover:bg-amber-100 flex-shrink-0">Retry</button>
+          </div>
+        </div>
+      )}
 
       {/* Composer */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-5 animate-[fadeUp_0.35s_ease-out]">
@@ -206,17 +239,28 @@ export default function MessagingPage() {
             {mode === 'contacts' && contacts.length > 200 && <p className="text-[10px] text-gray-300 mt-1.5">Showing top 200 matches. Refine search to narrow down.</p>}
           </div>
 
-          {/* Templates */}
-          {relevantTemplates.length > 0 && (
-            <div>
-              <label className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2 block">Templates</label>
+          {/* Templates - always render so the section is visible even when empty */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Templates <span className="text-gray-300 ml-1">({relevantTemplates.length} for {mode === 'users' ? 'crew' : 'customers'} · {templates.length} total)</span></label>
+              <button onClick={() => setShowTemplatesModal(true)} className="text-[11px] font-semibold text-[#115997] hover:underline">Manage</button>
+            </div>
+            {relevantTemplates.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
                 {relevantTemplates.map((t) => (
                   <button key={t.id} onClick={() => pickTemplate(t)} className={'px-2.5 py-1.5 text-[11px] font-medium rounded-lg transition-all ' + (activeTemplateId === t.id ? 'bg-[#115997] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200')}>{t.name}</button>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-[#F5F6F8] rounded-xl p-3 text-center">
+                <p className="text-xs text-gray-500">
+                  {templates.length === 0
+                    ? 'No templates loaded yet. If you ran the SQL and pushed the code, tap Manage to add one or check the error banner above.'
+                    : `No templates in the ${mode === 'users' ? 'crew' : 'customer'} category yet. ${templates.length} template${templates.length === 1 ? ' exists' : 's exist'} in other categories.`}
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Composer */}
           <div>
