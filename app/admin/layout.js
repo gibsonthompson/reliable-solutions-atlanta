@@ -273,7 +273,7 @@ export default function AdminLayout({ children }) {
         )}
 
         {/* Main Content */}
-        <main className="admin-main flex-1 lg:ml-[220px] min-h-screen">
+        <main className="admin-main flex-1 lg:ml-[220px] min-h-screen overflow-x-hidden">
           <div className="max-w-[1400px] mx-auto">
             {children}
           </div>
