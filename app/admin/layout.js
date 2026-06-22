@@ -40,18 +40,35 @@ export default function AdminLayout({ children }) {
     document.body.style.overscrollBehavior = 'none'
     document.documentElement.style.overscrollBehavior = 'none'
 
-    // iOS Safari ignores user-scalable=no in browser mode. These gesture handlers catch it.
+    // iOS Safari ignores user-scalable=no in browser mode.
+    // CRITICAL: { passive: false } is REQUIRED for preventDefault() to work on touch/gesture events.
+    // Without it the listeners are passive by default and preventDefault is a silent no-op.
     const preventGesture = (e) => e.preventDefault()
-    document.addEventListener('gesturestart', preventGesture)
-    document.addEventListener('gesturechange', preventGesture)
-    document.addEventListener('gestureend', preventGesture)
+    const preventMultiTouch = (e) => { if (e.touches && e.touches.length > 1) e.preventDefault() }
+    let lastTouchEnd = 0
+    const preventDoubleTapZoom = (e) => {
+      const now = Date.now()
+      if (now - lastTouchEnd < 300) e.preventDefault()
+      lastTouchEnd = now
+    }
+
+    const opts = { passive: false }
+    document.addEventListener('gesturestart', preventGesture, opts)
+    document.addEventListener('gesturechange', preventGesture, opts)
+    document.addEventListener('gestureend', preventGesture, opts)
+    document.addEventListener('touchstart', preventMultiTouch, opts)
+    document.addEventListener('touchmove', preventMultiTouch, opts)
+    document.addEventListener('touchend', preventDoubleTapZoom, opts)
 
     return () => {
       document.body.style.overscrollBehavior = prevBodyOverscroll
       document.documentElement.style.overscrollBehavior = prevHtmlOverscroll
-      document.removeEventListener('gesturestart', preventGesture)
-      document.removeEventListener('gesturechange', preventGesture)
-      document.removeEventListener('gestureend', preventGesture)
+      document.removeEventListener('gesturestart', preventGesture, opts)
+      document.removeEventListener('gesturechange', preventGesture, opts)
+      document.removeEventListener('gestureend', preventGesture, opts)
+      document.removeEventListener('touchstart', preventMultiTouch, opts)
+      document.removeEventListener('touchmove', preventMultiTouch, opts)
+      document.removeEventListener('touchend', preventDoubleTapZoom, opts)
     }
   }, [])
 
@@ -279,7 +296,7 @@ export default function AdminLayout({ children }) {
         .admin-root {
           -webkit-tap-highlight-color: transparent;
           -webkit-text-size-adjust: 100%;
-          touch-action: manipulation;
+          touch-action: pan-x pan-y;
         }
         .admin-chrome,
         .admin-chrome * {
