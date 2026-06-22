@@ -280,10 +280,6 @@ export default function AdminLayout({ children }) {
         </main>
       </div>
       <style jsx global>{`
-        html, body {
-          overflow-x: hidden;
-          max-width: 100vw;
-        }
         @keyframes slideIn {
           from { transform: translateX(-100%); }
           to { transform: translateX(0); }

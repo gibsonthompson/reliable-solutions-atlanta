@@ -6,7 +6,7 @@ export const metadata = {
     default: 'Reliable Solutions Atlanta | Waterproofing & Foundation Repair',
     template: '%s | Reliable Solutions Atlanta',
   },
-  description: 'Family owned, 20+ years experience. 5-star rated on Google. We fix wet basements, crawl spaces, drainage, and foundation problems across Metro Atlanta — permanently. Free same-week inspections. Call 770-895-2039.',
+  description: 'Family owned, 20+ years experience. 5-star rated on Google. We fix wet basements, crawl spaces, drainage, and foundation problems across Metro Atlanta (permanently). Free same-week inspections. Call 770-895-2039.',
   keywords: ['waterproofing Atlanta', 'foundation repair Atlanta', 'basement waterproofing Atlanta', 'crawl space repair Atlanta', 'crawl space encapsulation Georgia', 'drainage solutions Atlanta', 'French drain installation', 'foundation repair Lawrenceville GA'],
   authors: [{ name: 'Reliable Solutions Atlanta' }],
   creator: 'Reliable Solutions Atlanta',
@@ -28,7 +28,7 @@ export const metadata = {
     url: 'https://www.waterhelpme.com',
     siteName: 'Reliable Solutions Atlanta',
     title: 'Reliable Solutions Atlanta | Waterproofing & Foundation Repair',
-    description: 'Family owned, 20+ years experience. 5-star rated on Google. We fix wet basements, crawl spaces, drainage, and foundation problems across Metro Atlanta — permanently. Free same-week inspections.',
+    description: 'Family owned, 20+ years experience. 5-star rated on Google. We fix wet basements, crawl spaces, drainage, and foundation problems across Metro Atlanta (permanently). Free same-week inspections.',
     images: [
       {
         url: '/images/og-image.jpg',
@@ -167,7 +167,7 @@ export default function RootLayout({ children }) {
           />
         </noscript>
       </head>
-      <body style={{ zoom: '0.9' }}>{children}</body>
+      <body>{children}</body>
     </html>
   )
 }
