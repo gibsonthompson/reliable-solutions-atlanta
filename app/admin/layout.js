@@ -212,11 +212,6 @@ export default function AdminLayout({ children }) {
       {/* Footer */}
       <div className="flex-shrink-0 border-t border-gray-100 px-3 py-3 space-y-0.5"
         style={{ paddingBottom: mobile ? 'max(0.75rem, env(safe-area-inset-bottom))' : undefined }}>
-        <Link href="/" target="_blank"
-          className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] text-gray-400 hover:text-[#115997] hover:bg-gray-50/80 transition-all">
-          <svg className="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-          <span>View Website</span>
-        </Link>
         <div className="flex items-center gap-3 px-3 py-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#115997] flex items-center justify-center flex-shrink-0 shadow-sm shadow-[#115997]/20">
             <span className="text-white font-bold text-xs">{user?.name?.charAt(0)?.toUpperCase()}</span>
