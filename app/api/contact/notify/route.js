@@ -25,18 +25,25 @@ async function sendSms(to, text) {
 }
 
 // Query enabled recipients subscribed to the given notification type.
+// Filters notification_types in JS rather than PostgREST .contains(). supabase-js
+// serializes an array arg to a Postgres array literal ({new_lead}), which only matches
+// a text[] column. If notification_types is jsonb, that literal is invalid JSON, the
+// query 400s, and every notification silently dispatches to zero recipients. Filtering
+// here is correct whether the column is jsonb or text[], since both return JS arrays.
 async function getRecipientPhones(type) {
   try {
     const { data, error } = await supabase
       .from('rsa_notification_recipients')
-      .select('phone')
+      .select('phone, notification_types')
       .eq('enabled', true)
-      .contains('notification_types', [type])
     if (error) {
       console.error('[NOTIFY] Failed to load recipients:', error.message)
       return []
     }
-    return (data || []).map(r => r.phone).filter(Boolean)
+    return (data || [])
+      .filter(r => Array.isArray(r.notification_types) && r.notification_types.includes(type))
+      .map(r => r.phone)
+      .filter(Boolean)
   } catch (e) {
     console.error('[NOTIFY] Recipients query error:', e)
     return []
