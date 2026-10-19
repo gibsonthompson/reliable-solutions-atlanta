@@ -11,7 +11,7 @@
 }
 
 /* Public website desktop zoom. Mobile gets no zoom so the admin 1layout */
-/* renders correctly without the iOS Safari CSS-zoom layout viewport bug. */
+/* renders correctly without the iOS Safari CSS-zoom layout viewport bug. */ 
 @media (min-width: 1024px) {
   body {
     zoom: 0.9;

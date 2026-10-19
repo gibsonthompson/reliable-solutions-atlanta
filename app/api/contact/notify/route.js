@@ -50,13 +50,6 @@ async function getRecipientPhones(type) {
   }
 }
 
-function formatPhoneForSms(phone) {
-  const digits = phone.replace(/\D/g, '')
-  if (digits.length === 10) return '+1' + digits
-  if (digits.length === 11 && digits.startsWith('1')) return '+' + digits
-  return null
-}
-
 function formatPhoneDisplay(phone) {
   const digits = phone.replace(/\D/g, '')
   if (digits.length === 10) return `${digits.slice(0,3)}-${digits.slice(3,6)}-${digits.slice(6)}`
@@ -73,6 +66,8 @@ function formatDateForSms(dateStr) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 // type: 'new_lead' | 'booked' | 'skipped'
+// Customer-facing confirmation texts are disabled. This endpoint only sends
+// internal team/admin alerts to the numbers in rsa_notification_recipients.
 export async function POST(request) {
   try {
     const { id, type } = await request.json()
@@ -88,11 +83,9 @@ export async function POST(request) {
       .single()
     if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    const firstName = data.name?.split(' ')[0] || ''
-    const leadPhone = formatPhoneForSms(data.phone)
-
     if (type === 'new_lead') {
-      // Body includes everything actionable: contact info, what they need, where, where they came from, what they said
+      // Internal alert to the team. Body includes everything actionable:
+      // contact info, what they need, where, where they came from, what they said.
       const lines = [
         'New Lead - RSA',
         data.name,
@@ -110,12 +103,9 @@ export async function POST(request) {
     }
 
     if (type === 'booked') {
+      // Internal alert to the team only. No confirmation text to the customer.
       const dateFormatted = formatDateForSms(data.scheduled_date)
       const timeStr = data.scheduled_time ? ` at ${data.scheduled_time}` : ''
-
-      if (leadPhone) {
-        await sendSms(leadPhone, `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! Your free estimate for ${data.service_type} is scheduled for ${dateFormatted}${timeStr}. If you need to reschedule, call or text 770-895-2039. - RSA Team`)
-      }
 
       const adminLines = [
         '📅 Estimate Booked',
@@ -132,11 +122,9 @@ export async function POST(request) {
       for (const phone of recipients) await sendSms(phone, adminBody)
     }
 
-    if (type === 'skipped') {
-      if (leadPhone) {
-        await sendSms(leadPhone, `Hey ${firstName}, thanks for reaching out to Reliable Solutions Atlanta! We received your request for ${data.service_type}. Our team will be calling you shortly to schedule your free inspection. If you need us sooner, call or text 770-895-2039. - RSA Team`)
-      }
-    }
+    // 'skipped' previously sent the customer a confirmation text. Customer texts
+    // are disabled, and the team already got the new_lead alert on submit, so
+    // there is nothing to send here.
 
     return NextResponse.json({ success: true })
   } catch (error) { console.error('Notify error:', error); return NextResponse.json({ error: 'Internal server error' }, { status: 500 }) }
