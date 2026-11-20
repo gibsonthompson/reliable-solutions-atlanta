@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { isSpam } from '../../../../lib/spamFilter'
 
 export const maxDuration = 120
 
@@ -82,6 +83,14 @@ export async function POST(request) {
       .eq('id', id)
       .single()
     if (error || !data) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    // Second line of defense: never text the team about something that looks like spam,
+    // no matter how the row got into the table.
+    const spamReason = isSpam(data)
+    if (spamReason) {
+      console.log(`[SPAM BLOCKED] notify skipped reason=${spamReason} id=${id} name="${data.name}"`)
+      return NextResponse.json({ success: true, skipped: 'spam' })
+    }
 
     if (type === 'new_lead') {
       // Internal alert to the team. Body includes everything actionable:

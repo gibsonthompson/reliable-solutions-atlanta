@@ -1,63 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { STAGE_KEYS } from '../../../lib/pipeline'
+import { isSpam } from '../../../lib/spamFilter'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
-
-function isSpam({ name, email, message }) {
-  if (name) {
-    const transitions = (name.match(/[A-Z][a-z]|[a-z][A-Z]/g) || []).length
-    if (transitions > 4) return 'gibberish_name'
-    const words = name.split(/\s+/)
-    for (const word of words) { if (word.length > 3 && /[A-Z]{3,}/.test(word) && word !== word.toUpperCase()) return 'gibberish_name' }
-    if (name.trim().split(/\s+/).length === 1 && name.trim().length > 12) return 'suspicious_name'
-  }
-  if (email) {
-    const localPart = email.split('@')[0] || ''
-    const dotCount = (localPart.match(/\./g) || []).length
-    if (dotCount >= 4) return 'dotted_email'
-    const segments = localPart.split('.')
-    const tinySegments = segments.filter(s => s.length <= 2).length
-    if (tinySegments >= 3) return 'fragmented_email'
-  }
-  if (message) {
-    const msgLower = message.toLowerCase()
-    const spamKeywords = [
-      'seo', 'search engine optimization', 'backlink', 'link building',
-      'rank your website', 'first page of google', 'domain authority',
-      'virtual assistant', 'cold calling', 'appointment setting',
-      'lead generation', 'social media management', 'bookkeeping',
-      'outsourc', 'offshore', 'filipino', 'philippines',
-      'enhance your client', 'boost your client', 'grow your business',
-      'scale your business', 'increase your revenue', 'increase your sales',
-      'open to a quick', '15-minute', '15 minute', 'quick conversation',
-      'quick call', 'quick chat', 'brief call', 'brief conversation',
-      'schedule a call', 'hop on a call', 'jump on a call',
-      'i\'d love to show you', 'i\'d love to discuss', 'let me show you',
-      'love to connect', 'love to chat',
-      'web development services', 'web design services', 'digital marketing services',
-      'marketing agency', 'staffing solution', 'staffing service',
-      'content creation service', 'customer support service',
-      'we provide expert', 'we specialize in', 'we offer a wide range',
-      'we can help enhance', 'we can help grow', 'we can help boost',
-      'ai chatbot', 'ai solution', 'automation service',
-      'b2b lead', 'qualified leads', 'warm leads',
-      'email campaign', 'email marketing', 'bulk email',
-      'pay per click', 'ppc management', 'google ads management',
-      'facebook ads management', 'roi guarantee',
-      'interested in learning more', 'would you be open', 'are you open to',
-      'shall i send', 'can i send you', 'let me send you',
-      'unsubscribe', 'opt out', 'opt-out',
-    ]
-    for (const keyword of spamKeywords) {
-      if (msgLower.includes(keyword)) return 'spam_keyword'
-    }
-  }
-  return null
-}
 
 // Triggers auto-job creation only on in_progress (per Gibson's preference).
 // Idempotent via existingJob duplicate check on address+client.
@@ -113,14 +62,18 @@ async function createAutoJob(contactRow) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { name, email, phone, service_type, message, source, address, referral_source, initial_status } = body
+    const { name, email, phone, service_type, message, source, address, referral_source, initial_status, company } = body
     if (!name || !phone || !service_type) return NextResponse.json({ error: 'Missing required fields (name, phone, service type)' }, { status: 400 })
 
     const isManualEntry = source === 'calendar' || source === 'manual' || source === 'admin'
     if (!isManualEntry) {
       if (!email) return NextResponse.json({ error: 'Missing email' }, { status: 400 })
-      const spamReason = isSpam({ name, email, message })
-      if (spamReason) { console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}"`); return NextResponse.json({ success: true }) }
+      const spamReason = isSpam({ name, email, phone, address, message, service_type, referral_source, company })
+      if (spamReason) {
+        console.log(`[SPAM BLOCKED] reason=${spamReason} name="${name}" email="${email}" address="${address || ''}"`)
+        // Respond like a normal success so bots don't learn they were filtered. No row, no contact, no text.
+        return NextResponse.json({ success: true })
+      }
     }
 
     // Validate initial_status against the pipeline single source of truth. Only admin/manual sources can set this.

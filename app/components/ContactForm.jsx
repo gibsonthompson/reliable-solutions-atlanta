@@ -14,6 +14,7 @@ export default function ContactForm() {
     referral_source: '',
     message: '',
   })
+  const [honeypot, setHoneypot] = useState('')
   const [status, setStatus] = useState('idle')
   const [leadId, setLeadId] = useState(null)
   const [leadName, setLeadName] = useState('')
@@ -47,13 +48,15 @@ export default function ContactForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    // Honeypot check: bots fill this hidden field, humans never see it
+    if (honeypot) return
     setStatus('submitting')
 
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, company: honeypot }),
       })
 
       if (!response.ok) throw new Error('Failed to submit')
@@ -108,6 +111,20 @@ export default function ContactForm() {
           <p>Something went wrong. Please try again.</p>
         </div>
       )}
+
+      {/* Honeypot: hidden from humans, bots auto-fill it */}
+      <div className="absolute -left-[9999px]" aria-hidden="true">
+        <label htmlFor="contact-company">Company</label>
+        <input
+          type="text"
+          id="contact-company"
+          name="company"
+          value={honeypot}
+          onChange={(e) => setHoneypot(e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
 
       <div className="grid md:grid-cols-2 gap-4">
         <div>
